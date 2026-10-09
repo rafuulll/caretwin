@@ -1,0 +1,216 @@
+name: 'Dia fecha na meia-noite local e vai para a fila'
+version: 1
+author: 'CareTwin'
+
+steps:
+  - wait-serial: '[READY] aquisicao iniciada'
+  # 1792551480 = 2026-10-20 23:58:00 no horario de Brasilia
+  - write-serial: "T 1792551480\n"
+  - wait-serial: 'origem=manual hora_local=2026-10-20T23:58'
+  - delay: 1000ms
+  - set-control:
+      part-id: imu1
+      control: accelZ
+      value: 1.5
+  - delay: 150ms
+  - set-control:
+      part-id: imu1
+      control: accelZ
+      value: 0.8
+  - delay: 350ms
+  - set-control:
+      part-id: imu1
+      control: accelZ
+      value: 1.5
+  - delay: 150ms
+  - set-control:
+      part-id: imu1
+      control: accelZ
+      value: 0.8
+  - delay: 350ms
+  - set-control:
+      part-id: imu1
+      control: accelZ
+      value: 1.5
+  - delay: 150ms
+  - set-control:
+      part-id: imu1
+      control: accelZ
+      value: 0.8
+  - delay: 350ms
+  - set-control:
+      part-id: imu1
+      control: accelZ
+      value: 1.5
+  - delay: 150ms
+  - set-control:
+      part-id: imu1
+      control: accelZ
+      value: 0.8
+  - delay: 350ms
+  - set-control:
+      part-id: imu1
+      control: accelZ
+      value: 1.5
+  - delay: 150ms
+  - set-control:
+      part-id: imu1
+      control: accelZ
+      value: 0.8
+  - delay: 350ms
+  - set-control:
+      part-id: imu1
+      control: accelZ
+      value: 1.5
+  - delay: 150ms
+  - set-control:
+      part-id: imu1
+      control: accelZ
+      value: 0.8
+  - delay: 350ms
+  - set-control:
+      part-id: imu1
+      control: accelZ
+      value: 1.5
+  - delay: 150ms
+  - set-control:
+      part-id: imu1
+      control: accelZ
+      value: 0.8
+  - delay: 350ms
+  - set-control:
+      part-id: imu1
+      control: accelZ
+      value: 1.5
+  - delay: 150ms
+  - set-control:
+      part-id: imu1
+      control: accelZ
+      value: 0.8
+  - delay: 350ms
+  - set-control:
+      part-id: imu1
+      control: accelZ
+      value: 1.5
+  - delay: 150ms
+  - set-control:
+      part-id: imu1
+      control: accelZ
+      value: 0.8
+  - delay: 350ms
+  - set-control:
+      part-id: imu1
+      control: accelZ
+      value: 1.5
+  - delay: 150ms
+  - set-control:
+      part-id: imu1
+      control: accelZ
+      value: 0.8
+  - delay: 350ms
+  - set-control:
+      part-id: imu1
+      control: accelZ
+      value: 1.5
+  - delay: 150ms
+  - set-control:
+      part-id: imu1
+      control: accelZ
+      value: 0.8
+  - delay: 350ms
+  - set-control:
+      part-id: imu1
+      control: accelZ
+      value: 1.5
+  - delay: 150ms
+  - set-control:
+      part-id: imu1
+      control: accelZ
+      value: 0.8
+  - delay: 350ms
+  - set-control:
+      part-id: imu1
+      control: accelZ
+      value: 1.5
+  - delay: 150ms
+  - set-control:
+      part-id: imu1
+      control: accelZ
+      value: 0.8
+  - delay: 350ms
+  - set-control:
+      part-id: imu1
+      control: accelZ
+      value: 1.5
+  - delay: 150ms
+  - set-control:
+      part-id: imu1
+      control: accelZ
+      value: 0.8
+  - delay: 350ms
+  - set-control:
+      part-id: imu1
+      control: accelZ
+      value: 1.5
+  - delay: 150ms
+  - set-control:
+      part-id: imu1
+      control: accelZ
+      value: 0.8
+  - delay: 350ms
+  - set-control:
+      part-id: imu1
+      control: accelZ
+      value: 1.5
+  - delay: 150ms
+  - set-control:
+      part-id: imu1
+      control: accelZ
+      value: 0.8
+  - delay: 350ms
+  - set-control:
+      part-id: imu1
+      control: accelZ
+      value: 1.5
+  - delay: 150ms
+  - set-control:
+      part-id: imu1
+      control: accelZ
+      value: 0.8
+  - delay: 350ms
+  - set-control:
+      part-id: imu1
+      control: accelZ
+      value: 1.5
+  - delay: 150ms
+  - set-control:
+      part-id: imu1
+      control: accelZ
+      value: 0.8
+  - delay: 350ms
+  - set-control:
+      part-id: imu1
+      control: accelZ
+      value: 1.5
+  - delay: 150ms
+  - set-control:
+      part-id: imu1
+      control: accelZ
+      value: 0.8
+  - delay: 350ms
+  - set-control:
+      part-id: imu1
+      control: accelZ
+      value: 1.5
+  - delay: 150ms
+  - set-control:
+      part-id: imu1
+      control: accelZ
+      value: 0.8
+  - delay: 350ms
+  - set-control:
+      part-id: imu1
+      control: accelZ
+      value: 1
+  - wait-serial: '[DAY] fechado data=2026-10-20 passos=20'
+  - wait-serial: '[TX] sincronizacao motivo=pedido dias=1'

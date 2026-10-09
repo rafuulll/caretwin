@@ -1,0 +1,91 @@
+{
+  "version": 1,
+  "author": "CareTwin",
+  "editor": "wokwi",
+  "parts": [
+    { "type": "board-esp32-s3-devkitc-1", "id": "esp", "top": 0, "left": 0, "attrs": {} },
+    {
+      "type": "wokwi-mpu6050",
+      "id": "imu1",
+      "top": 20,
+      "left": 230,
+      "attrs": { "accelX": "0", "accelY": "0", "accelZ": "1" }
+    },
+    {
+      "type": "wokwi-ili9341",
+      "id": "lcd1",
+      "top": -380,
+      "left": 190,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-potentiometer",
+      "id": "pot1",
+      "top": 170,
+      "left": 230,
+      "attrs": { "value": "800" }
+    },
+    {
+      "type": "wokwi-potentiometer",
+      "id": "pot2",
+      "top": 270,
+      "left": 230,
+      "attrs": { "value": "250" }
+    },
+    {
+      "type": "wokwi-pushbutton",
+      "id": "btn1",
+      "top": 20,
+      "left": -170,
+      "attrs": { "color": "blue", "key": "a" }
+    },
+    {
+      "type": "wokwi-pushbutton",
+      "id": "btn2",
+      "top": 100,
+      "left": -170,
+      "attrs": { "color": "green", "key": "b" }
+    },
+    {
+      "type": "wokwi-pushbutton",
+      "id": "btn3",
+      "top": 180,
+      "left": -170,
+      "attrs": { "color": "red", "key": "f" }
+    }
+  ],
+  "connections": [
+    [ "esp:TX", "$serialMonitor:RX", "", [] ],
+    [ "esp:RX", "$serialMonitor:TX", "", [] ],
+
+    [ "imu1:VCC", "esp:3V3.1", "red", [] ],
+    [ "imu1:GND", "esp:GND.1", "black", [] ],
+    [ "imu1:SDA", "esp:8", "green", [] ],
+    [ "imu1:SCL", "esp:9", "blue", [] ],
+
+    [ "lcd1:VCC", "esp:3V3.2", "red", [] ],
+    [ "lcd1:GND", "esp:GND.2", "black", [] ],
+    [ "lcd1:CS", "esp:10", "orange", [] ],
+    [ "lcd1:D/C", "esp:7", "yellow", [] ],
+    [ "lcd1:RST", "esp:14", "white", [] ],
+    [ "lcd1:MOSI", "esp:11", "green", [] ],
+    [ "lcd1:SCK", "esp:12", "blue", [] ],
+    [ "lcd1:LED", "esp:15", "purple", [] ],
+
+    [ "pot1:VCC", "esp:3V3.1", "red", [] ],
+    [ "pot1:GND", "esp:GND.3", "black", [] ],
+    [ "pot1:SIG", "esp:1", "orange", [] ],
+
+    [ "pot2:VCC", "esp:3V3.1", "red", [] ],
+    [ "pot2:GND", "esp:GND.3", "black", [] ],
+    [ "pot2:SIG", "esp:2", "orange", [] ],
+
+    [ "btn1:1.l", "esp:4", "purple", [] ],
+    [ "btn1:2.l", "esp:GND.4", "black", [] ],
+    [ "btn2:1.l", "esp:5", "green", [] ],
+    [ "btn2:2.l", "esp:GND.4", "black", [] ],
+    [ "btn3:1.l", "esp:6", "red", [] ],
+    [ "btn3:2.l", "esp:GND.4", "black", [] ]
+  ],
+  "dependencies": {}
+}

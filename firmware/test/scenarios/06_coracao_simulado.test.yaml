@@ -1,0 +1,29 @@
+name: 'Frequencia cardiaca simulada: dedo no sensor e potenciometro'
+version: 1
+author: 'CareTwin'
+
+steps:
+  - wait-serial: '[READY] aquisicao iniciada'
+  # Sem dedo: bpm = 0
+  - write-serial: "H\n"
+  - wait-serial: 'dedo=0 bpm=0'
+  # Dedo no sensor (botao btn3), potenciometro no maximo = 200 bpm
+  - set-control:
+      part-id: btn3
+      control: pressed
+      value: 1
+  - set-control:
+      part-id: pot2
+      control: position
+      value: 1
+  - delay: 300ms
+  - write-serial: "H\n"
+  - wait-serial: 'dedo=1 bpm=200'
+  # Potenciometro no minimo = 40 bpm
+  - set-control:
+      part-id: pot2
+      control: position
+      value: 0
+  - delay: 300ms
+  - write-serial: "H\n"
+  - wait-serial: 'dedo=1 bpm=40'

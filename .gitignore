@@ -1,0 +1,18 @@
+# segredos
+.env
+.env.*
+!.env.example
+
+# dependencias e builds
+node_modules/
+dist/
+__pycache__/
+*.pyc
+.venv/
+.pio/
+.vscode/.browse*
+
+# arquivos locais, nao vao para o repositorio
+_arquivo_local/
+simulador/saida/
+.DS_Store

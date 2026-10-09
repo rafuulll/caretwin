@@ -1,0 +1,13 @@
+name: 'Boot: IMU, display, frequencia cardiaca simulada e aquisicao'
+version: 1
+author: 'CareTwin'
+
+steps:
+  - wait-serial: '[BOOT] CareTwin'
+  - wait-serial: '[IMU] MPU6050 ok'
+  - wait-serial: '[DISPLAY] ok'
+  - wait-serial: '[HR] simulado'
+  - wait-serial: '[READY] aquisicao iniciada'
+  # O primeiro minuto costuma ser parcial; o segundo precisa ter dado (>= 80% das amostras validas).
+  # Sem hora valida o minuto ainda fecha; a hora chega pelo Wi-Fi do Wokwi (NTP) ou pelo comando T.
+  - wait-serial: 'com_dado=1'

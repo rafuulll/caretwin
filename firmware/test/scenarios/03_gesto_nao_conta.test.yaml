@@ -1,0 +1,44 @@
+name: '3 picos isolados (gesto) nao viram passos'
+version: 1
+author: 'CareTwin'
+
+steps:
+  - wait-serial: '[READY] aquisicao iniciada'
+  - delay: 500ms
+  - set-control:
+      part-id: imu1
+      control: accelZ
+      value: 1.5
+  - delay: 150ms
+  - set-control:
+      part-id: imu1
+      control: accelZ
+      value: 0.8
+  - delay: 350ms
+  - set-control:
+      part-id: imu1
+      control: accelZ
+      value: 1.5
+  - delay: 150ms
+  - set-control:
+      part-id: imu1
+      control: accelZ
+      value: 0.8
+  - delay: 350ms
+  - set-control:
+      part-id: imu1
+      control: accelZ
+      value: 1.5
+  - delay: 150ms
+  - set-control:
+      part-id: imu1
+      control: accelZ
+      value: 0.8
+  - delay: 350ms
+  - set-control:
+      part-id: imu1
+      control: accelZ
+      value: 1
+  - delay: 3000ms
+  - write-serial: "Q\n"
+  - wait-serial: 'passos_hoje=0'

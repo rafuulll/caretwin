@@ -1,0 +1,176 @@
+openapi: 3.0.3
+info:
+  title: CareTwin API
+  version: 0.1.0
+  description: >
+    Contrato inicial. Os tres endpoints /v1/device/* ja sao usados pelo firmware
+    (ver firmware/README.md e simulador/README.md). Os endpoints do site (leitura) ainda serao definidos.
+servers:
+  - url: http://localhost:8000
+    description: local
+tags:
+  - name: device
+    description: Enviados pela pulseira
+paths:
+  /v1/device/daily:
+    post:
+      tags: [device]
+      summary: Resumo diario (passos e minutos ativos)
+      security:
+        - DeviceToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DailyPayload'
+            example:
+              firmware: 0.2.0-sim
+              battery_pct: 61
+              days:
+                - date: '2026-10-20'
+                  steps: 42
+                  active_minutes: 1
+      responses:
+        '401':
+          description: Sem o cabecalho Authorization ou token invalido
+        '422':
+          description: Corpo da requisicao invalido (JSON malformado ou campos fora do formato)
+        '200':
+          description: Quais dias foram aceitos e quais recusados
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcceptedRejected'
+              example:
+                accepted: ['2026-10-20']
+                rejected: []
+  /v1/device/nights:
+    post:
+      tags: [device]
+      summary: Janela da noite (840 valores, um por minuto)
+      security:
+        - DeviceToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NightPayload'
+      responses:
+        '401':
+          description: Sem o cabecalho Authorization ou token invalido
+        '422':
+          description: Corpo da requisicao invalido (JSON malformado ou campos fora do formato)
+        '200':
+          description: Quais noites foram aceitas e quais recusadas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcceptedRejected'
+  /v1/device/live:
+    post:
+      tags: [device]
+      summary: Modo ao vivo (passos de hoje, enviado a cada poucos segundos)
+      security:
+        - DeviceToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LivePayload'
+            example:
+              steps_today: 1234
+              ts: '2026-10-20T15:04:05-03:00'
+      responses:
+        '401':
+          description: Sem o cabecalho Authorization ou token invalido
+        '422':
+          description: Corpo da requisicao invalido (JSON malformado ou campos fora do formato)
+        '200':
+          description: Recebido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcceptedRejected'
+components:
+  securitySchemes:
+    DeviceToken:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: >
+        Formato usado pelo firmware: "Authorization: Device <token>". Sem o cabecalho,
+        a API responde 401. A emissao e a validacao dos tokens ficam com o backend.
+  schemas:
+    DailyPayload:
+      type: object
+      required: [firmware, days]
+      properties:
+        firmware:
+          type: string
+        battery_pct:
+          type: integer
+          minimum: 0
+          maximum: 100
+        days:
+          type: array
+          items:
+            $ref: '#/components/schemas/DayRecord'
+    DayRecord:
+      type: object
+      required: [date, steps, active_minutes]
+      properties:
+        date:
+          type: string
+          format: date
+          description: Data local (AAAA-MM-DD)
+        steps:
+          type: integer
+          minimum: 0
+        active_minutes:
+          type: integer
+          minimum: 0
+    NightPayload:
+      type: object
+      required: [night_date, window_start, counts]
+      properties:
+        night_date:
+          type: string
+          format: date
+        window_start:
+          type: string
+          format: date-time
+          description: Inicio da janela (20:00 local, com fuso)
+        counts:
+          type: array
+          minItems: 840
+          maxItems: 840
+          description: Atividade por minuto; null significa sem dado
+          items:
+            type: integer
+            nullable: true
+            minimum: 0
+    LivePayload:
+      type: object
+      required: [steps_today, ts]
+      properties:
+        steps_today:
+          type: integer
+          minimum: 0
+        ts:
+          type: string
+          format: date-time
+    AcceptedRejected:
+      type: object
+      required: [accepted, rejected]
+      properties:
+        accepted:
+          type: array
+          items:
+            type: string
+        rejected:
+          type: array
+          items:
+            type: string

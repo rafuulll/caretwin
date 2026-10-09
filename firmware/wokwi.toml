@@ -1,0 +1,5 @@
+[wokwi]
+version = 1
+# Gerados por: pio run -e wokwi
+firmware = '.pio/build/wokwi/firmware.bin'
+elf = '.pio/build/wokwi/firmware.elf'
