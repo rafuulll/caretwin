@@ -22,7 +22,7 @@ Se um segredo vazar no Git, troque a chave na hora e avise o grupo.
 O arquivo docs/openapi.yaml descreve a API. Quem muda um endpoint muda o contrato no mesmo PR e avisa o grupo.
 
 1. O Fabricio gera/atualiza o OpenAPI a partir do FastAPI e commita em docs/openapi.yaml.
-2. O Rafael gera os tipos TypeScript a partir dele (openapi-typescript) e usa dados de mentira (MSW) ate a API real estar no ar.
+2. O Rafael gera os tipos TypeScript a partir dele (openapi-typescript). Ate a API real estar no ar, o site usa dados de exemplo no proprio navegador (apps/web/src/lib/store.ts).
 3. A pulseira usa os endpoints v1 do contrato. Mudanca incompativel vira v2, nao altera a v1.
 
 ## Testar sem a pulseira
@@ -31,7 +31,7 @@ O simulador em simulador/ gera os dados da pulseira (varios cenarios) e a API fa
 
 ## Previews e ambientes
 
-Vercel cria um link de preview para cada PR do site. A API tem um ambiente de teste na Railway e um de producao. O site aponta para a API pela variavel VITE_API_URL.
+Vercel cria um link de preview para cada PR do site. A API tem um ambiente de teste na Railway e um de producao. O site aponta para a API pela variavel NEXT_PUBLIC_API_URL.
 
 ## Integracao semanal
 

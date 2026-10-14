@@ -1,6 +1,6 @@
 # CareTwin
 
-Projeto UPX (UniFacens). Pulseira com ESP32-S3, API FastAPI, Supabase, PWA em React e IA que explica os dados com base em uma linha de base pessoal.
+Projeto UPX (UniFacens). Pulseira com ESP32-S3, API FastAPI, Supabase, PWA em Next.js e IA que explica os dados com base em uma linha de base pessoal.
 
 Equipe: Rafael (produto, UX, frontend e hardware), Fabricio (backend, banco, API, infra) e Lucas (IA e linha de base).
 Quadro de tarefas: https://trello.com/b/v8PlBQcb/upx
@@ -15,7 +15,7 @@ A API e o centro: todo mundo conversa com ela e o contrato fica em docs/openapi.
 
 ## Estrutura
 
-  apps/web      Site PWA (React, Vite, TypeScript). Dono: Rafael. Deploy: Vercel, Root Directory apps/web
+  apps/web      Site PWA (Next.js, React, Tailwind, TypeScript). Dono: Rafael. Deploy: Vercel, Root Directory apps/web
   apps/api      API (FastAPI). Dono: Fabricio. Deploy: Railway, Root Directory apps/api
   ai            Linha de base pessoal e geracao de texto. Dono: Lucas. Comeca como modulo Python usado pela API
   firmware      Programa da pulseira, com simulador Wokwi e testes. Dono: Rafael
@@ -30,7 +30,7 @@ Backend ou IA, sem a pulseira:
   3. Faca a sua API responder igual a simulador/mock_api.py e teste com o simulador apontando para ela.
 
 Site:
-  1. Gere os tipos a partir de docs/openapi.yaml e use dados de mentira (MSW) ate a API existir: apps/web/README.md.
+  1. Rode o site com dados de exemplo (npm install e npm run dev em apps/web) e veja como ligar a API em apps/web/README.md.
   2. Para encher o painel com dados realistas, use o simulador com a sua API local.
 
 Firmware:
