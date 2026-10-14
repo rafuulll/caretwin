@@ -15,7 +15,7 @@ Dois itens já estão construídos e desligados: o login com Google e o banco no
 - [ ] 5. **WhatsApp**: avisar quem acompanha onde a família realmente lê
 - [ ] 6. **n8n**: fazer o e-mail e o WhatsApp acontecerem sozinhos
 - [ ] 7. **Banco no Neon**: guardar fora do navegador sem esperar a API · *já construído, falta a conexão*
-- [ ] 8. **Antes de publicar**: proteger as rotas de servidor
+- [ ] 8. **Antes de publicar**: rota protegida · *falta a Deployment Protection e as variáveis na Vercel*
 
 ---
 
@@ -75,10 +75,20 @@ Dois itens já estão construídos e desligados: o login com Google e o banco no
 
 ## 8. Antes de publicar
 
-Nada deste protótipo é publicado hoje. Se um dia for, duas coisas vêm antes:
+**Estado hoje.** O app está publicado na Vercel, a partir da branch main e da pasta `apps/web`, com o link de produção aberto para quem tiver a URL. Ele só mostra dados de exemplo guardados no navegador de quem abre, e não há banco nem login ligados. Por isso está seguro para ser visto como protótipo. A rota `/api/dados` já está protegida para quando o banco for ligado (veja abaixo).
 
-- A rota `src/app/api/dados` ainda não pergunta quem está chamando. Ela precisa exigir a sessão assinada de `src/lib/sessao-servidor.ts` e recusar o que não for de quem pediu. Dado de saúde nunca fica aberto.
-- Os dados de exemplo saem, e entram os da API.
+**Passo 1 está feito.** Com o banco ligado, a rota `src/app/api/dados` recusa (401) quem não tem a sessão assinada de `src/lib/sessao-servidor.ts` ou cujo e-mail não está em `EMAILS_PERMITIDOS`. Sem `AUTH_SECRET` ou sem a lista, ela também recusa. Com o banco desligado, como hoje, nada muda.
+
+**Falta, nesta ordem:**
+
+1. Ative a Deployment Protection na Vercel (Settings, Deployment Protection) para a prévia e para a produção, se o link deixar de ser só para mostrar.
+2. Coloque nas variáveis de ambiente da Vercel, todas juntas: `AUTH_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `EMAILS_PERMITIDOS` (seu e-mail e o de quem mais puder ver) e só por último `DATABASE_URL`. Cadastre também o endereço de produção em "URIs de redirecionamento autorizados" no Google Cloud Console.
+3. Entre com uma conta da lista e confira que os dados aparecem. Em janela anônima, sem entrar, o app tem que continuar mostrando só os exemplos.
+4. Troque os dados de exemplo pelos da API, e não o contrário.
+
+**Limite que continua valendo.** A lista é um trinco só: quem está nela vê todas as pessoas do banco. Separar "os que eu acompanho" por cuidador exige a tabela de usuários, que ainda não foi desenhada (veja `banco/schema.sql`).
+
+**Por quê.** Sem a lista e a sessão, qualquer visitante lê e grava dados de saúde pela URL pública assim que a `DATABASE_URL` entra na Vercel.
 
 ---
 

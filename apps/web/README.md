@@ -58,13 +58,15 @@ Os passos de hoje são comparados com o normal até este horário, e não com o 
 
 ## Publicar na Vercel
 
+Hoje o link de produção está aberto e mostra só dados de exemplo. A rota `/api/dados` já exige sessão e e-mail na lista `EMAILS_PERMITIDOS` quando o banco está ligado, mas antes de colocar `DATABASE_URL` ou as chaves do Google na Vercel, siga a ordem do item 8 do `PROXIMOS-PASSOS.md`.
+
 O projeto vive em `apps/web` dentro do repositório do CareTwin. Na Vercel:
 
 1. Importe o repositório e escolha `apps/web` em Root Directory. O resto a Vercel detecta sozinha.
 2. Não precisa de variável de ambiente. Sem chaves, o app roda com os dados de exemplo de quem abre.
 3. A branch principal vira o site oficial, e cada outra branch ou PR ganha um link de prévia.
 
-Antes de divulgar o link, ative a proteção da prévia em Settings, Deployment Protection. Sem isso, qualquer pessoa com a URL abre o app. A rota `/api/dados` responde "desligado" enquanto não houver banco, mas ela ainda não pergunta quem está chamando: se um dia ligar o banco ou o login, proteja essa rota antes (o aviso está em `src/app/api/dados/route.ts`).
+Antes de divulgar o link, ative a proteção da prévia em Settings, Deployment Protection. Sem isso, qualquer pessoa com a URL abre o app. Com o banco desligado, a rota `/api/dados` responde "desligado" e não guarda nada. Com o banco ligado, ela recusa (401) quem não entrou com uma conta de `EMAILS_PERMITIDOS`.
 
 ## O que está desligado de propósito
 
