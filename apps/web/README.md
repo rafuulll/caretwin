@@ -1,104 +1,98 @@
-# apps/web: site e app do CareTwin
+# CareTwin
 
-O CareTwin acompanha o dia de uma pessoa pela pulseira e avisa, em palavras simples, quando os passos, o sono ou os batimentos fogem do normal **dela**. Esta pasta tem o site de apresentação e o app (PWA) que a família ou a própria pessoa usa.
+O CareTwin acompanha o dia a dia de uma pessoa por uma pulseira discreta, aprende o que é normal para ela e explica, em palavras simples, quando algo muda. É um acompanhamento gentil, sem diagnóstico e sem susto, para quem usa a pulseira e para o familiar ou cuidador que acompanha à distância.
 
-Dono: Rafael (produto, UX e frontend). Cartões no Trello: lista 7.x.
+Este é o protótipo das telas, projeto acadêmico da disciplina UPX (Engenharia da Computação). Ele roda só neste computador, com pessoas e dias de exemplo guardados no navegador. Nenhum dado é de pessoa de verdade e nenhum dado sai daqui.
 
 ## Como rodar
 
-Precisa do Node.js 20 ou mais novo.
+Com Node.js 20 ou mais novo:
 
 ```bash
-cd apps/web
 npm install
 npm run dev
 ```
 
-Abra http://localhost:3000. Para testar como vai ficar no ar (com o modo offline ligado):
+Abra <http://localhost:3000>. Para entrar, escreva qualquer nome ou e-mail e qualquer senha: a senha não é conferida nem guardada.
+
+Com Docker (precisa do Docker Desktop aberto), na pasta do projeto:
 
 ```bash
-npm run build
-npm start
+docker compose up --build
 ```
 
-Outros comandos: `npm run lint` e `npm run typecheck`.
+Abra <http://localhost:3000>. Para parar, `Ctrl+C` e depois `docker compose down`. Depois de mudar qualquer tela, rode de novo o `up --build`, porque a imagem guarda o código do momento em que foi feita. A porta fica presa a este computador.
 
-Nesta versão não precisa de API, banco nem conta: o app abre com duas pessoas de exemplo (Dona Cida e Seu Jorge) e 21 dias de dados que se renovam a cada dia. Para entrar, qualquer e-mail ou nome e qualquer senha servem. A senha não é guardada em lugar nenhum.
+Outros comandos:
 
-## O que tem pronto
-
-Site (público)
-- `/` página de apresentação, com o tour da primeira visita
-- `/entrar` entrada com e-mail ou nome e o botão do Google (abre o passo a passo de como ligar)
-- `/como-usar` guia curto para quem vai usar e para quem vai ligar as partes
-
-App (depois de entrar)
-- `/app/hoje` resumo do dia: passos comparados com o normal até este horário, a noite, os batimentos, o estado da pulseira e o resumo escrito
-- `/app/sono` noite estimada a partir do movimento (actigrafia), com 14 noites e o horário de costume
-- `/app/batimentos` medição guiada de 12 segundos e o histórico com a faixa de costume
-- `/app/alertas` avisos do que fugiu do normal, agrupados por dia, com marcar como lido
-- `/app/ajustes` pessoas e pulseiras, tema claro ou escuro, texto grande, perfil e dados de exemplo
-- `/app/primeiro-uso` assistente de 3 passos para cadastrar uma pessoa e a pulseira dela
-
-Também: funciona offline depois da primeira visita (service worker), pode ser instalado como app no celular, tem tema escuro e modo de texto grande, e passou na auditoria automática de acessibilidade (axe, WCAG 2.2 AA) em todas as rotas, no claro, no escuro e no celular.
-
-## Como o "normal de cada um" é calculado
-
-Fica em `src/lib/normal.ts`, com os números em `src/lib/modelo.ts` (`REGRAS_NORMAL`):
-
-1. Pega os 14 dias anteriores da pessoa (precisa de pelo menos 5).
-2. A faixa normal vai do percentil 20 ao percentil 80 desses dias, com 10% de margem para cada lado.
-3. Um dia vira alerta quando passa da faixa por mais de 10%.
-4. Os passos de hoje são comparados com o "normal até este horário", usando uma curva de quanto se anda em cada hora do dia.
-
-O sono é estimado em `src/lib/sono.ts` a partir das contagens de movimento por minuto, das 20:00 às 10:00 (840 minutos).
-
-Essa lógica é a referência para o Lucas no módulo `ai/` (linha de base). Quando a API estiver pronta, o cálculo passa a vir de lá e esta versão continua como reserva e para os testes.
-
-## Estrutura
-
-```
-src/
-  app/                rotas (App Router do Next.js)
-  components/
-    ui/               botões, campos, diálogos, selos, alternador, anúncios para leitor de tela
-    graficos/         gráficos em SVG, cada um com tabela acessível e leitura por teclado
-    app/              casca do app (menus, barra superior) e as telas em app/telas
-    marketing/        seções do site
-    auth/             entrada e o passo a passo do Google
-    onboarding/       tour da primeira visita (driver.js)
-    pwa/              registro do service worker
-  content/            todos os textos do produto (site.ts, app.ts, ia.ts, tour.ts)
-  lib/                tipos, regras do normal, sono, dados de exemplo, armazenamento, formatação
-public/sw.js          service worker (modo offline)
-design-system/        o sistema de design gerado pela skill ui-ux-pro-max
+```bash
+npm run build      # confere que o app compila como ficaria publicado
+npm run lint       # confere o estilo do código
+npm run storybook  # catálogo de componentes em http://localhost:6006
 ```
 
-Regra da casa: texto que aparece na tela fica em `src/content`, nunca dentro do componente. Cor sai sempre dos tokens em `src/app/globals.css`, nunca hex direto.
+Para o Next.js não enviar dados de uso, rode uma vez `npx next telemetry disable`. A telemetria do Storybook e a da imagem Docker já vêm desligadas.
 
-## Onde os dados ficam agora
+## As telas
 
-Tudo fica no `localStorage` do navegador (`src/lib/store.ts`), em três chaves: `caretwin:dados:v1`, `caretwin:sessao:v1` e `caretwin:preferencias:v1`. Em Ajustes dá para restaurar os exemplos ou apagar tudo.
+- Site, na raiz (`/`): o que o CareTwin resolve, com um normal de exemplo desenhado com os dados do app.
+- Entrar (`/entrar`): nome ou e-mail, senha e o botão do Google.
+- Como usar (`/como-usar`): o que já funciona e o que ainda falta ligar.
+- Painel (`/app/painel`): os passos de hoje contra o normal até este horário, a bateria e a última atualização da pulseira.
+- Sono (`/app/sono`): quanto a pessoa dormiu, quantas vezes acordou. É sempre uma estimativa.
+- Batimentos (`/app/batimentos`): medição guiada de 12 segundos e o histórico.
+- Alertas (`/app/alertas`): o resumo escrito do dia e os alertas de mudança, com marcar como lido.
+- Primeiro uso (`/app/primeiro-uso`): conectar a pulseira e criar o perfil.
+- Configurações (`/app/configuracoes`): dados de exemplo e perfil.
 
-## Como ligar as partes de verdade depois
+## Como o normal funciona
 
-API (Fabrício)
-1. Copie `.env.example` para `.env.local` e preencha `NEXT_PUBLIC_API_URL`.
-2. Gere os tipos do contrato: `npx openapi-typescript ../../docs/openapi.yaml -o src/lib/api.d.ts`.
-3. Troque as funções de `src/lib/store.ts` (as telas só chamam essas funções e os hooks `useDados`, `useSessao` e `usePreferencias`, então nenhuma tela precisa mudar). `sincronizarAgora` faz hoje o papel do `POST /v1/device/live`.
+A regra é a do cartão 2.3 do Trello. Os números estão em `src/lib/modelo.ts` e a conta em `src/lib/normal.ts`.
 
-Login com Google (Supabase Auth)
-O passo a passo completo está dentro do app, no botão "Entrar com Google" da tela de entrada. Depois de criar o projeto no Supabase, preencha `NEXT_PUBLIC_SUPABASE_URL` e `NEXT_PUBLIC_SUPABASE_ANON_KEY` e troque a função `entrar` do `store.ts`.
+1. O normal é a média dos 7 dias que vêm antes dos 3 dias mais recentes.
+2. A faixa do normal vai 20% para baixo e 20% para cima dessa média.
+3. Um alerta nasce quando 2 dos 3 dias recentes fogem da faixa para o mesmo lado.
+4. Com menos de 5 dias válidos, o app diz que ainda está aprendendo e não compara.
 
-Resumos escritos pela IA (Lucas)
-Os resumos de hoje usam modelos de texto com os números reais do dia (`src/content/ia.ts`). Quando a API chamar a IA local (Ollama), o texto vem dela e esses modelos ficam como reserva. O passo a passo está no botão "Como ligar" do cartão de resumo.
+Os passos de hoje são comparados com o normal até este horário, e não com o dia inteiro.
 
-## Deploy
+## Publicar na Vercel
 
-Na Vercel, com Root Directory `apps/web`. Nada foi publicado ainda.
+O projeto vive em `apps/web` dentro do repositório do CareTwin. Na Vercel:
 
-## Mais detalhes
+1. Importe o repositório e escolha `apps/web` em Root Directory. O resto a Vercel detecta sozinha.
+2. Não precisa de variável de ambiente. Sem chaves, o app roda com os dados de exemplo de quem abre.
+3. A branch principal vira o site oficial, e cada outra branch ou PR ganha um link de prévia.
 
-- `DECISOES.md`: por que cada escolha foi feita e o que mudou em relação ao plano inicial
-- `design-system/caretwin/MASTER.md`: o sistema de design gerado pela skill, com as adaptações anotadas no DECISOES.md
-- `AGENTS.md`: regras para quem for editar com ajuda de IA
+Antes de divulgar o link, ative a proteção da prévia em Settings, Deployment Protection. Sem isso, qualquer pessoa com a URL abre o app. A rota `/api/dados` responde "desligado" enquanto não houver banco, mas ela ainda não pergunta quem está chamando: se um dia ligar o banco ou o login, proteja essa rota antes (o aviso está em `src/app/api/dados/route.ts`).
+
+## O que está desligado de propósito
+
+Cada item já está escrito e só espera valores no `.env.local`. Copie o `.env.example`, preencha só o que for usar e reinicie o `npm run dev`. Nenhuma tela muda.
+
+- API do CareTwin: troque as funções de `src/lib/store.ts` por chamadas à API. As telas só falam com `useDados()` e `usePessoaNaTela()`.
+- Login com Google: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` e `AUTH_SECRET`. O fluxo está em `src/lib/google.ts` e `src/app/api/auth`.
+- Banco Neon: `DATABASE_URL`. Fica desligado porque, no CareTwin, quem guarda os dados é a API.
+- IA que escreve os textos: `OPENAI_API_KEY`, ou a IA local (Ollama) pela API. A chamada sai sempre de uma rota do servidor. Hoje os textos são de exemplo (`src/lib/respostas-ia.ts`).
+- Automações: `n8n/` tem o docker-compose e um guia com dois exemplos do CareTwin.
+
+## Pastas
+
+```
+src/app/            as rotas: site, entrar, como-usar, o app e as rotas de servidor (api)
+src/components/     ui (peças), app (telas de dentro), marketing (o site), auth, cena, graficos
+src/content/        todo texto que aparece na tela (site.ts e tour.ts)
+src/lib/            modelo, normal, sono, store (a porta de dados), seed (exemplos) e o resto
+design-system.json  cores, fonte e cantos do app inteiro
+banco/              o desenho da tabela do banco (desligado)
+n8n/                automações
+.storybook/         catálogo de componentes
+```
+
+## Regras da casa
+
+- Nenhum texto visível dentro de componente: tudo sai de `src/content`.
+- Nenhuma cor escrita na mão: tudo sai do `design-system.json`.
+- Nenhuma tela lê ou grava dado por fora de `src/lib/store.ts`.
+
+As decisões de produto e de design estão em `DECISOES.md`, e o próximo passo de cada integração em `PROXIMOS-PASSOS.md`.

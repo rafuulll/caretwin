@@ -1,69 +1,88 @@
-/*
-  O que o CareTwin entende como coisas, estados e regras, declarado num lugar só.
-  Nenhum componente escreve nome de estado ou limite na mão: tudo sai daqui.
-*/
+/**
+ * O que o CareTwin guarda, os estados de cada coisa e as regras do normal, num
+ * lugar só. Nenhum componente escreve nome de estado, limite ou regra na mão:
+ * quando um número daqui muda, o app inteiro acompanha em vez de passar a
+ * contar errado em silêncio.
+ */
 
-/** O que a pulseira mede e o app compara com o normal da pessoa. */
-export const METRICAS = ["passos", "atividade", "sono", "batimentos"] as const;
-export type Metrica = (typeof METRICAS)[number];
-
-/** Um dia pode ficar abaixo ou acima do normal. Dentro do normal não gera alerta. */
-export const DIRECOES = ["abaixo", "acima"] as const;
-export type DirecaoDesvio = (typeof DIRECOES)[number];
-
-/** Situação de um valor comparado com o normal, usada nos selos das telas. */
-export const SITUACOES = ["abaixo", "dentro", "acima", "sem_dados"] as const;
-export type Situacao = (typeof SITUACOES)[number];
+/** Os cadastros do app, na ordem em que aparecem no dia de quem usa. */
+export const CADASTROS = ["pessoas", "pulseiras", "dias", "alertas"] as const
+export type Cadastro = (typeof CADASTROS)[number]
 
 /**
- * Alerta tem exatamente dois estados, então ele é um botão de marcar e não um quadro.
- * "lido" é o estado que significa que acabou.
+ * O que o app compara com o normal da pessoa. Passos e sono vêm sozinhos da
+ * pulseira; batimentos vêm das medições que a pessoa pede.
  */
-export const ESTADOS_ALERTA = ["novo", "lido"] as const;
-export type EstadoAlerta = (typeof ESTADOS_ALERTA)[number];
-export const ESTADO_ALERTA_FINAL: EstadoAlerta = "lido";
+export const METRICAS = ["passos", "sono", "batimentos"] as const
+export type Metrica = (typeof METRICAS)[number]
 
-/** Regras do normal pessoal (o mesmo critério documentado no cartão 2.3 do Trello). */
-export const REGRAS_NORMAL = {
-  /** Quantos dias anteriores formam o normal. */
-  janelaDias: 14,
-  /** Mínimo de dias com dado para dizer que já existe um normal. */
-  minimoDias: 5,
-  /** Faixa do normal: do percentil 20 ao 80 dos dias da janela. */
-  percentilBaixo: 0.2,
-  percentilAlto: 0.8,
-  /** A faixa ganha 10% de margem dos dois lados: variação pequena de um dia é normal. */
-  margem: 0.1,
-  /** Um dia só vira alerta quando foge da faixa por mais que esta folga. */
-  folgaAlerta: 0.1,
-} as const;
+/** Um dia fora do normal fica abaixo ou acima dele. */
+export const DIRECOES = ["abaixo", "acima"] as const
+export type Direcao = (typeof DIRECOES)[number]
 
-/** Bateria abaixo disso merece aviso na tela do dia. */
-export const BATERIA_BAIXA = 20;
+/** Como um valor fica perto do normal. Usado nos selos, sempre com ícone e texto. */
+export const SITUACOES = ["abaixo", "dentro", "acima", "aprendendo"] as const
+export type Situacao = (typeof SITUACOES)[number]
 
-/** Sem sincronizar por mais que isso, o app avisa que o dado pode estar velho. */
-export const MINUTOS_PARA_DADO_ANTIGO = 180;
+/**
+ * O alerta tem exatamente dois estados: chegou e ninguém viu, ou já foi visto.
+ * Dois estados são um botão de marcar, nunca um quadro.
+ */
+export const ESTADOS_ALERTA = ["novo", "lido"] as const
+export type EstadoAlerta = (typeof ESTADOS_ALERTA)[number]
+/** O estado que significa que o alerta já cumpriu o papel dele. */
+export const ESTADO_ALERTA_FINAL: EstadoAlerta = "lido"
 
-/** Janela da noite que a pulseira envia: 840 minutos, das 20:00 às 10:00. */
+/**
+ * A regra do normal pessoal, a mesma que o time fechou no cartão 2.3.
+ *
+ * Para cada dia de referência: os 3 dias mais recentes são comparados com a
+ * média dos 7 dias anteriores a eles. A base fica ANTES dos dias recentes de
+ * propósito: se a mudança entrasse na média, ela puxaria o normal junto e
+ * deixaria de parecer mudança.
+ */
+export const REGRA_NORMAL = {
+  /** Quantos dias formam a base do normal. */
+  diasBase: 7,
+  /** Quantos dias recentes são olhados para decidir se houve mudança. */
+  diasRecentes: 3,
+  /** Quanto um dia pode variar em torno do normal e continuar dentro dele. */
+  variacao: 0.2,
+  /** Quantos dos dias recentes precisam fugir na mesma direção para virar alerta. */
+  diasParaAlerta: 2,
+  /** Com menos dias válidos na base, o app diz que ainda está aprendendo. */
+  minimoDiasValidos: 5,
+} as const
+
+/** Quantos dias de uso a pessoa precisa para o normal existir: recentes mais o mínimo da base. */
+export const DIAS_PARA_CONHECER_O_NORMAL = REGRA_NORMAL.diasRecentes + REGRA_NORMAL.minimoDiasValidos
+
+/** Bateria nesta porcentagem ou abaixo pede carregar a pulseira. */
+export const BATERIA_BAIXA = 20
+
+/** Sem sincronizar por mais que isso, a tela avisa que o dado pode estar atrasado. */
+export const MINUTOS_PARA_DADO_ATRASADO = 180
+
+/** A janela da noite que a pulseira envia: 840 minutos, das 20h às 10h. */
 export const NOITE = {
   minutos: 840,
   inicioHora: 20,
-} as const;
+} as const
 
-/** Medição de batimentos de bancada: quanto tempo o app pede para a pessoa ficar parada. */
-export const SEGUNDOS_MEDICAO = 12;
+/** Quanto tempo a medição de batimentos pede para a pessoa ficar parada. */
+export const SEGUNDOS_MEDICAO = 12
 
 /**
- * A forma de ver cada coleção, decidida no PASSO 5 (veja DECISOES.md):
- * - pessoas e pulseiras: lista curta em Ajustes (são de 1 a 3);
- * - dias registrados: linha do tempo com a faixa do normal (Hoje e Sono);
- * - alertas: linha do tempo agrupada por dia, com marcar como lido;
- * - batimentos: histórico em pontos com a faixa de costume.
+ * A forma de ver cada coleção, decidida a partir dos momentos (veja o
+ * DECISOES.md). Nenhuma delas é quadro por etapas nem painel de indicadores.
  */
 export const FORMA_DE_VER = {
-  pessoas: "lista-curta",
-  pulseiras: "lista-curta",
+  /** De 1 a 3 pessoas por cuidador: troca no topo, sem lista com busca. */
+  pessoas: "troca-no-topo",
+  /** Uma por pessoa: tela única, mostrada como estado no painel e no sono. */
+  pulseiras: "tela-unica",
+  /** O dia contra o normal, e os últimos 14 dias numa linha do tempo. */
   dias: "linha-do-tempo",
+  /** Lidos à noite, agrupados por dia, do mais novo para o mais antigo. */
   alertas: "linha-do-tempo",
-  batimentos: "historico-em-pontos",
-} as const;
+} as const

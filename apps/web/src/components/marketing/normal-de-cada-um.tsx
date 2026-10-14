@@ -1,66 +1,117 @@
-/*
-  "O normal é de cada um": a mesma pessoa vista por uma meta fixa e pelo próprio normal.
-  O gráfico é SVG escrito à mão com os tokens do tema, e tem o equivalente em texto
-  (a legenda da figura e as duas linhas de leitura).
-*/
+import { landing, sistema } from "@/content/site"
+import { cn } from "@/lib/cn"
+import { ultimosDias } from "@/lib/consultas"
+import { diaEMes, formatarDiaDaSemanaCurto, numero, preencher } from "@/lib/formato"
+import { gerarExemplos } from "@/lib/seed"
 
-import { site } from "@/content/site";
-import { Icone } from "@/components/ui/icone";
-
-const ESCALA_MAX = 11000;
-const pct = (v: number) => `${(v / ESCALA_MAX) * 100}%`;
-
+/**
+ * A dobra viva do site: o normal de uma pessoa de exemplo, desenhado com os
+ * mesmos dados e a mesma conta que o app usa por dentro.
+ *
+ * É a prova da promessa, e não um parágrafo sobre ela: quem lê vê que 2.400
+ * passos são um dia diferente pra Dona Cida, e que a mesma meta pra todo mundo
+ * nunca teria percebido isso. Barras em HTML, sem JavaScript e sem biblioteca.
+ */
 export function NormalDeCadaUm() {
-  const n = site.normal;
+  const textos = landing.normalDeCadaUm
+  const agora = new Date()
+  const dados = gerarExemplos(agora)
+  const pessoa = dados.pessoas[0]
+  // Os últimos sete dias inteiros: o de hoje ainda está acontecendo.
+  const dias = ultimosDias(dados, pessoa.id, "passos", agora, 8).slice(0, 7)
+  const faixa = dias[dias.length - 1].faixa
+  const maximo = Math.max(1, ...dias.map((d) => Math.max(d.valor ?? 0, d.faixa?.alto ?? 0))) * 1.08
+  const pct = (v: number) => `${(v / maximo) * 100}%`
+
   return (
-    <section aria-labelledby="normal-titulo" className="border-y border-borda bg-superficie">
-      <div className="mx-auto grid max-w-6xl gap-12 px-4 py-20 sm:px-6 lg:grid-cols-[1fr_1.1fr] lg:items-center lg:py-28">
-        <div>
-          <h2 id="normal-titulo" className="text-[clamp(1.9rem,3.6vw,2.6rem)] font-bold tracking-[-0.015em]">
-            {n.titulo}
+    <section id="normal-de-cada-um" aria-labelledby="normal-titulo" className="scroll-mt-20">
+      <div className="mx-auto grid max-w-[1200px] items-center gap-10 px-4 py-16 sm:px-6 sm:py-20 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] lg:gap-16 lg:px-8 lg:py-24">
+        <div className="max-w-xl">
+          <h2 id="normal-titulo" className="text-[clamp(1.6rem,4vw,2.4rem)] leading-tight text-balance text-ink">
+            {textos.titulo}
           </h2>
-          <p className="mt-5 max-w-lg text-[1.1rem] leading-relaxed text-tinta-suave">{n.apoio}</p>
+          <p className="mt-4 text-lg leading-relaxed text-muted">{textos.subtitulo}</p>
+          {faixa && (
+            <p className="mt-6 border-l-2 border-ink pl-4 text-base leading-relaxed text-ink">
+              {preencher(textos.leitura, {
+                nome: pessoa.nome,
+                baixo: numero(Math.round(faixa.baixo)),
+                alto: numero(Math.round(faixa.alto)),
+              })}
+            </p>
+          )}
         </div>
 
-        <figure className="space-y-8">
-          <div>
-            <div className="flex flex-wrap items-baseline justify-between gap-2">
-              <p className="font-bold">{n.metaIgual}</p>
-              <p className="numeros-tabulares font-bold text-tinta-suave">{n.metaIgualValor}</p>
+        <figure className="superficie m-0 rounded-ds-surface border border-hairline p-5 sm:p-6">
+          <figcaption className="text-sm font-medium text-ink">
+            {preencher(textos.rotuloGrafico, { nome: pessoa.nome })}
+          </figcaption>
+
+          {/* O desenho é decoração do que a lista logo abaixo diz em texto. */}
+          <div aria-hidden="true" className="relative mt-5 h-56">
+            {faixa && (
+              <div
+                className="absolute inset-x-0 border-y border-dashed border-ink/25 bg-primary/8"
+                style={{ bottom: pct(faixa.baixo), height: `calc(${pct(faixa.alto)} - ${pct(faixa.baixo)})` }}
+              />
+            )}
+            <div className="absolute inset-0 flex items-end gap-2 sm:gap-3">
+              {dias.map((dia) => {
+                const fora = dia.situacao === "abaixo" || dia.situacao === "acima"
+                return (
+                  <div key={dia.data} className="flex h-full flex-1 flex-col justify-end">
+                    <div
+                      className={cn("w-full rounded-t-ds-fine", fora ? "bg-warning" : "bg-primary")}
+                      style={{ height: pct(dia.valor ?? 0) }}
+                    />
+                  </div>
+                )
+              })}
             </div>
-            <div className="relative mt-3 h-10 rounded-campo bg-suave" aria-hidden="true">
-              <div className="absolute inset-y-0 w-[3px] rounded-full bg-tinta-suave" style={{ left: pct(10000) }} />
-              <div className="absolute inset-y-2 left-0 rounded-r-[4px] bg-borda-forte" style={{ width: pct(2300) }} />
-            </div>
-            <p className="mt-3 flex items-start gap-2 text-tinta-suave">
-              <Icone nome="info" tamanho={18} className="mt-1" />
-              {n.metaIgualLeitura}
-            </p>
+          </div>
+          <div aria-hidden="true" className="mt-2 flex gap-2 sm:gap-3">
+            {dias.map((dia) => (
+              <span key={dia.data} className="flex-1 text-center text-xs text-muted">
+                {formatarDiaDaSemanaCurto(dia.data)}
+              </span>
+            ))}
           </div>
 
-          <div>
-            <div className="flex flex-wrap items-baseline justify-between gap-2">
-              <p className="font-bold">{n.normalDela}</p>
-              <p className="numeros-tabulares font-bold text-primaria">{n.normalDelaValor}</p>
-            </div>
-            <div className="relative mt-3 h-10 rounded-campo bg-suave" aria-hidden="true">
-              <div
-                className="absolute inset-y-0 rounded-[4px] bg-[var(--ct-grafico-faixa)] ring-1 ring-inset ring-primaria/40"
-                style={{ left: pct(3500), width: pct(1400) }}
-              />
-              <div className="absolute inset-y-2 left-0 rounded-r-[4px] bg-atencao" style={{ width: pct(2300) }} />
-              <span className="absolute -bottom-7 text-[0.85rem] font-bold text-atencao" style={{ left: 0 }}>
-                {n.hojeRotulo}
-              </span>
-            </div>
-            <p className="mt-10 flex items-start gap-2">
-              <Icone nome="abaixo" tamanho={18} className="mt-1 text-atencao" />
-              {n.normalDelaLeitura}
-            </p>
-          </div>
-          <figcaption className="sr-only">{n.legendaGrafico}</figcaption>
+          <ul aria-hidden="true" className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-sm text-muted">
+            <li className="inline-flex items-center gap-2">
+              <span className="h-3 w-5 rounded-[3px] border border-dashed border-ink/25 bg-primary/8" />
+              {preencher(textos.faixa, { nome: pessoa.nome })}
+            </li>
+            <li className="inline-flex items-center gap-2">
+              <span className="h-3 w-2 rounded-[2px] bg-primary" />
+              {textos.dentroDoNormal}
+            </li>
+            <li className="inline-flex items-center gap-2">
+              <span className="h-3 w-2 rounded-[2px] bg-warning" />
+              {textos.foraDoNormal}
+            </li>
+          </ul>
+
+          {/* O gêmeo em texto do gráfico, sempre na tela: são só sete linhas. */}
+          <details className="mt-4">
+            <summary className="inline-flex min-h-11 cursor-pointer items-center text-sm font-medium text-ink underline decoration-hairline underline-offset-4">
+              {textos.numeros}
+            </summary>
+            <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-6 gap-y-1 text-sm">
+              {dias.map((dia) => (
+                <div key={dia.data} className="contents">
+                  <dt className="text-muted">
+                    {formatarDiaDaSemanaCurto(dia.data)}, {diaEMes(dia.data)}
+                  </dt>
+                  <dd className="tabular-nums text-ink">
+                    {numero(dia.valor ?? 0)} {textos.passos}, {sistema.situacoes[dia.situacao].toLowerCase()}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </details>
         </figure>
       </div>
     </section>
-  );
+  )
 }

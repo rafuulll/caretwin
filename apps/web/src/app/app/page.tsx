@@ -1,7 +1,10 @@
-import { redirect } from "next/navigation";
-import { rotas } from "@/content/site";
+import { redirect } from "next/navigation"
 
-/* A raiz do app abre direto na tela do momento mais frequente: Hoje. */
-export default function RaizDoApp() {
-  redirect(rotas.hoje);
+/**
+ * `/app` sozinho não é tela nenhuma: quem entra cai direto no painel, que é o
+ * momento mais frequente do dia. O endereço do painel tem o nome dele, pra o
+ * rótulo do menu e o endereço falarem a mesma palavra.
+ */
+export default function PaginaApp() {
+  redirect("/app/painel")
 }

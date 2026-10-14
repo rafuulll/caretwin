@@ -1,151 +1,284 @@
-"use client";
+"use client"
 
-/*
-  Invólucro do tour da primeira visita (driver.js). Ele atravessa páginas: a parada do
-  site fica guardada no sessionStorage, e o tour continua dentro do app depois que a
-  pessoa entra. A marca de "já viu" fica no localStorage; fechar no X conta como visto.
-  Parada cujo alvo não existe naquela tela é pulada.
+import { usePathname } from "next/navigation"
+import { useCallback, useEffect, useRef } from "react"
+import type { Driver } from "driver.js"
+// O CSS é estático porque são 3 KB e ele precisa estar de pé no instante em que
+// o primeiro balão aparece. O JavaScript, que é oito vezes maior, é que chega
+// depois.
+import "driver.js/dist/driver.css"
+import { tour } from "@/content/tour"
 
-  Para remover o tour: apague a pasta src/components/onboarding, o arquivo
-  src/content/tour.ts e as duas linhas que montam <Tour /> (src/app/page.tsx e
-  src/app/app/layout.tsx). Nada mais depende dele.
-*/
+/**
+ * O tour de boas-vindas, com driver.js.
+ *
+ * Quatro decisões que valem ler antes de mexer:
+ *
+ * 1. ELE ATRAVESSA PÁGINAS. As paradas de `tour.ts` vêm com o endereço onde
+ *    acontecem, e a jornada começa no site e termina dentro do app. Quando a
+ *    pessoa clica no elemento destacado e navega, o tour RETOMA de onde parou
+ *    na página seguinte, em vez de recomeçar. O lugar onde ele parou fica no
+ *    sessionStorage, e não no endereço: um link carregando estado de tour
+ *    reabriria o tour na tela de quem recebesse o endereço.
+ *
+ * 2. A BIBLIOTECA CHEGA DEPOIS. O `import()` do driver.js acontece dentro da
+ *    função, não no topo do arquivo. Assim os 25 KB dele não entram no pacote
+ *    que a primeira tela precisa baixar: quem já viu o tour nunca paga por ele.
+ *
+ * 3. PARADA SEM ALVO NA TELA É PULADA. O tour aponta pra elementos marcados com
+ *    `data-tour`, e este projeto existe pra ser reescrito: você vai renomear
+ *    telas e mover peças. Apontar pra um elemento que sumiu deixaria um balão
+ *    perdido no canto, então a parada some junto e o resto continua.
+ *
+ * 4. QUEM PEDIU MENOS MOVIMENTO RECEBE MENOS MOVIMENTO. Com
+ *    `prefers-reduced-motion`, a animação de deslizar entre paradas desliga. O
+ *    tour continua inteiro, só que sem o movimento.
+ *
+ * Não tem emoji, não tem confete e não tem passo obrigatório: dá pra fechar no
+ * Esc, no X ou clicando fora, e fechar conta como terminado.
+ *
+ * PRA REMOVER O TOUR INTEIRO, que é uma coisa que a última parada promete que dá
+ * pra fazer: apague esta pasta, apague `src/content/tour.ts`, e tire as duas
+ * linhas que montam `<Tour />` (uma em `src/app/page.tsx`, outra em
+ * `src/app/app/layout.tsx`) mais o botão "Ver de novo" da tela de perfil. Nada
+ * mais no app depende dele.
+ */
 
-import { useEffect } from "react";
-import { usePathname } from "next/navigation";
-import "driver.js/dist/driver.css";
-import { tour } from "@/content/tour";
+/** Onde fica registrado que este navegador já viu o tour. Não expira. */
+const CHAVE_VISTO = "caretwin-prototipo:tour:v1"
 
-const CHAVE_VISTO = "caretwin:tour:visto";
-const CHAVE_PASSO = "caretwin:tour:passo";
+/** Em que parada a jornada está. Vale só enquanto a aba estiver aberta. */
+const CHAVE_PASSO = "caretwin-prototipo:tour:passo"
 
-function lerSeguro(armazenamento: () => Storage, chave: string): string | null {
+function jaViu() {
   try {
-    return armazenamento().getItem(chave);
+    return !!window.localStorage.getItem(CHAVE_VISTO)
   } catch {
-    return null;
+    // Modo privado: sem onde marcar que já viu, melhor não rodar do que rodar
+    // em toda visita.
+    return true
   }
 }
 
-function gravarSeguro(armazenamento: () => Storage, chave: string, valor: string | null) {
+function marcarVisto() {
   try {
-    if (valor === null) armazenamento().removeItem(chave);
-    else armazenamento().setItem(chave, valor);
+    window.localStorage.setItem(CHAVE_VISTO, new Date().toISOString())
+    window.sessionStorage.removeItem(CHAVE_PASSO)
   } catch {
-    // sem armazenamento, o tour só não lembra onde parou
+    // Sem onde gravar. O tour rodou, e é o que importava.
   }
 }
 
-/** O primeiro elemento visível com aquele data-tour (o menu existe em duas versões: celular e computador). */
-function encontrar(alvo: string): Element | null {
-  const candidatos = Array.from(document.querySelectorAll<HTMLElement>(`[data-tour="${alvo}"]`));
-  return candidatos.find((el) => el.getClientRects().length > 0) ?? null;
+function passoAtual() {
+  try {
+    return Number(window.sessionStorage.getItem(CHAVE_PASSO)) || 0
+  } catch {
+    return 0
+  }
 }
 
-function paginaCombina(pagina: string, caminho: string) {
-  return pagina === "/" ? caminho === "/" : caminho.startsWith(pagina);
+function guardarPasso(indice: number) {
+  try {
+    window.sessionStorage.setItem(CHAVE_PASSO, String(indice))
+  } catch {
+    // Sem onde guardar, o tour não retoma na próxima página. Paciência: é
+    // melhor que travar a navegação.
+  }
 }
 
+/**
+ * A parada acontece nesta página?
+ *
+ * O endereço da parada vale pra ela E pra tudo que mora dentro dela, então uma
+ * parada de "/app" também acontece em "/app/painel". É de propósito: as
+ * paradas do app apontam pra peças da casca (o menu, o topo), que existem em
+ * todas as telas de dentro, e exigir o endereço exato faria o tour sumir só
+ * porque a pessoa estava numa subtela. A raiz é a exceção, senão ela casaria
+ * com o site inteiro.
+ */
+function ehDaPagina(pagina: string | undefined, caminho: string) {
+  // Endereço vazio quer dizer "onde a pessoa estiver".
+  if (!pagina) return true
+  if (pagina === "/") return caminho === "/"
+  return caminho === pagina || caminho.startsWith(`${pagina}/`)
+}
+
+/**
+ * O trecho da jornada que cabe NESTA página, a partir de onde ela parou.
+ *
+ * Pega as paradas em sequência enquanto elas forem desta página, e para na
+ * primeira que for de outra. É isso que faz o tour continuar do passo 2 quando
+ * a pessoa chega no app, em vez de recomeçar do 1.
+ */
+function trechoDaPagina(inicio: number, caminho: string) {
+  const trecho: Array<{ indice: number; alvo: string | null; titulo: string; texto: string }> = []
+
+  for (let i = inicio; i < tour.paradas.length; i++) {
+    const parada = tour.paradas[i]
+    if (!ehDaPagina(parada.pagina, caminho)) break
+    // Alvo que não existe nesta tela sai da fila, e a jornada segue.
+    if (parada.alvo && !document.querySelector(parada.alvo)) continue
+    trecho.push({ indice: i, alvo: parada.alvo, titulo: parada.titulo, texto: parada.texto })
+  }
+
+  return trecho
+}
+
+/**
+ * Monta e roda um trecho do tour. Devolve a instância pra quem chamou poder
+ * desmontar, ou `null` quando não sobrou parada nenhuma pra esta página.
+ *
+ * `aoTerminarTrecho` recebe o índice da próxima parada da jornada. Se ele for
+ * o fim da lista, a jornada acabou.
+ */
+async function conduzir(
+  trecho: ReturnType<typeof trechoDaPagina>,
+  aoTerminarTrecho: (proximoIndice: number) => void,
+  aoFechar: () => void
+): Promise<Driver | null> {
+  if (trecho.length === 0) return null
+
+  const { driver } = await import("driver.js")
+
+  const conduzir: Driver = driver({
+    steps: trecho.map((parada) => ({
+      element: parada.alvo ?? undefined,
+      popover: {
+        title: parada.titulo,
+        description: parada.texto,
+        // O contador é escrito parada a parada, com o número da JORNADA, e não
+        // com o do trecho. Deixar o driver.js contar sozinho faria quem chega
+        // no app ver "1 de 4" depois de já ter visto o primeiro balão no site.
+        progressText: `${parada.indice + 1} de ${tour.paradas.length}`,
+      },
+    })),
+    animate: !window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+    showProgress: tour.paradas.length > 1,
+    nextBtnText: tour.proximo,
+    prevBtnText: tour.anterior,
+    doneBtnText: tour.concluir,
+    popoverClass: "tour-do-app",
+    /*
+      A última parada desta página já deixa guardado onde a jornada continua.
+      Sem isto, quem clica direto no botão destacado (o "Entrar" do site, que
+      é exatamente o que a parada pede) navega antes de apertar "Próximo", e o
+      tour não teria de onde retomar dentro do app.
+    */
+    onHighlighted: () => {
+      const passo = conduzir.getActiveIndex() ?? 0
+      const ultimaDoTrecho = passo === trecho.length - 1
+      const proxima = trecho[passo].indice + 1
+      if (ultimaDoTrecho && proxima < tour.paradas.length) guardarPasso(proxima)
+    },
+    onNextClick: () => {
+      const passo = conduzir.getActiveIndex() ?? 0
+      if (passo < trecho.length - 1) {
+        conduzir.moveNext()
+        return
+      }
+      // Fim do trecho desta página. Guarda onde a jornada continua e sai de
+      // cena: quem retoma é a próxima página, quando a pessoa navegar.
+      aoTerminarTrecho(trecho[trecho.length - 1].indice + 1)
+      conduzir.destroy()
+    },
+    /*
+      A PESSOA FECHOU: Esc, X ou clique fora. Fechar conta como terminado, em
+      qualquer parada, e o tour não volta mais.
+
+      Este gancho é o único que separa "fechou" de "terminou", e a separação
+      importa: terminar o trecho do site tem que guardar onde a jornada
+      continua, e fechar tem que encerrar ela. O `destroy()` que o nosso próprio
+      código chama NÃO passa por aqui (o driver.js pula este gancho quando o
+      chamada vem do código, e não da pessoa), que é exatamente o que faz os dois
+      caminhos não se confundirem.
+
+      Quem define este gancho fica responsável por fechar de verdade, senão o
+      Esc não fecha nada.
+    */
+    onDestroyStarted: () => {
+      aoFechar()
+      conduzir.destroy()
+    },
+  })
+
+  conduzir.drive()
+  return conduzir
+}
+
+/**
+ * Roda o tour na primeira visita e retoma ele a cada página da jornada. Não
+ * desenha nada: todo o desenho é do driver.js.
+ *
+ * Fica montado nas duas pontas da jornada, o site e a casca da área logada.
+ */
 export function Tour() {
-  const caminho = usePathname();
+  const caminho = usePathname()
+  const instancia = useRef<Driver | null>(null)
 
   useEffect(() => {
-    if (lerSeguro(() => window.localStorage, CHAVE_VISTO)) return;
-    const inicio = Number(lerSeguro(() => window.sessionStorage, CHAVE_PASSO) ?? "0") || 0;
+    if (jaViu()) return
 
-    // As paradas desta página são as seguidas, a partir de onde o tour parou.
-    const daPagina: number[] = [];
-    for (let i = inicio; i < tour.paradas.length; i++) {
-      if (!paginaCombina(tour.paradas[i].pagina, caminho)) break;
-      daPagina.push(i);
-    }
-    if (daPagina.length === 0) return;
+    let cancelado = false
 
-    let cancelado = false;
-    let desmontando = false;
-    let fechouNoX = false;
-    let instancia: { destroy: () => void; isActive: () => boolean } | null = null;
-    const reduzir = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    // Um respiro pra página terminar de montar. Sem isso, o alvo da parada pode
+    // ainda não estar no DOM quando o tour procura por ele.
+    const relogio = window.setTimeout(() => {
+      const inicio = passoAtual()
+      const trecho = trechoDaPagina(inicio, caminho)
+      if (trecho.length === 0) return
 
-    const timer = window.setTimeout(async () => {
-      const { driver } = await import("driver.js");
-      if (cancelado) return;
-      const total = tour.paradas.length;
-      const passos = daPagina
-        .filter((i) => !tour.paradas[i].alvo || encontrar(tour.paradas[i].alvo!))
-        .map((i) => {
-          const parada = tour.paradas[i];
-          const ultimaDaPagina = i === daPagina[daPagina.length - 1];
-          const continuaEmOutraPagina = ultimaDaPagina && i < total - 1;
-          return {
-            element: parada.alvo ? () => encontrar(parada.alvo!) as Element : undefined,
-            data: { indice: i, continuaEmOutraPagina },
-            popover: {
-              title: parada.titulo,
-              description: parada.texto,
-              progressText: tour.progresso.replace("{{current}}", String(i + 1)).replace("{{total}}", String(total)),
-              doneBtnText: continuaEmOutraPagina ? tour.entendi : tour.concluir,
-            },
-          };
-        });
-      if (passos.length === 0) return;
-      // O driver.js não devolve o campo "data" nos ganchos, então a informação de cada
-      // passo é lida pela posição (opts.index).
-      const meta = passos.map((p) => p.data);
+      const ultima = trecho[trecho.length - 1].indice
+      const acabaAqui = ultima >= tour.paradas.length - 1
 
-      const instanciaDriver = driver({
-        steps: passos,
-        showProgress: true,
-        popoverClass: "ct-tour",
-        nextBtnText: tour.proximo,
-        prevBtnText: tour.anterior,
-        closeBtnLabel: tour.fechar,
-        allowClose: true,
-        animate: !reduzir,
-        smoothScroll: !reduzir,
-        overlayOpacity: 0.55,
-        stagePadding: 6,
-        stageRadius: 12,
-        onHighlightStarted: (_elemento, _passo, { index }) => {
-          const atual = meta[index ?? 0];
-          if (!atual) return;
-          const { indice, continuaEmOutraPagina } = atual;
-          // Na última parada desta página, já deixa marcada a próxima, para o tour continuar
-          // mesmo que a pessoa clique direto no botão destacado.
-          gravarSeguro(() => window.sessionStorage, CHAVE_PASSO, String(continuaEmOutraPagina ? indice + 1 : indice));
+      void conduzir(
+        trecho,
+        (proximo) => {
+          if (acabaAqui) marcarVisto()
+          else guardarPasso(proximo)
         },
-        onCloseClick: (_e, _p, { driver: d }) => {
-          fechouNoX = true;
-          d.destroy();
-        },
-        onDestroyStarted: (_e, _passo, { driver: d, index }) => {
-          if (!desmontando) {
-            const atual = meta[index ?? 0];
-            const continuaEmOutraPagina = atual?.continuaEmOutraPagina ?? false;
-            if (continuaEmOutraPagina && !fechouNoX && atual) {
-              gravarSeguro(() => window.sessionStorage, CHAVE_PASSO, String(atual.indice + 1));
-            }
-            if (fechouNoX || !continuaEmOutraPagina) {
-              gravarSeguro(() => window.localStorage, CHAVE_VISTO, "1");
-              gravarSeguro(() => window.sessionStorage, CHAVE_PASSO, null);
-            }
-          }
-          d.destroy();
-        },
-      });
-      instancia = instanciaDriver;
-      instanciaDriver.drive();
-    }, 900);
+        marcarVisto
+      ).then((criada) => {
+        // Saiu da página enquanto a biblioteca carregava: fecha o que abriu, e
+        // sem marcar como visto, porque ninguém viu nada.
+        if (cancelado) {
+          criada?.destroy()
+          return
+        }
+        instancia.current = criada
+      })
+    }, 400)
 
     return () => {
-      cancelado = true;
-      window.clearTimeout(timer);
-      if (instancia?.isActive()) {
-        desmontando = true;
-        instancia.destroy();
-      }
-    };
-  }, [caminho]);
+      cancelado = true
+      window.clearTimeout(relogio)
+      // Navegar no meio do tour não pode deixar overlay órfão na tela seguinte.
+      instancia.current?.destroy()
+      instancia.current = null
+    }
+  }, [caminho])
 
-  return null;
+  return null
+}
+
+/**
+ * Roda o tour quando a pessoa pede, do começo, quantas vezes a pessoa quiser. É o que o
+ * botão da tela de configurações usa.
+ *
+ * Aqui não tem marca de "já viu" pra conferir: quem clicou quer ver. E ele
+ * mostra só o trecho desta página, porque quem clicou está dentro do app e não
+ * vai querer ser mandado pro site pra começar do primeiro balão.
+ */
+export function useRodarTour() {
+  const caminho = usePathname()
+
+  return useCallback(() => {
+    // A primeira parada desta página, e não a primeira da jornada.
+    const inicio = tour.paradas.findIndex((p) => ehDaPagina(p.pagina, caminho))
+    if (inicio < 0) return
+    void conduzir(
+      trechoDaPagina(inicio, caminho),
+      () => {},
+      () => {}
+    )
+  }, [caminho])
 }

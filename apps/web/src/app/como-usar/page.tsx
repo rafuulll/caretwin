@@ -1,59 +1,70 @@
-import type { Metadata } from "next";
-import { Cabecalho } from "@/components/marketing/cabecalho";
-import { Rodape } from "@/components/marketing/rodape";
-import { Icone } from "@/components/ui/icone";
-import { LinkBotao } from "@/components/ui/botao";
-import { comoUsar, rotas, site } from "@/content/site";
+import type { Metadata } from "next"
+import { Icone } from "@/components/app/icone"
+import { CabecalhoMarketing } from "@/components/marketing/cabecalho-marketing"
+import { BotaoLink } from "@/components/marketing/botao-link"
+import { RodapeMarketing } from "@/components/marketing/rodape-marketing"
+import { comoUsar, marca } from "@/content/site"
 
-export const metadata: Metadata = { title: comoUsar.titulo };
+export const metadata: Metadata = {
+  title: `${comoUsar.titulo} · ${marca.nome}`,
+}
 
+/**
+ * Como usar: o mapa do que o CareTwin já faz e do que ainda dá pra ligar.
+ *
+ * Escrita pra quem vai mostrar o app e pra quem vai continuar o projeto. Cada
+ * item do bloco do meio termina apontando o arquivo ou a pasta onde a peça já
+ * está esperando: é isso que faz a página ser útil, e não decorativa.
+ */
 export default function PaginaComoUsar() {
   return (
-    <>
-      <a
-        href="#conteudo"
-        className="sr-only z-50 rounded-campo bg-superficie px-4 py-3 font-bold text-primaria shadow-ct-lg focus:not-sr-only focus:fixed focus:left-4 focus:top-4"
-      >
-        {site.pularParaConteudo}
-      </a>
-      <Cabecalho />
-      <main id="conteudo" tabIndex={-1} className="focus:outline-none">
-        <div className="mx-auto max-w-4xl px-4 py-14 sm:px-6 lg:py-20">
-          <h1 className="text-[clamp(2.1rem,4.5vw,3rem)] font-bold tracking-[-0.02em]">{comoUsar.titulo}</h1>
-          <p className="mt-4 max-w-2xl text-[1.15rem] leading-relaxed text-tinta-suave">{comoUsar.apoio}</p>
+    <div className="flex min-h-dvh flex-col">
+      <CabecalhoMarketing />
 
-          <section aria-labelledby="bloco1" className="mt-14">
-            <h2 id="bloco1" className="flex items-center gap-3 text-[1.6rem] font-bold">
-              <span className="flex size-10 items-center justify-center rounded-full bg-bom-fundo text-bom">
-                <Icone nome="ok" />
-              </span>
-              {comoUsar.bloco1.titulo}
+      <main id="conteudo" tabIndex={-1} className="flex-1 focus:outline-none">
+        <div className="mx-auto max-w-[920px] px-4 py-14 sm:px-6 sm:py-20 lg:px-8">
+          <h1 className="text-[clamp(2rem,5vw,3rem)] leading-tight text-balance text-ink">{comoUsar.titulo}</h1>
+          <p className="mt-4 max-w-[62ch] text-lg leading-relaxed text-muted">{comoUsar.subtitulo}</p>
+          <BotaoLink
+            href="/entrar"
+            tamanho="lg"
+            className="mt-7 h-14 text-lg max-sm:w-full"
+            iconeDireita={<Icone nome="seta-direita" />}
+          >
+            {comoUsar.entrar}
+          </BotaoLink>
+
+          <section aria-labelledby="bloco-hoje" className="mt-16">
+            <h2 id="bloco-hoje" className="text-2xl text-ink">
+              {comoUsar.hoje.titulo}
             </h2>
-            <dl className="mt-6 grid gap-4 sm:grid-cols-2">
-              {comoUsar.bloco1.itens.map((item) => (
-                <div key={item.titulo} className="cartao p-5">
-                  <dt className="font-bold">{item.titulo}</dt>
-                  <dd className="mt-1.5 text-tinta-suave">{item.texto}</dd>
-                </div>
+            <p className="mt-2 text-base text-muted">{comoUsar.hoje.descricao}</p>
+            <ul className="mt-6 grid gap-3 sm:grid-cols-2">
+              {comoUsar.hoje.itens.map((item) => (
+                <li key={item.titulo} className="superficie flex gap-3 rounded-ds-surface border border-hairline p-4">
+                  <Icone nome="dentro" className="mt-0.5 size-5 shrink-0 text-success" />
+                  <div>
+                    <h3 className="text-base font-medium text-ink">{item.titulo}</h3>
+                    <p className="mt-1 text-sm leading-relaxed text-muted">{item.texto}</p>
+                  </div>
+                </li>
               ))}
-            </dl>
+            </ul>
           </section>
 
-          <section aria-labelledby="bloco2" className="mt-16">
-            <h2 id="bloco2" className="flex items-center gap-3 text-[1.6rem] font-bold">
-              <span className="flex size-10 items-center justify-center rounded-full bg-info-fundo text-info">
-                <Icone nome="sincronizar" />
-              </span>
-              {comoUsar.bloco2.titulo}
+          <section aria-labelledby="bloco-conectar" className="mt-16">
+            <h2 id="bloco-conectar" className="text-2xl text-ink">
+              {comoUsar.conectar.titulo}
             </h2>
-            <ul className="mt-6 space-y-4">
-              {comoUsar.bloco2.itens.map((item) => (
-                <li key={item.titulo} className="cartao p-5 sm:p-6">
-                  <h3 className="text-[1.15rem] font-bold">{item.titulo}</h3>
-                  <p className="mt-1.5 text-tinta-suave">{item.texto}</p>
-                  <p className="mt-3 inline-flex flex-wrap items-center gap-2 rounded-campo bg-suave px-3 py-2 text-[0.9rem]">
-                    <Icone nome="info" tamanho={16} className="text-primaria" />
-                    <code translate="no" className="[overflow-wrap:anywhere]">
+            <p className="mt-2 text-base text-muted">{comoUsar.conectar.descricao}</p>
+            <ul className="mt-6 flex flex-col gap-3">
+              {comoUsar.conectar.itens.map((item) => (
+                <li key={item.titulo} className="superficie rounded-ds-surface border border-hairline p-5">
+                  <h3 className="text-lg text-ink">{item.titulo}</h3>
+                  <p className="mt-1.5 text-base leading-relaxed text-muted">{item.texto}</p>
+                  <p className="mt-3 flex flex-wrap items-center gap-2 text-sm text-ink">
+                    <span className="text-muted">{comoUsar.ondeEncaixa}:</span>
+                    <code className="rounded-ds-fine border border-hairline bg-canvas px-2 py-0.5 font-mono text-[13px]">
                       {item.onde}
                     </code>
                   </p>
@@ -62,34 +73,25 @@ export default function PaginaComoUsar() {
             </ul>
           </section>
 
-          <section aria-labelledby="bloco3" className="mt-16">
-            <h2 id="bloco3" className="flex items-center gap-3 text-[1.6rem] font-bold">
-              <span className="flex size-10 items-center justify-center rounded-full bg-atencao-fundo text-atencao">
-                <Icone nome="seta" />
-              </span>
-              {comoUsar.bloco3.titulo}
+          <section aria-labelledby="bloco-proximos" className="mt-16">
+            <h2 id="bloco-proximos" className="text-2xl text-ink">
+              {comoUsar.proximos.titulo}
             </h2>
-            <ol className="mt-6 space-y-3">
-              {comoUsar.bloco3.itens.map((item, i) => (
+            <ol className="mt-6 flex flex-col gap-4">
+              {comoUsar.proximos.itens.map((item, indice) => (
                 <li key={item} className="flex gap-4">
-                  <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primaria font-bold text-sobre-primaria">{i + 1}</span>
-                  <p className="pt-1">{item}</p>
+                  <span className="grid size-9 shrink-0 place-items-center rounded-ds bg-primary text-sm font-semibold text-primary-ink">
+                    {indice + 1}
+                  </span>
+                  <p className="pt-1.5 text-base leading-relaxed text-ink">{item}</p>
                 </li>
               ))}
             </ol>
           </section>
-
-          <div className="mt-16 flex flex-col gap-3 sm:flex-row">
-            <LinkBotao href={rotas.entrar} tamanho="grande" iconeDepois="seta">
-              {comoUsar.entrar}
-            </LinkBotao>
-            <LinkBotao href={rotas.site} tamanho="grande" variante="secundario" icone="voltar">
-              {comoUsar.voltar}
-            </LinkBotao>
-          </div>
         </div>
       </main>
-      <Rodape />
-    </>
-  );
+
+      <RodapeMarketing />
+    </div>
+  )
 }

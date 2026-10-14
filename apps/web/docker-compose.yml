@@ -1,0 +1,14 @@
+# Sobe o CareTwin com um comando só: docker compose up --build
+services:
+  caretwin:
+    build: .
+    # `127.0.0.1` na frente da porta é o que prende o app a este computador.
+    # Sem isso, qualquer pessoa na mesma rede (wifi da faculdade, por exemplo)
+    # abriria o app pelo seu endereço.
+    ports:
+      - "127.0.0.1:3000:3000"
+    # Chaves (Google, banco, IA) entram aqui só quando você for ligar cada uma.
+    # O app funciona sem nenhuma.
+    # env_file:
+    #   - .env.local
+    restart: unless-stopped

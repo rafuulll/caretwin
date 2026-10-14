@@ -1,46 +1,43 @@
-/*
-  Percurso em etapas: os quatro momentos do dia, na ordem em que acontecem.
-  Numerar faz sentido aqui porque é uma sequência de verdade (manhã, dia, quando quiser, noite).
-*/
+import { landing } from "@/content/site"
 
-import { site } from "@/content/site";
-import { Icone, type NomeIcone } from "@/components/ui/icone";
-
-const ICONES: NomeIcone[] = ["sono", "passos", "batimentos", "cuidado"];
-
+/**
+ * O percurso do dia, um passo por momento de quem usa. Um `<ol>` de verdade,
+ * porque a ordem é conteúdo: quem usa leitor de tela ouve que são cinco, em
+ * sequência. Uma coluna só, com o fio passando atrás dos números: em tela
+ * estreita, nada de zigue-zague.
+ */
 export function ComoFunciona() {
-  const c = site.comoFunciona;
+  const { comoFunciona } = landing
+
   return (
-    <section id="como-funciona" aria-labelledby="como-funciona-titulo" className="scroll-mt-20">
-      <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6 lg:py-28">
-        <div className="max-w-2xl">
-          <h2 id="como-funciona-titulo" className="text-[clamp(1.9rem,3.6vw,2.6rem)] font-bold tracking-[-0.015em]">
-            {c.titulo}
+    <section id="como-funciona" aria-labelledby="como-funciona-titulo" className="scroll-mt-20 bg-surface">
+      <div className="mx-auto grid max-w-[1200px] gap-10 px-4 py-16 sm:px-6 sm:py-20 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-16 lg:px-8 lg:py-24">
+        <div className="max-w-xl">
+          <h2
+            id="como-funciona-titulo"
+            className="text-[clamp(1.6rem,4vw,2.4rem)] leading-tight text-balance text-ink"
+          >
+            {comoFunciona.titulo}
           </h2>
-          <p className="mt-4 text-[1.1rem] text-tinta-suave">{c.apoio}</p>
+          <p className="mt-4 text-lg leading-relaxed text-muted">{comoFunciona.subtitulo}</p>
         </div>
-        <ol className="relative mt-12 grid gap-8 md:grid-cols-2 lg:grid-cols-4 lg:gap-6">
-          {c.etapas.map((etapa, i) => (
-            <li key={etapa.titulo} className="relative flex gap-4 lg:flex-col">
-              <div className="flex flex-col items-center lg:flex-row lg:items-center">
-                <span className="relative z-10 flex size-12 shrink-0 items-center justify-center rounded-full bg-primaria text-lg font-bold text-sobre-primaria">
-                  {i + 1}
-                </span>
-                {i < c.etapas.length - 1 && (
-                  <span aria-hidden="true" className="mt-2 w-px flex-1 bg-borda-forte lg:ml-3 lg:mt-0 lg:h-px lg:w-auto lg:flex-1" />
-                )}
-              </div>
-              <div className="pb-2">
-                <p className="flex items-center gap-2 text-[1.15rem] font-bold">
-                  <Icone nome={ICONES[i]} className="text-primaria" />
-                  {etapa.titulo}
-                </p>
-                <p className="mt-2 text-tinta-suave">{etapa.texto}</p>
+
+        <ol className="relative flex flex-col gap-8">
+          {/* O fio de 1px que liga os números, por trás deles. */}
+          <span aria-hidden="true" className="absolute top-5 bottom-5 left-5 w-px bg-hairline" />
+          {comoFunciona.passos.map((passo) => (
+            <li key={passo.numero} className="relative flex gap-5">
+              <span className="relative grid size-10 shrink-0 place-items-center rounded-ds bg-primary font-display text-sm tabular-nums text-primary-ink">
+                {passo.numero}
+              </span>
+              <div className="min-w-0 pt-1.5">
+                <h3 className="text-lg text-ink">{passo.titulo}</h3>
+                <p className="mt-1.5 text-base leading-relaxed text-muted">{passo.texto}</p>
               </div>
             </li>
           ))}
         </ol>
       </div>
     </section>
-  );
+  )
 }

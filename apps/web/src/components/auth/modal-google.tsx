@@ -1,48 +1,100 @@
-"use client";
+"use client"
 
-/* O passo a passo para ligar o login com Google, com os endereços prontos para copiar. */
+import { Icone } from "@/components/app/icone"
+import { Button, Modal } from "@/components/ui"
+import { entrada } from "@/content/site"
+import { BlocoCopiavel } from "./bloco-copiavel"
+import { IconeGoogle } from "./icone-google"
 
-import { Dialogo } from "@/components/ui/dialogo";
-import { Copiavel } from "@/components/ui/copiavel";
-import { Icone } from "@/components/ui/icone";
-import { Botao } from "@/components/ui/botao";
-import { entrada } from "@/content/site";
+/**
+ * Um passo do tutorial. O `site.ts` guarda os passos como dado puro (sem
+ * anotação de tipo, para continuar sendo só texto); a forma é declarada aqui.
+ */
+export type PassoGoogle = {
+  titulo: string
+  texto: string
+  /** Abre em outra aba quando o passo acontece fora do app. */
+  link?: { rotulo: string; href: string }
+  /** Trecho para colar no Google. Sem isso, o passo é só leitura. */
+  codigo?: string
+  codigoRotulo?: string
+}
 
-export function ModalGoogle({ aberto, aoFechar }: { aberto: boolean; aoFechar: () => void }) {
-  const m = entrada.modalGoogle;
+export type ModalGoogleProps = {
+  aberto: boolean
+  aoFechar: () => void
+}
+
+const PASSOS: PassoGoogle[] = entrada.modalGoogle.passos
+
+/**
+ * O botão do Google não autentica: ele ensina.
+ *
+ * Fingir um login que não existe seria pior que não ter o botão. Aqui a pessoa
+ * descobre exatamente o que falta, com tudo pronto para copiar. Fechando o
+ * modal, o caminho que funciona hoje (nome e senha) está logo embaixo.
+ */
+export function ModalGoogle({ aberto, aoFechar }: ModalGoogleProps) {
   return (
-    <Dialogo
+    <Modal
       aberto={aberto}
       aoFechar={aoFechar}
-      titulo={m.titulo}
-      descricao={m.intro}
-      rotuloFechar={m.fechar}
-      largura="larga"
-      rodape={<Botao onClick={aoFechar}>{m.fechar}</Botao>}
+      titulo={entrada.modalGoogle.titulo}
+      descricao={entrada.modalGoogle.descricao}
+      tamanho="lg"
+      icone={<IconeGoogle />}
+      rodape={<Button onClick={aoFechar}>{entrada.modalGoogle.fechar}</Button>}
     >
-      <ol className="space-y-5">
-        {m.passos.map((passo, i) => (
-          <li key={passo.texto} className="flex gap-4">
-            <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-info-fundo font-bold text-info">{i + 1}</span>
-            <div className="min-w-0 flex-1 pt-0.5">
-              <p>{passo.texto}</p>
-              {"copiar" in passo && passo.copiar && <Copiavel valor={passo.copiar} rotuloCopiar={m.copiar} rotuloCopiado={m.copiado} />}
-              {"link" in passo && passo.link && (
+      <ol className="flex flex-col gap-6">
+        {PASSOS.map((passo, indice) => (
+          <li key={passo.titulo} className="flex gap-3">
+            {/* A numeração é decorativa: a ordem já vem da lista. */}
+            <span
+              aria-hidden="true"
+              className="mt-px flex size-6 shrink-0 items-center justify-center rounded-full border border-hairline bg-elevated font-mono text-[12px] text-muted"
+            >
+              {indice + 1}
+            </span>
+
+            <div className="min-w-0 flex-1">
+              <h3 className="text-sm font-medium text-ink">{passo.titulo}</h3>
+              <p className="mt-1 text-[13px] leading-relaxed text-muted">{passo.texto}</p>
+
+              {passo.link && (
                 <a
-                  href={passo.link}
+                  href={passo.link.href}
                   target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-2 inline-flex min-h-11 items-center gap-1.5 font-bold text-primaria underline underline-offset-4"
+                  rel="noreferrer noopener"
+                  // Tinta no texto e cor da marca só no sublinhado: um link de
+                  // 13px em `text-primary` não passa em contraste nos temas de
+                  // primária clara.
+                  className="mt-2.5 inline-flex items-center gap-1.5 rounded-ds text-[13px] font-medium text-ink underline decoration-primary underline-offset-4 transition-[text-decoration-color] duration-150 hover:decoration-2"
                 >
-                  {passo.rotuloLink}
-                  <Icone nome="externo" tamanho={16} />
-                  <span className="sr-only">{m.abreEmNovaAba}</span>
+                  {passo.link.rotulo}
+                  <Icone nome="link-externo" className="size-3.5" />
                 </a>
+              )}
+
+              {passo.codigo && (
+                <BlocoCopiavel
+                  codigo={passo.codigo}
+                  rotulo={passo.codigoRotulo}
+                  className="mt-2.5"
+                />
               )}
             </div>
           </li>
         ))}
       </ol>
-    </Dialogo>
-  );
+
+      <p className="mt-7 rounded-ds border border-hairline bg-elevated p-3.5 text-[13px] leading-relaxed text-muted">
+        {entrada.modalGoogle.nota}
+      </p>
+
+      <div className="mt-3 flex items-start gap-2.5 rounded-ds border border-warning/40 bg-warning/10 p-3.5">
+        <Icone nome="alerta" className="mt-px size-4 shrink-0 text-warning" />
+        <p className="text-[13px] leading-relaxed text-ink">{entrada.modalGoogle.aviso}</p>
+      </div>
+    </Modal>
+  )
 }

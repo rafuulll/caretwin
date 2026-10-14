@@ -1,227 +1,237 @@
-/*
-  Dados de exemplo do CareTwin.
+import { NOITE } from "./modelo"
+import { paraISO, somarDias, deISO } from "./formato"
+import { fracaoDoDia, procurarMudancas } from "./normal"
+import { TEXTOS_DE_ALERTA, indiceFixo } from "./respostas-ia"
+import type { Alerta, Dados, DataISO, DiaRegistrado, MedicaoBatimentos, Pessoa, Pulseira } from "./types"
 
-  Duas pessoas inventadas, acompanhadas pela mesma cuidadora, com 21 dias registrados
-  gerados de forma determinística a partir da data de hoje. Assim o app sempre abre com
-  "hoje" de verdade, e os mesmos exemplos aparecem toda vez que forem restaurados.
+/**
+ * Os dados de exemplo do CareTwin.
+ *
+ * Existe por um motivo de uso: um app de acompanhamento vazio na primeira
+ * abertura parece quebrado, e o normal só existe depois de alguns dias de
+ * pulseira. Então o app abre com duas pessoas inventadas e 21 dias registrados.
+ *
+ * Os dias são gerados a partir da data de HOJE, com sorteio de semente fixa:
+ * o app sempre abre com o "hoje" de verdade, e os mesmos exemplos voltam toda
+ * vez que forem restaurados.
+ *
+ * O cenário conta uma história curta, de propósito, pra cada tela ter o que
+ * mostrar:
+ *   DONA CIDA anda perto de 4 mil passos por dia e, nos últimos dois dias,
+ *   andou bem menos. Três noites atrás ela acordou várias vezes.
+ *   SEU JORGE está no ritmo de sempre durante o dia, mas dormiu pouco nas duas
+ *   últimas noites, e a pulseira dele está com a bateria baixa e sem
+ *   sincronizar faz umas três horas.
+ *
+ * Os nomes são inventados. Nenhum dado aqui é de pessoa de verdade.
+ */
 
-  O cenário conta uma história curta, de propósito:
-  - Dona Cida vinha andando cerca de 4 mil passos por dia e, nos últimos dois dias,
-    andou bem menos. Três noites atrás ela acordou várias vezes.
-  - Seu Jorge está no ritmo de sempre, mas dormiu pouco na última noite e a bateria
-    da pulseira dele está baixa.
-*/
-
-import type { Alerta, Dados, DiaRegistrado, MedicaoBatimentos, Pessoa, Pulseira } from "./types";
-import { NOITE } from "./modelo";
-import { chaveDia, dataDaChave, somarDias } from "./formato";
-import { fracaoDoDia, procurarDesvios, mesclarAlertas } from "./normal";
-import { TEXTOS_DE_ALERTA, indiceEstavel } from "@/content/ia";
-
-/** Gerador pseudoaleatório pequeno e determinístico (mulberry32). */
-function gerador(semente: number) {
-  let a = semente >>> 0;
+/** Sorteio pequeno e repetível (mulberry32): a mesma semente devolve sempre a mesma sequência. */
+function sorteio(semente: number) {
+  let a = semente >>> 0
   return () => {
-    a = (a + 0x6d2b79f5) >>> 0;
-    let t = a;
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
-
-function semente(texto: string): number {
-  let h = 2166136261;
-  for (let i = 0; i < texto.length; i++) {
-    h ^= texto.charCodeAt(i);
-    h = Math.imul(h, 16777619);
+    a = (a + 0x6d2b79f5) >>> 0
+    let t = a
+    t = Math.imul(t ^ (t >>> 15), t | 1)
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61)
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
   }
-  return h >>> 0;
 }
 
-function normalAleatorio(rand: () => number, media: number, desvio: number): number {
-  const u = Math.max(rand(), 1e-9);
-  const v = rand();
-  return media + desvio * Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+function semente(texto: string) {
+  let h = 2166136261
+  for (let i = 0; i < texto.length; i++) {
+    h ^= texto.charCodeAt(i)
+    h = Math.imul(h, 16777619)
+  }
+  return h >>> 0
+}
+
+/** Um valor em torno da média, com a variação de um dia comum. */
+function emTornoDe(sortear: () => number, media: number, variacao: number) {
+  const u = Math.max(sortear(), 1e-9)
+  const v = sortear()
+  return media + variacao * Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v)
 }
 
 type Perfil = {
-  pessoa: Pessoa;
-  pulseira: Omit<Pulseira, "ultimaSincronizacao"> & { minutosDesdeSincronizacao: number };
-  passos: (diasAtras: number, rand: () => number) => number;
-  deitar: (diasAtras: number, rand: () => number) => number;
-  levantar: (diasAtras: number, rand: () => number) => number;
-  despertares: (diasAtras: number, rand: () => number) => number;
-  bpmMedio: number;
-  medicoesPorDia: number;
-};
+  pessoa: Omit<Pessoa, "criadoEm">
+  pulseira: Omit<Pulseira, "ultimaSincronizacao"> & { minutosSemSincronizar: number }
+  passos: (diasAtras: number, sortear: () => number) => number
+  /** Minutos desde as 20h em que deitou e em que levantou. */
+  deitou: (diasAtras: number, sortear: () => number) => number
+  levantou: (diasAtras: number, sortear: () => number) => number
+  despertares: (diasAtras: number, sortear: () => number) => number
+  batimentos: number
+  medicoesPorDia: number
+}
 
 const PERFIS: Perfil[] = [
   {
-    pessoa: {
-      id: "pessoa-cida",
-      nome: "Aparecida Moreira",
-      comoChamar: "Dona Cida",
-      idadeAproximada: 78,
-      quemAcompanha: "Marina, filha",
-      criadoEm: "",
-    },
-    pulseira: { id: "pulseira-cida", pessoaId: "pessoa-cida", codigo: "CT-4F2A", bateria: 64, versao: "0.4.2", minutosDesdeSincronizacao: 18 },
-    passos: (d, r) => (d <= 2 ? normalAleatorio(r, 2350, 180) : normalAleatorio(r, 4200, 380)),
-    // Minutos desde as 20:00: 170 é 22:50, 610 é 06:10.
-    deitar: (_d, r) => normalAleatorio(r, 170, 14),
-    levantar: (_d, r) => normalAleatorio(r, 610, 12),
-    despertares: (d, r) => (d === 3 ? 5 : Math.round(r() * 2)),
-    bpmMedio: 72,
+    pessoa: { id: "pessoa-cida", nome: "Dona Cida", quemAcompanha: "Marina, filha" },
+    pulseira: { id: "pulseira-cida", codigo: "CT-4F2A", pessoaId: "pessoa-cida", bateria: 64, minutosSemSincronizar: 18 },
+    passos: (d, s) => (d <= 2 ? emTornoDe(s, 2350, 180) : emTornoDe(s, 4200, 380)),
+    // 170 minutos depois das 20h é 22h50; 610 é 6h10.
+    deitou: (_d, s) => emTornoDe(s, 170, 14),
+    levantou: (_d, s) => emTornoDe(s, 610, 12),
+    despertares: (d, s) => (d === 3 ? 5 : Math.round(s() * 2)),
+    batimentos: 72,
     medicoesPorDia: 2,
   },
   {
-    pessoa: {
-      id: "pessoa-jorge",
-      nome: "Jorge Takahashi",
-      comoChamar: "Seu Jorge",
-      idadeAproximada: 81,
-      quemAcompanha: "Marina, nora",
-      criadoEm: "",
-    },
-    pulseira: { id: "pulseira-jorge", pessoaId: "pessoa-jorge", codigo: "CT-9B71", bateria: 17, versao: "0.4.2", minutosDesdeSincronizacao: 205 },
-    passos: (_d, r) => normalAleatorio(r, 6300, 520),
-    // Na última noite ele foi deitar 00:40 (280) e levantou às 06:00 (600).
-    deitar: (d, r) => (d === 0 ? 280 : normalAleatorio(r, 150, 15)),
-    levantar: (d, r) => (d === 0 ? 600 : normalAleatorio(r, 620, 14)),
-    despertares: (_d, r) => Math.round(r() * 2),
-    bpmMedio: 66,
+    pessoa: { id: "pessoa-jorge", nome: "Seu Jorge", quemAcompanha: "Marina, nora" },
+    pulseira: { id: "pulseira-jorge", codigo: "CT-9B71", pessoaId: "pessoa-jorge", bateria: 17, minutosSemSincronizar: 205 },
+    passos: (_d, s) => emTornoDe(s, 6300, 520),
+    // Nas duas últimas noites ele foi deitar depois da meia-noite e levantou cedo.
+    deitou: (d, s) => (d === 0 ? 280 : d === 1 ? 270 : emTornoDe(s, 150, 15)),
+    levantou: (d, s) => (d === 0 ? 600 : d === 1 ? 595 : emTornoDe(s, 620, 14)),
+    despertares: (_d, s) => Math.round(s() * 2),
+    batimentos: 66,
     medicoesPorDia: 1,
   },
-];
+]
 
-const DIAS_DE_EXEMPLO = 21;
+const DIAS_DE_EXEMPLO = 21
 
-/** Uma noite de 840 minutos com movimento acordado, sono quieto e alguns despertares. */
-function gerarNoite(rand: () => number, deitar: number, levantar: number, despertares: number, comFalha: boolean): (number | null)[] {
-  const contagens: (number | null)[] = [];
-  const despertaresEm = Array.from({ length: despertares }, () => deitar + 40 + rand() * Math.max(60, levantar - deitar - 80));
+/** Uma noite de 840 minutos: movimento acordado, sono quieto e alguns despertares no meio. */
+function gerarNoite(sortear: () => number, deitou: number, levantou: number, despertares: number, comFalha: boolean) {
+  const contagens: (number | null)[] = []
+  const despertaresEm = Array.from(
+    { length: despertares },
+    () => deitou + 40 + sortear() * Math.max(60, levantou - deitou - 80)
+  )
   for (let m = 0; m < NOITE.minutos; m++) {
-    let valor: number;
-    if (m < deitar || m > levantar) {
-      // Acordada: movimento variado, mais intenso de manhã.
-      valor = 6 + rand() * 30 + (rand() < 0.2 ? rand() * 30 : 0);
+    let valor: number
+    if (m < deitou || m > levantou) {
+      valor = 6 + sortear() * 30 + (sortear() < 0.2 ? sortear() * 30 : 0)
     } else {
-      valor = rand() < 0.85 ? Math.floor(rand() * 2) : Math.floor(rand() * 4);
+      valor = sortear() < 0.85 ? Math.floor(sortear() * 2) : Math.floor(sortear() * 4)
       for (const inicio of despertaresEm) {
-        if (m >= inicio && m < inicio + 9) valor = 6 + rand() * 14;
+        if (m >= inicio && m < inicio + 9) valor = 6 + sortear() * 14
       }
     }
-    contagens.push(Math.round(valor));
+    contagens.push(Math.round(valor))
   }
   if (comFalha) {
-    // Um trecho curto sem dado, como acontece quando a pulseira sai do pulso.
-    const inicio = Math.floor(levantar + 20);
-    for (let m = inicio; m < Math.min(NOITE.minutos, inicio + 35); m++) contagens[m] = null;
+    // Meia hora sem dado logo depois de acordar, como quando a pulseira fica na pia.
+    const inicio = Math.floor(levantou + 20)
+    for (let m = inicio; m < Math.min(NOITE.minutos, inicio + 35); m++) contagens[m] = null
   }
-  return contagens;
+  return contagens
 }
 
-function gerarMedicoes(rand: () => number, data: string, quantas: number, media: number, ateAgora: Date | null): MedicaoBatimentos[] {
-  const horarios = [9 * 60 + 20, 17 * 60 + 40];
-  const medicoes: MedicaoBatimentos[] = [];
+function gerarMedicoes(sortear: () => number, data: DataISO, quantas: number, media: number, ate: Date | null) {
+  const horarios = [9 * 60 + 20, 17 * 60 + 40]
+  const medicoes: MedicaoBatimentos[] = []
   for (let i = 0; i < quantas; i++) {
-    const minutos = horarios[i] + Math.floor(rand() * 40);
-    const instante = dataDaChave(data);
-    instante.setHours(Math.floor(minutos / 60), minutos % 60, 0, 0);
-    if (ateAgora && instante > ateAgora) continue;
-    medicoes.push({ em: instante.toISOString(), bpm: Math.round(normalAleatorio(rand, media, 3.5)) });
+    const minutos = horarios[i] + Math.floor(sortear() * 40)
+    const instante = deISO(data)
+    instante.setHours(Math.floor(minutos / 60), minutos % 60, 0, 0)
+    if (ate && instante > ate) continue
+    medicoes.push({ em: instante.toISOString(), bpm: Math.round(emTornoDe(sortear, media, 3.5)) })
   }
-  return medicoes;
+  return medicoes
 }
 
-/** O total que o dia de hoje vai ter quando terminar. Usado pela sincronização simulada. */
-export function totalPrevistoHoje(pessoaId: string, hoje: string): number {
-  const perfil = PERFIS.find((p) => p.pessoa.id === pessoaId);
-  const rand = gerador(semente(`${pessoaId}:${hoje}:passos`));
-  // Pulseira recém-conectada: enquanto não há pulseira de verdade, simula um dia comum.
-  if (!perfil) return Math.max(0, Math.round(normalAleatorio(rand, 5000, 600)));
-  return Math.max(0, Math.round(perfil.passos(0, rand)));
+/**
+ * Quantos passos o dia de hoje vai ter quando terminar. É o que a sincronização
+ * de exemplo usa pra fazer os passos chegarem conforme o dia anda.
+ */
+export function passosPrevistosParaHoje(pessoaId: string, hoje: DataISO) {
+  const perfil = PERFIS.find((p) => p.pessoa.id === pessoaId)
+  const sortear = sorteio(semente(`${pessoaId}:${hoje}:passos`))
+  // Pessoa cadastrada agora: enquanto a pulseira de verdade não chega, um dia comum.
+  if (!perfil) return Math.max(0, Math.round(emTornoDe(sortear, 5000, 600)))
+  return Math.max(0, Math.round(perfil.passos(0, sortear)))
 }
 
-export function gerarDadosDeExemplo(agora: Date = new Date()): Dados {
-  const hoje = chaveDia(agora);
-  const pessoas: Pessoa[] = [];
-  const pulseiras: Pulseira[] = [];
-  const dias: DiaRegistrado[] = [];
+export function gerarExemplos(agora: Date = new Date()): Dados {
+  const hoje = paraISO(agora)
+  const pessoas: Pessoa[] = []
+  const pulseiras: Pulseira[] = []
+  const dias: DiaRegistrado[] = []
 
   for (const perfil of PERFIS) {
-    const criadoEm = dataDaChave(somarDias(hoje, -DIAS_DE_EXEMPLO));
-    pessoas.push({ ...perfil.pessoa, criadoEm: criadoEm.toISOString() });
+    pessoas.push({ ...perfil.pessoa, criadoEm: deISO(somarDias(hoje, -DIAS_DE_EXEMPLO)).toISOString() })
 
-    const { minutosDesdeSincronizacao, ...pulseira } = perfil.pulseira;
-    pulseiras.push({ ...pulseira, ultimaSincronizacao: new Date(agora.getTime() - minutosDesdeSincronizacao * 60000).toISOString() });
+    const { minutosSemSincronizar, ...pulseira } = perfil.pulseira
+    pulseiras.push({
+      ...pulseira,
+      ultimaSincronizacao: new Date(agora.getTime() - minutosSemSincronizar * 60000).toISOString(),
+    })
 
     for (let diasAtras = DIAS_DE_EXEMPLO - 1; diasAtras >= 0; diasAtras--) {
-      const data = somarDias(hoje, -diasAtras);
-      const rand = gerador(semente(`${perfil.pessoa.id}:${data}`));
-      const randPassos = gerador(semente(`${perfil.pessoa.id}:${data}:passos`));
-      const totalDia = Math.max(0, Math.round(perfil.passos(diasAtras, randPassos)));
-      const passos = diasAtras === 0 ? Math.round(totalDia * fracaoDoDia(agora)) : totalDia;
-      const minutosAtivos = Math.max(0, Math.round(passos / 95 + normalAleatorio(rand, 0, 4)));
+      const data = somarDias(hoje, -diasAtras)
+      const sortear = sorteio(semente(`${perfil.pessoa.id}:${data}`))
+      const sortearPassos = sorteio(semente(`${perfil.pessoa.id}:${data}:passos`))
+      const doDia = Math.max(0, Math.round(perfil.passos(diasAtras, sortearPassos)))
+      // Hoje ainda está acontecendo: só a parte do dia que já passou.
+      const passos = diasAtras === 0 ? Math.round(doDia * fracaoDoDia(agora)) : doDia
 
-      const deitar = Math.round(perfil.deitar(diasAtras, rand));
-      const levantar = Math.round(perfil.levantar(diasAtras, rand));
-      const despertares = perfil.despertares(diasAtras, rand);
-      const inicio = dataDaChave(somarDias(data, -1));
-      inicio.setHours(NOITE.inicioHora, 0, 0, 0);
-      const contagens = gerarNoite(rand, deitar, levantar, despertares, diasAtras === 6);
+      const inicio = deISO(somarDias(data, -1))
+      inicio.setHours(NOITE.inicioHora, 0, 0, 0)
+      const contagens = gerarNoite(
+        sortear,
+        Math.round(perfil.deitou(diasAtras, sortear)),
+        Math.round(perfil.levantou(diasAtras, sortear)),
+        perfil.despertares(diasAtras, sortear),
+        diasAtras === 6
+      )
       if (diasAtras === 0) {
-        // A noite de hoje só tem dado até o minuto atual.
-        const decorridos = Math.floor((agora.getTime() - inicio.getTime()) / 60000);
-        for (let m = Math.max(0, decorridos); m < contagens.length; m++) contagens[m] = null;
+        // A noite de hoje só tem dado até o minuto de agora.
+        const passados = Math.floor((agora.getTime() - inicio.getTime()) / 60000)
+        for (let m = Math.max(0, passados); m < contagens.length; m++) contagens[m] = null
       }
 
       dias.push({
-        id: `dia:${perfil.pessoa.id}:${data}`,
+        id: `dia-${perfil.pessoa.id}-${data}`,
         pessoaId: perfil.pessoa.id,
         data,
         passos,
-        minutosAtivos,
         noite: { inicio: inicio.toISOString(), contagens },
-        batimentos: gerarMedicoes(rand, data, perfil.medicoesPorDia, perfil.bpmMedio, diasAtras === 0 ? agora : null),
-      });
+        batimentos: gerarMedicoes(sortear, data, perfil.medicoesPorDia, perfil.batimentos, diasAtras === 0 ? agora : null),
+      })
     }
   }
 
-  const base: Dados = { versao: 1, origem: "exemplos", geradoEm: hoje, pessoas, pulseiras, dias, alertas: [] };
-  const alertas = recalcularAlertas(base, hoje, agora).map((alerta) => ({
+  const base: Dados = { pessoas, pulseiras, dias, alertas: [] }
+  const alertas = recalcularAlertas(base, agora).map((alerta) => ({
     ...alerta,
-    // Os avisos antigos já foram vistos; os de ontem e de hoje continuam novos.
+    // Os alertas de antes de ontem já foram vistos; os de ontem e de hoje chegam como novos.
     lido: alerta.data < somarDias(hoje, -1),
-  }));
-  return { ...base, alertas };
+  }))
+  return { ...base, alertas }
 }
 
-/** Recalcula os alertas a partir dos dias, mantendo o que já foi marcado como lido. */
-export function recalcularAlertas(dados: Dados, hoje: string, agora: Date = new Date()): Alerta[] {
-  const novos: Alerta[] = procurarDesvios(dados, hoje).map((c) => {
-    const pessoa = dados.pessoas.find((p) => p.id === c.pessoaId);
-    const texto = TEXTOS_DE_ALERTA[indiceEstavel(c.id, TEXTOS_DE_ALERTA.length)]({
-      comoChamar: pessoa?.comoChamar ?? "A pessoa",
-      metrica: c.metrica,
-      direcao: c.direcao,
-      valor: c.valor,
-      baixo: c.faixa.baixo,
-      alto: c.faixa.alto,
-      desvio: c.desvio,
-    });
+/**
+ * Refaz os alertas a partir dos dias registrados, guardando o que já foi lido
+ * e o texto que já tinha sido escrito. Roda depois de toda sincronização.
+ */
+export function recalcularAlertas(dados: Dados, agora: Date = new Date()): Alerta[] {
+  const existentes = new Map(dados.alertas.map((a) => [a.id, a]))
+  const alertas = procurarMudancas(dados, paraISO(agora)).map((mudanca): Alerta => {
+    const antigo = existentes.get(mudanca.id)
+    if (antigo) return antigo
+    const pessoa = dados.pessoas.find((p) => p.id === mudanca.pessoaId)
+    const escrever = TEXTOS_DE_ALERTA[indiceFixo(mudanca.id, TEXTOS_DE_ALERTA.length)]
     return {
-      id: c.id,
-      pessoaId: c.pessoaId,
-      data: c.data,
-      metrica: c.metrica,
-      direcao: c.direcao,
-      desvio: Math.round(c.desvio),
-      texto,
+      id: mudanca.id,
+      pessoaId: mudanca.pessoaId,
+      data: mudanca.data,
+      metrica: mudanca.metrica,
+      direcao: mudanca.direcao,
+      desvio: mudanca.desvio,
+      texto: escrever({
+        nome: pessoa?.nome ?? "",
+        metrica: mudanca.metrica,
+        direcao: mudanca.direcao,
+        valor: mudanca.valor,
+        normal: mudanca.faixa.normal,
+        desvio: mudanca.desvio,
+      }),
       lido: false,
       criadoEm: agora.toISOString(),
-    };
-  });
-  return mesclarAlertas(dados.alertas, novos);
+    }
+  })
+  return alertas.sort((a, b) => b.data.localeCompare(a.data) || a.metrica.localeCompare(b.metrica))
 }

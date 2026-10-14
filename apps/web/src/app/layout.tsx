@@ -1,65 +1,57 @@
-import type { Metadata, Viewport } from "next";
-import localFont from "next/font/local";
-import "./globals.css";
-import { marca } from "@/content/site";
-import { ProvedorAnuncios } from "@/components/ui/anunciador";
-import { EfeitoPreferencias } from "@/components/app/efeito-preferencias";
-import { RegistroServiceWorker } from "@/components/pwa/registro-service-worker";
+import type { Metadata } from "next"
+import { Inter } from "next/font/google"
+import config from "../../design-system.json"
+import { designSystem, toCssVars } from "@/lib/design-system"
+import { marca } from "@/content/site"
+import "./globals.css"
 
-/*
-  Atkinson Hyperlegible: a fonte que a skill ui-ux-pro-max indicou para produtos de
-  cuidado com idosos, desenhada pelo Braille Institute para ser lida com facilidade
-  por quem tem baixa visão. Os arquivos ficam no projeto (licença OFL em ./fonts),
-  então nada é baixado de fora quando o app abre.
-*/
-const atkinson = localFont({
-  src: [
-    { path: "./fonts/atkinson-hyperlegible-latin-400-normal.woff2", weight: "400", style: "normal" },
-    { path: "./fonts/atkinson-hyperlegible-latin-400-italic.woff2", weight: "400", style: "italic" },
-    { path: "./fonts/atkinson-hyperlegible-latin-700-normal.woff2", weight: "700", style: "normal" },
-  ],
-  variable: "--fonte-atkinson",
+// A fonte do CareTwin. O design-system.json aponta para --font-inter; se um dia
+// a família mudar lá, o navegador cai na pilha de reserva sem quebrar o layout.
+const inter = Inter({
+  variable: "--font-inter",
+  subsets: ["latin"],
   display: "swap",
-  fallback: ["ui-sans-serif", "system-ui", "sans-serif"],
-});
+})
 
 export const metadata: Metadata = {
-  title: {
-    default: `${marca.nome}: o normal de cada pessoa, acompanhado com calma`,
-    template: `%s | ${marca.nome}`,
-  },
-  description: marca.descricao,
-  applicationName: marca.nome,
-  appleWebApp: { capable: true, title: marca.nome, statusBarStyle: "default" },
-  formatDetection: { telephone: false },
-};
+  title: `${marca.nome} · ${marca.tagline}`,
+  description: marca.descricaoCurta,
+}
 
-export const viewport: Viewport = {
-  width: "device-width",
-  initialScale: 1,
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f0f9ff" },
-    { media: "(prefers-color-scheme: dark)", color: "#0b1726" },
-  ],
-};
+/**
+ * O que o design-system.json traz além das cores por papel: o ritmo do
+ * espaçamento, a altura de linha e o tom de marca usado como tinta. A conversão
+ * principal mora em `toCssVars`; estes três entram aqui para que nenhum valor
+ * do JSON fique sem virar variável.
+ */
+function variaveisDoRitmo(): Record<string, string> {
+  const extras: Record<string, string> = {
+    "--ds-space": config.layout.space,
+    "--ds-line-height": String(config.layout.lineHeight),
+  }
+  // Quando o accent é o mesmo tom da primária, ele não é escrito: assim a prévia
+  // de tema da tela de configurações, que troca só a primária, leva o accent
+  // junto pelo `var(--ds-primary)` do globals.css.
+  if (config.tokens.primaryAccent !== config.tokens.primary) {
+    extras["--ds-primary-accent"] = config.tokens.primaryAccent
+  }
+  return extras
+}
 
-/*
-  Aplica tema e tamanho de texto antes da primeira pintura, lendo as preferências
-  guardadas neste navegador. Sem isso, quem escolheu o tema escuro veria um clarão.
-*/
-const scriptPreferencias = `(function(){try{var p=JSON.parse(localStorage.getItem("caretwin:preferencias:v1")||"{}");var t=p.tema||"sistema";var e=t==="escuro"||(t==="sistema"&&window.matchMedia("(prefers-color-scheme: dark)").matches);var r=document.documentElement;r.dataset.tema=e?"escuro":"claro";r.dataset.texto=p.texto==="grande"?"grande":"padrao";}catch(_){}})();`;
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  // Os tokens do design-system.json viram custom properties aqui, no servidor.
+  // É isso que faz trocar o JSON repintar o app inteiro sem tocar em componente.
+  const vars = { ...toCssVars(designSystem), ...variaveisDoRitmo() } as React.CSSProperties
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="pt-BR" data-tema="claro" data-texto="padrao" className={atkinson.variable} suppressHydrationWarning>
-      <head>
-        <script dangerouslySetInnerHTML={{ __html: scriptPreferencias }} />
-      </head>
-      <body className="min-h-dvh">
-        <ProvedorAnuncios>{children}</ProvedorAnuncios>
-        <EfeitoPreferencias />
-        <RegistroServiceWorker />
-      </body>
+    <html
+      lang="pt-BR"
+      className={`${inter.variable} h-full`}
+      style={vars}
+      data-ds={designSystem.id}
+      data-mode={designSystem.mode}
+    >
+      <body className="min-h-full">{children}</body>
     </html>
-  );
+  )
 }
