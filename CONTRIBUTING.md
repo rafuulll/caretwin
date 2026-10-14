@@ -31,7 +31,7 @@ O simulador em simulador/ gera os dados da pulseira (varios cenarios) e a API fa
 
 ## Previews e ambientes
 
-Vercel cria um link de preview para cada PR do site. A API tem um ambiente de teste na Railway e um de producao. O site aponta para a API pela variavel NEXT_PUBLIC_API_URL.
+Vercel cria um link de preview para cada PR do site. A API tem um ambiente de teste na Railway e um de producao. Hoje o site ainda nao chama a API: quando ela entrar, o ponto de ligacao e apps/web/src/lib/store.ts.
 
 ## Integracao semanal
 

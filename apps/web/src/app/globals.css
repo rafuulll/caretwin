@@ -1,276 +1,81 @@
 @import "tailwindcss";
 
 /*
-  Sistema de design do CareTwin.
-  Origem: skill ui-ux-pro-max, categoria "Senior Care/Elderly", estilo Minimalism & Swiss,
-  com paleta "calm blue + reassuring green" e a fonte Atkinson Hyperlegible.
-  O arquivo de referência fica em design-system/caretwin/MASTER.md.
-  Os componentes usam só estes papéis de cor (nunca hex direto), então o tema escuro
-  e o modo de texto grande funcionam sem tocar em componente nenhum.
+  Os valores abaixo são apenas o fallback. Quem manda de verdade é o
+  design-system.json na raiz: o layout injeta essas mesmas variáveis com os
+  valores de lá. Mexer no JSON muda a landing, o sistema e o Storybook juntos.
 */
-
 :root {
-  color-scheme: light;
-
-  --ct-fundo: #f0f9ff;
-  --ct-superficie: #ffffff;
-  --ct-suave: #e7eff5;
-  --ct-tinta: #0c4a6e;
-  --ct-tinta-suave: #475569;
-  --ct-primaria: #0369a1;
-  --ct-primaria-forte: #075985;
-  --ct-sobre-primaria: #ffffff;
-  --ct-secundaria: #38bdf8;
-  --ct-acento: #16a34a;
-  --ct-acento-forte: #22c55e;
-  --ct-sobre-acento: #000000;
-  --ct-borda: #e0f2fe;
-  --ct-borda-forte: #cbd9e6;
-  --ct-borda-campo: #7a8ca3;
-  --ct-anel: #0369a1;
-  --ct-perigo: #dc2626;
-  --ct-sobre-perigo: #ffffff;
-
-  /* Estados de saúde: sempre acompanhados de ícone e texto, nunca só a cor. */
-  --ct-bom: #15803d;
-  --ct-bom-fundo: #dcfce7;
-  --ct-atencao: #b45309;
-  --ct-atencao-fundo: #fef3c7;
-  --ct-info: #0369a1;
-  --ct-info-fundo: #e0f2fe;
-
-  /* Gráficos: uma série só, na cor primária, com a faixa do normal em lavagem de 12%. */
-  --ct-grafico-serie: #0369a1;
-  --ct-grafico-faixa: color-mix(in oklab, #0369a1 12%, transparent);
-  --ct-grafico-grade: #dbe7f0;
-
-  --ct-sombra-sm: 0 1px 2px rgb(12 74 110 / 0.06);
-  --ct-sombra-md: 0 4px 6px -1px rgb(12 74 110 / 0.08), 0 2px 4px -2px rgb(12 74 110 / 0.06);
-  --ct-sombra-lg: 0 10px 15px -3px rgb(12 74 110 / 0.1), 0 4px 6px -4px rgb(12 74 110 / 0.08);
-  --ct-sombra-xl: 0 20px 25px -5px rgb(12 74 110 / 0.12), 0 8px 10px -6px rgb(12 74 110 / 0.08);
-
-  --ct-veu: rgb(12 30 46 / 0.55);
-}
-
-:root[data-tema="escuro"] {
-  color-scheme: dark;
-
-  --ct-fundo: #0b1726;
-  --ct-superficie: #102236;
-  --ct-suave: #18304a;
-  --ct-tinta: #e0f2fe;
-  --ct-tinta-suave: #a5b8cc;
-  --ct-primaria: #38bdf8;
-  --ct-primaria-forte: #7dd3fc;
-  --ct-sobre-primaria: #082f49;
-  --ct-secundaria: #0ea5e9;
-  --ct-acento: #22c55e;
-  --ct-acento-forte: #4ade80;
-  --ct-sobre-acento: #000000;
-  --ct-borda: #1d3550;
-  --ct-borda-forte: #24405e;
-  --ct-borda-campo: #5c7a99;
-  --ct-anel: #7dd3fc;
-  --ct-perigo: #f87171;
-  --ct-sobre-perigo: #450a0a;
-
-  --ct-bom: #4ade80;
-  --ct-bom-fundo: #0f2e1f;
-  --ct-atencao: #fbbf24;
-  --ct-atencao-fundo: #33260a;
-  --ct-info: #38bdf8;
-  --ct-info-fundo: #0c2b44;
-
-  --ct-grafico-serie: #38bdf8;
-  --ct-grafico-faixa: color-mix(in oklab, #38bdf8 16%, transparent);
-  --ct-grafico-grade: #1f3a56;
-
-  --ct-sombra-sm: 0 1px 2px rgb(0 0 0 / 0.3);
-  --ct-sombra-md: 0 4px 6px -1px rgb(0 0 0 / 0.35), 0 2px 4px -2px rgb(0 0 0 / 0.3);
-  --ct-sombra-lg: 0 10px 15px -3px rgb(0 0 0 / 0.4), 0 4px 6px -4px rgb(0 0 0 / 0.3);
-  --ct-sombra-xl: 0 20px 25px -5px rgb(0 0 0 / 0.45), 0 8px 10px -6px rgb(0 0 0 / 0.35);
-
-  --ct-veu: rgb(0 0 0 / 0.65);
+  /*
+    As cores, a fonte e o peso vêm do design-system.json: o layout escreve essas
+    variáveis direto no <html>, no servidor, e o Storybook faz o mesmo no preview.
+    Por isso aqui não mora cor nenhuma escrita na mão. Ficam só os valores que
+    não são cor e que valem como reserva se algum lugar renderizar sem o layout.
+  */
+  --ds-font-display: var(--font-inter), Inter, ui-sans-serif, system-ui, sans-serif;
+  --ds-font-body: var(--font-inter), Inter, ui-sans-serif, system-ui, sans-serif;
+  --ds-display-weight: 500;
+  --ds-tracking: 0em;
+  --ds-radius: 10px;
+  --ds-radius-surface: 10px;
+  --ds-radius-fine: 8px;
+  --ds-space: 14px;
+  --ds-line-height: 1.65;
+  /* O tom de marca usado como TINTA (número de manchete, ícone, marcador). */
+  --ds-primary-accent: var(--ds-primary);
 }
 
 @theme inline {
-  --color-fundo: var(--ct-fundo);
-  --color-superficie: var(--ct-superficie);
-  --color-suave: var(--ct-suave);
-  --color-tinta: var(--ct-tinta);
-  --color-tinta-suave: var(--ct-tinta-suave);
-  --color-primaria: var(--ct-primaria);
-  --color-primaria-forte: var(--ct-primaria-forte);
-  --color-sobre-primaria: var(--ct-sobre-primaria);
-  --color-secundaria: var(--ct-secundaria);
-  --color-acento: var(--ct-acento);
-  --color-acento-forte: var(--ct-acento-forte);
-  --color-sobre-acento: var(--ct-sobre-acento);
-  --color-borda: var(--ct-borda);
-  --color-borda-forte: var(--ct-borda-forte);
-  --color-borda-campo: var(--ct-borda-campo);
-  --color-anel: var(--ct-anel);
-  --color-perigo: var(--ct-perigo);
-  --color-sobre-perigo: var(--ct-sobre-perigo);
-  --color-bom: var(--ct-bom);
-  --color-bom-fundo: var(--ct-bom-fundo);
-  --color-atencao: var(--ct-atencao);
-  --color-atencao-fundo: var(--ct-atencao-fundo);
-  --color-info: var(--ct-info);
-  --color-info-fundo: var(--ct-info-fundo);
+  --color-canvas: var(--ds-canvas);
+  --color-surface: var(--ds-surface);
+  --color-elevated: var(--ds-surface-elevated);
+  --color-ink: var(--ds-ink);
+  --color-muted: var(--ds-ink-muted);
+  --color-primary: var(--ds-primary);
+  --color-primary-ink: var(--ds-primary-ink);
+  --color-primary-hover: var(--ds-primary-hover);
+  --color-hairline: var(--ds-hairline);
+  --color-success: var(--ds-success);
+  --color-danger: var(--ds-danger);
+  --color-warning: var(--ds-warning);
 
-  --font-sans: var(--fonte-atkinson), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--ds-font-display);
+  --font-body: var(--ds-font-body);
 
-  --shadow-ct-sm: var(--ct-sombra-sm);
-  --shadow-ct-md: var(--ct-sombra-md);
-  --shadow-ct-lg: var(--ct-sombra-lg);
-  --shadow-ct-xl: var(--ct-sombra-xl);
-
-  --radius-campo: 8px;
-  --radius-cartao: 12px;
-  --radius-dialogo: 16px;
-
-  --ease-saida: cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-/*
-  Tamanho do texto: a base é 17px porque o público inclui pessoas idosas.
-  O modo "texto grande" (tela Ajustes) sobe tudo junto, já que o app inteiro usa rem.
-*/
-html {
-  font-size: 106.25%;
-  -webkit-text-size-adjust: 100%;
-  text-size-adjust: 100%;
-  scroll-padding-top: 5rem;
-}
-
-html[data-texto="grande"] {
-  font-size: 118.75%;
+  --radius-ds: var(--ds-radius);
+  --radius-ds-surface: var(--ds-radius-surface);
+  --radius-ds-fine: var(--ds-radius-fine);
 }
 
 body {
-  background: var(--ct-fundo);
-  color: var(--ct-tinta);
-  font-family: var(--font-sans);
-  line-height: 1.6;
-  font-synthesis-weight: none;
-  text-rendering: optimizeLegibility;
+  background: var(--ds-canvas);
+  color: var(--ds-ink);
+  font-family: var(--ds-font-body);
+  line-height: var(--ds-line-height);
   -webkit-font-smoothing: antialiased;
 }
 
 h1,
 h2,
-h3 {
-  text-wrap: balance;
-  line-height: 1.2;
+h3,
+h4 {
+  font-family: var(--ds-font-display);
+  font-weight: var(--ds-display-weight);
+  letter-spacing: var(--ds-tracking);
 }
 
-p {
-  text-wrap: pretty;
-}
+/*
+  Foco visível e consistente: acessibilidade não é opcional.
 
-a,
-button,
-[role="button"],
-summary,
-label[for],
-select {
-  cursor: pointer;
-  touch-action: manipulation;
-}
-
-/* Foco visível em tudo, com o anel do tema e contraste de pelo menos 3:1. */
+  Sem `border-radius` aqui de propósito: esta regra está fora de camada e
+  venceria o `rounded-ds` das utilities, deformando todo elemento no foco.
+  O contorno já acompanha o raio do próprio elemento.
+*/
 :focus-visible {
-  outline: 3px solid var(--ct-anel);
-  outline-offset: 3px;
-  border-radius: 4px;
+  outline: 2px solid var(--ds-primary);
+  outline-offset: 2px;
 }
 
-::selection {
-  background: color-mix(in oklab, var(--ct-primaria) 25%, transparent);
-}
-
-.numeros-tabulares {
-  font-variant-numeric: tabular-nums;
-}
-
-/* Superfícies: borda suave mais sombra pequena, do jeito que a skill pede para o estilo Swiss. */
-.cartao {
-  background: var(--ct-superficie);
-  border: 1px solid var(--ct-borda);
-  border-radius: var(--radius-cartao);
-  box-shadow: var(--ct-sombra-sm);
-}
-
-.cartao-clicavel {
-  transition:
-    box-shadow 200ms var(--ease-saida),
-    border-color 200ms var(--ease-saida);
-}
-
-.cartao-clicavel:hover {
-  box-shadow: var(--ct-sombra-md);
-  border-color: var(--ct-borda-forte);
-}
-
-/* A única entrada orquestrada da página: 8px subindo, sem nascer invisível. */
-@keyframes ct-chegada {
-  from {
-    transform: translateY(8px);
-  }
-  to {
-    transform: translateY(0);
-  }
-}
-
-.chegada {
-  animation: ct-chegada 360ms var(--ease-saida) both;
-}
-
-@keyframes ct-deriva-svg {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(-1200px);
-  }
-}
-
-.fundo-vivo-linha {
-  animation: ct-deriva-svg 90s linear infinite;
-  will-change: transform;
-}
-
-.fundo-vivo[data-pausado="true"] .fundo-vivo-linha {
-  animation-play-state: paused;
-}
-
-@keyframes ct-pulso-carregando {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.55;
-  }
-}
-
-.esqueleto {
-  background: var(--ct-suave);
-  border-radius: 8px;
-  animation: ct-pulso-carregando 1.6s ease-in-out infinite;
-}
-
-@keyframes ct-progresso {
-  from {
-    transform: scaleX(0);
-  }
-  to {
-    transform: scaleX(1);
-  }
-}
-
-/* Movimento reduzido: tudo aparece no estado final, inclusive os atrasos. */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -284,75 +89,367 @@ select {
   }
 }
 
-/* Tour guiado (driver.js): veste o popover com as cores e a fonte do CareTwin. */
-.driver-popover.ct-tour {
-  background: var(--ct-superficie);
-  color: var(--ct-tinta);
-  border: 1px solid var(--ct-borda-forte);
-  border-radius: var(--radius-cartao);
-  box-shadow: var(--ct-sombra-xl);
-  font-family: var(--font-sans);
-  max-width: min(360px, calc(100vw - 32px));
-  padding: 20px;
+/* ==========================================================================
+   Camada premium
+
+   O design-system.json troca COR, FONTE e RAIO. Esta camada é o que dá o
+   acabamento, e ela vale para os 71 temas sem exceção: realce interno,
+   superfície com gradiente em vez de cor chapada, contorno de 1px translúcido
+   e brilho colorido sob o que importa.
+
+   Um realce branco funciona em tema escuro e some em superfície clara, e em 52
+   dos 71 temas do catálogo o fundo é claro. Por isso a polaridade do realce é
+   derivada do modo, e não fixa.
+   ========================================================================== */
+
+:root {
+  /* Tema escuro: a luz de cima é branca e a sombra de baixo é preta forte. */
+  --realce: color-mix(in srgb, white 25%, transparent);
+  --realce-suave: color-mix(in srgb, white 10%, transparent);
+  --realce-fio: color-mix(in srgb, white 12%, transparent);
+  --sombra-borda: color-mix(in srgb, black 100%, transparent);
+  --sombra-difusa: color-mix(in srgb, black 50%, transparent);
+  --forca-brilho: 0.25;
 }
 
-.driver-popover.ct-tour .driver-popover-title {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: var(--ct-tinta);
+:root[data-mode="light"] {
+  /* Tema claro: o realce branco precisa ser bem mais forte pra aparecer, e a
+     sombra de baixo vira um cinza sutil, senão o componente fica sujo. */
+  --realce: color-mix(in srgb, white 90%, transparent);
+  --realce-suave: color-mix(in srgb, white 55%, transparent);
+  --realce-fio: color-mix(in srgb, black 8%, transparent);
+  --sombra-borda: color-mix(in srgb, black 10%, transparent);
+  --sombra-difusa: color-mix(in srgb, var(--ds-ink) 12%, transparent);
+  --forca-brilho: 0.18;
 }
 
-.driver-popover.ct-tour .driver-popover-description {
-  font-size: 1rem;
-  line-height: 1.55;
-  color: var(--ct-tinta-suave);
+/*
+  Só o quadro inicial está escrito. O quadro final é omitido de propósito: sem
+  `to`, o navegador usa o valor que o próprio elemento já tem, que é o fundo
+  semitransparente da `.cabecalho-condensa`. Assim a receita mora num lugar só.
+
+  Fica fora do `@layer` porque `@keyframes` não pertence a camada nenhuma.
+*/
+@keyframes cabecalho-condensa {
+  from {
+    background-color: transparent;
+    backdrop-filter: blur(0px);
+    box-shadow: inset 0 -1px 0 0 transparent;
+  }
 }
 
-.driver-popover.ct-tour .driver-popover-progress-text {
-  color: var(--ct-tinta-suave);
-  font-size: 0.875rem;
-}
+@layer utilities {
+  /*
+    Superfície com profundidade.
 
-.driver-popover.ct-tour .driver-popover-footer button {
-  font-family: var(--font-sans);
-  font-size: 0.95rem;
-  text-shadow: none;
-  border-radius: var(--radius-campo);
-  border: 1px solid var(--ct-borda-campo);
-  background: var(--ct-superficie);
-  color: var(--ct-tinta);
-  padding: 8px 14px;
-  min-height: 40px;
-}
+    Um gradiente vertical quase imperceptível sobre a cor base, mais um fio de
+    1px por dentro. É a diferença entre "retângulo cinza" e "painel".
+  */
+  .superficie {
+    background-image: linear-gradient(to bottom, var(--realce-suave), transparent 60%);
+    background-color: var(--ds-surface);
+    box-shadow: inset 0 0 0 1px var(--realce-fio);
+  }
 
-.driver-popover.ct-tour .driver-popover-footer .driver-popover-next-btn {
-  background: var(--ct-acento);
-  color: var(--ct-sobre-acento);
-  border-color: transparent;
-  font-weight: 700;
-}
+  .superficie-elevada {
+    background-image: linear-gradient(to bottom, var(--realce-suave), transparent 55%);
+    background-color: var(--ds-surface-elevated);
+    box-shadow: inset 0 0 0 1px var(--realce-fio);
+  }
 
-.driver-popover.ct-tour .driver-popover-close-btn {
-  color: var(--ct-tinta-suave);
-  width: 40px;
-  height: 40px;
-}
+  /*
+    Relevo de pílula.
 
-.driver-popover.ct-tour .driver-popover-arrow-side-top.driver-popover-arrow {
-  border-top-color: var(--ct-superficie);
-}
-.driver-popover.ct-tour .driver-popover-arrow-side-bottom.driver-popover-arrow {
-  border-bottom-color: var(--ct-superficie);
-}
-.driver-popover.ct-tour .driver-popover-arrow-side-left.driver-popover-arrow {
-  border-left-color: var(--ct-superficie);
-}
-.driver-popover.ct-tour .driver-popover-arrow-side-right.driver-popover-arrow {
-  border-right-color: var(--ct-superficie);
-}
+    A dupla sombra interna é o truque: linha clara no canto superior esquerdo,
+    linha escura no inferior direito. Dá o relevo de objeto físico.
+  */
+  .pilula,
+  .pilula-relevo {
+    background-image:
+      radial-gradient(52% 252% at 25% -105%, var(--realce) 0%, transparent 100%),
+      linear-gradient(184deg, transparent 2%, var(--sombra-difusa) 112%);
+    background-color: var(--ds-surface-elevated);
+    box-shadow:
+      inset 1px 1px 0 0 var(--realce),
+      inset -1px -1px 0 0 var(--sombra-borda);
+  }
 
-@media print {
-  .nao-imprimir {
-    display: none !important;
+  /*
+    `.pilula` é o rótulo inteiro (o eyebrow): o relevo acima mais o tamanho.
+    `.pilula-relevo` é só o relevo, para quem já tem o próprio tamanho. O badge
+    de status vive dentro de lista densa e não pode ter 32px de altura.
+  */
+  .pilula {
+    position: relative;
+    display: inline-flex;
+    min-height: 2rem;
+    align-items: center;
+    gap: 0.5rem;
+    border-radius: 9999px;
+    padding: 0.375rem 1rem;
+  }
+
+  /*
+    Brilho da marca.
+
+    Uma sombra grande, difusa e COLORIDA embaixo do elemento. É o que faz o
+    herói e o botão principal parecerem iluminados em vez de colados no fundo.
+  */
+  .brilho-marca {
+    box-shadow: 0 24px 80px -24px
+      color-mix(in srgb, var(--ds-primary) calc(var(--forca-brilho) * 100%), transparent);
+  }
+
+  .brilho-suave {
+    box-shadow: 0 12px 40px -16px
+      color-mix(in srgb, var(--ds-primary) calc(var(--forca-brilho) * 70%), transparent);
+  }
+
+  /*
+    Fio de luz de 1px na borda de cima.
+
+    Vem como camada de fundo, e não como `inset 0 1px 0`, porque quem usa isto
+    normalmente já gastou o `box-shadow` com o brilho. O desenho é o mesmo.
+  */
+  .realce-topo {
+    background-image: linear-gradient(to bottom, var(--realce-suave) 0 1px, transparent 1px);
+  }
+
+  /*
+    Realce interno para peça redonda e cheia (avatar, selo, disco de número).
+
+    O `.realce-topo` é uma faixa reta: num círculo ele aparece só no ápice e some.
+    Aqui a luz de cima e o peso de baixo são sombras internas, e sombra interna
+    acompanha a curva da borda. Fica um aro iluminado em vez de um traço.
+  */
+  .realce-interno {
+    box-shadow:
+      inset 0 1px 0 0 var(--realce-suave),
+      inset 0 -1px 0 0 var(--sombra-difusa);
+  }
+
+  /*
+    Cabeçalho que só ganha peso depois que a página rola.
+
+    Sem JavaScript: a animação é presa à barra de rolagem da raiz, então a landing
+    continua 100% servidor. Onde o navegador não tem `animation-timeline` (ou onde
+    a pessoa pediu menos movimento), o cabeçalho fica direto no estado final, que
+    é o fundo semitransparente com desfoque de sempre.
+  */
+  .cabecalho-condensa {
+    background-color: color-mix(in srgb, var(--ds-canvas) 85%, transparent);
+    backdrop-filter: blur(12px);
+    /* O fio da base é sombra, e não borda: borda ocuparia 1px de layout, e é
+       justamente esse 1px que abriria uma fresta entre o topo da página e a
+       arte do herói, que sobe por baixo da barra. */
+    box-shadow: inset 0 -1px 0 0 var(--ds-hairline);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    @supports (animation-timeline: scroll()) {
+      .cabecalho-condensa {
+        animation: cabecalho-condensa linear both;
+        animation-timeline: scroll(root block);
+        animation-range: 0 80px;
+      }
+    }
+  }
+
+  /*
+    Preenchimento do botão de ação.
+
+    A cor de ação como base, o fio de luz no topo e o peso escuro no rodapé. É o
+    que separa o botão iluminado do retângulo colorido.
+
+    O escurecimento só começa aos 76% da altura, abaixo da linha do texto. A cor
+    do texto do botão foi validada contra a primária sólida nos 71 temas, e
+    escurecer a faixa onde a letra pousa desfaria essa conta.
+  */
+  .preenchimento-acao {
+    background-color: var(--ds-primary);
+    background-image:
+      linear-gradient(to bottom, var(--realce-suave) 0 1px, transparent 1px),
+      linear-gradient(
+        to bottom,
+        transparent 76%,
+        color-mix(in srgb, var(--ds-primary) 88%, black) 100%
+      );
+  }
+
+  /*
+    Chip que segura a seta dentro do CTA.
+
+    Anel escuro por fora e fio claro por dentro. Sem isso o botão vira um
+    retângulo colorido comum.
+  */
+  .chip-seta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: 9999px;
+    background-color: var(--ds-canvas);
+    color: var(--ds-primary);
+    box-shadow: inset 0 0 0 1px var(--sombra-borda);
+    outline: 1px solid var(--realce-fio);
+    outline-offset: -1px;
+  }
+
+  @media (min-width: 640px) {
+    .chip-seta {
+      width: 2rem;
+      height: 2rem;
+    }
+  }
+
+  /*
+    Título com gradiente.
+
+    Só começa a desbotar aos 24% da altura, então a primeira linha fica sólida
+    e o fim esmaece.
+  */
+  .titulo-gradiente {
+    background-image: linear-gradient(
+      to bottom,
+      var(--ds-ink) 24%,
+      color-mix(in srgb, var(--ds-ink) 55%, var(--ds-canvas))
+    );
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* Aura de fundo de seção. Fica atrás do conteúdo, nunca por cima. */
+  .aura-secao {
+    position: relative;
+  }
+  .aura-secao::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image: radial-gradient(
+      ellipse 70% 50% at 50% 0%,
+      color-mix(in srgb, var(--ds-primary) 10%, transparent) 0%,
+      transparent 70%
+    );
+  }
+
+  /* Fio de luz de 1px no topo de modal e painel. */
+  .fio-luz {
+    position: relative;
+  }
+  .fio-luz::before {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    top: 0;
+    height: 1px;
+    background-image: linear-gradient(
+      to right,
+      transparent,
+      color-mix(in srgb, var(--ds-primary) 50%, transparent),
+      transparent
+    );
+  }
+
+  /*
+    Brilho colorido por `filter`.
+
+    Mesma receita do `.brilho-marca`/`.brilho-suave`, só que por `drop-shadow`.
+    `box-shadow` é uma propriedade só: quem já a gastou com a superfície (o item
+    ativo do menu, o cartão do quadro) não pode declarar a segunda sem apagar a
+    primeira. O `filter` compõe em vez de substituir. Foi o caminho que o modal
+    já tinha aberto.
+  */
+  .brilho-marca-filtro {
+    filter: drop-shadow(
+      0 10px 28px color-mix(in srgb, var(--ds-primary) calc(var(--forca-brilho) * 90%), transparent)
+    );
+  }
+
+  .brilho-suave-filtro {
+    filter: drop-shadow(
+      0 5px 14px color-mix(in srgb, var(--ds-primary) calc(var(--forca-brilho) * 65%), transparent)
+    );
+  }
+
+  /*
+    Elevação no ponteiro.
+
+    O cartão do quadro sai do plano quando o mouse chega e volta quando ele sai.
+    O `:has(:focus-visible)` dá o mesmo sinal a quem chega pelo teclado. A regra
+    global de `prefers-reduced-motion` já zera esta transição.
+  */
+  .elevar-no-ponteiro {
+    transition: filter 150ms ease;
+  }
+  .elevar-no-ponteiro:hover,
+  .elevar-no-ponteiro:has(:focus-visible) {
+    filter: drop-shadow(
+      0 6px 16px color-mix(in srgb, var(--ds-primary) calc(var(--forca-brilho) * 60%), transparent)
+    );
+  }
+
+  /*
+    Coluna lateral do sistema.
+
+    A luz entra por cima e morre no primeiro terço, e a borda direita ganha o fio
+    de 1px por DENTRO da hairline. No escuro esse fio é branco (a aresta pegando
+    luz); no claro ele é escuro (a sombra que a coluna projeta no conteúdo). É a
+    mesma variável fazendo os dois trabalhos, porque a polaridade já vem do modo.
+  */
+  .painel-lateral {
+    background-image: linear-gradient(to bottom, var(--realce-suave), transparent 38%);
+    background-color: var(--ds-surface);
+    box-shadow: inset -1px 0 0 0 var(--realce-fio);
+  }
+
+  /*
+    Barra fixa do topo.
+
+    Fio de luz por dentro da base mais uma sombra curta por fora: o conteúdo
+    passa POR BAIXO da barra em vez de encostar nela. Combina com o
+    `backdrop-blur`, que sozinho só embaça.
+  */
+  .fio-base {
+    box-shadow:
+      inset 0 -1px 0 0 var(--realce-suave),
+      0 6px 16px -12px var(--sombra-difusa);
+  }
+
+  /*
+    Faixa de 2px no topo do cartão.
+
+    Começa e termina em transparente de propósito: assim ela não precisa saber o
+    raio do cartão para não vazar pelo canto arredondado.
+  */
+  .faixa-topo {
+    position: relative;
+  }
+  .faixa-topo::before {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    top: 0;
+    height: 2px;
+    pointer-events: none;
+    background-image: linear-gradient(
+      to right,
+      transparent 0%,
+      color-mix(in srgb, var(--ds-primary) 80%, transparent) 16%,
+      color-mix(in srgb, var(--ds-primary) 18%, transparent) 55%,
+      transparent 92%
+    );
+  }
+
+  /*
+    Halo curto atrás do símbolo da marca.
+
+    Vai no `filter` do próprio SVG, então acompanha o desenho em vez de virar um
+    quadrado luminoso atrás dele.
+  */
+  .realce-marca svg {
+    filter: drop-shadow(0 1px 6px color-mix(in srgb, var(--ds-primary) 45%, transparent));
   }
 }

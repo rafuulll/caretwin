@@ -1,102 +1,174 @@
-"use client";
+"use client"
 
-/*
-  Diálogo sobre o <dialog> nativo: o navegador já prende o foco e deixa o resto da página
-  inerte. Aqui entram as partes que faltam: Esc e clique fora fecham pelo estado do React,
-  a rolagem de trás fica travada e o foco volta para quem abriu.
-*/
+import { useEffect, useId, useRef, useState, type ReactNode, type RefObject } from "react"
+import { createPortal } from "react-dom"
 
-import { useEffect, useId, useRef, type ReactNode } from "react";
-import { cn } from "@/lib/cn";
-import { Icone } from "./icone";
+/**
+ * A parte difícil de modal e drawer, escrita uma vez só.
+ *
+ * Prender o foco, empilhar diálogos, destravar o scroll na ordem certa e
+ * devolver o foco para quem abriu são quatro problemas que sempre dão errado
+ * juntos. Duas cópias disso divergem no primeiro bug, e por isso um arquivo só.
+ *
+ * Não é exportado pelo `index.ts`: é infraestrutura, não um primitivo de tela.
+ */
 
-type Props = {
-  aberto: boolean;
-  aoFechar: () => void;
-  titulo: string;
-  descricao?: ReactNode;
-  children?: ReactNode;
-  rodape?: ReactNode;
-  /** "alertdialog" para confirmações destrutivas. */
-  papel?: "dialog" | "alertdialog";
-  rotuloFechar: string;
-  largura?: "media" | "larga";
-};
+const SELETOR_FOCAVEL = [
+  "a[href]",
+  "button:not([disabled])",
+  "input:not([disabled])",
+  "select:not([disabled])",
+  "textarea:not([disabled])",
+  '[tabindex]:not([tabindex="-1"])',
+].join(",")
 
-export function Dialogo({ aberto, aoFechar, titulo, descricao, children, rodape, papel = "dialog", rotuloFechar, largura = "media" }: Props) {
-  const ref = useRef<HTMLDialogElement>(null);
-  const quemAbriu = useRef<HTMLElement | null>(null);
-  const idTitulo = useId();
-  const idDescricao = useId();
+/**
+ * Só o diálogo do topo responde ao Esc e prende o Tab.
+ *
+ * Sem essa pilha, abrir um "confirmar" dentro de um drawer fecharia os dois
+ * com um único Esc.
+ */
+const pilha: string[] = []
+
+// --- trava de scroll ------------------------------------------------------
+
+let travas = 0
+let overflowAnterior = ""
+let paddingAnterior = ""
+
+function travarScroll() {
+  travas += 1
+  if (travas > 1) return
+
+  // Compensa a barra de rolagem que some, senão a página inteira dá um pulo.
+  const larguraDaBarra = window.innerWidth - document.documentElement.clientWidth
+  overflowAnterior = document.body.style.overflow
+  paddingAnterior = document.body.style.paddingRight
+  document.body.style.overflow = "hidden"
+  if (larguraDaBarra > 0) document.body.style.paddingRight = `${larguraDaBarra}px`
+}
+
+function liberarScroll() {
+  travas = Math.max(0, travas - 1)
+  if (travas > 0) return
+  document.body.style.overflow = overflowAnterior
+  document.body.style.paddingRight = paddingAnterior
+}
+
+function focaveisDe(raiz: HTMLElement) {
+  return Array.from(raiz.querySelectorAll<HTMLElement>(SELETOR_FOCAVEL)).filter(
+    (elemento) =>
+      elemento.getClientRects().length > 0 && elemento.getAttribute("aria-hidden") !== "true"
+  )
+}
+
+export type OpcoesDialogo = {
+  aberto: boolean
+  aoFechar: () => void
+  /** Para onde o foco vai ao abrir. Sem isso, vai para o primeiro elemento focável. */
+  focoInicial?: RefObject<HTMLElement | null>
+}
+
+export function useDialogoAcessivel({ aberto, aoFechar, focoInicial }: OpcoesDialogo) {
+  const painelRef = useRef<HTMLDivElement>(null)
+  const id = useId()
+
+  // `createPortal` precisa de `document`; no servidor não existe.
+  const [montado, setMontado] = useState(false)
+  const [visivel, setVisivel] = useState(false)
+
+  // Guardar os callbacks em ref deixa o efeito pesado depender só de `aberto`.
+  // Sem isso, uma função inline no `aoFechar` reiniciaria o foco a cada render.
+  const aoFecharRef = useRef(aoFechar)
+  const focoInicialRef = useRef(focoInicial)
+  useEffect(() => {
+    aoFecharRef.current = aoFechar
+    focoInicialRef.current = focoInicial
+  })
 
   useEffect(() => {
-    const dialogo = ref.current;
-    if (!dialogo) return;
-    if (aberto && !dialogo.open) {
-      quemAbriu.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-      dialogo.showModal();
-      document.documentElement.style.overflow = "hidden";
-    } else if (!aberto && dialogo.open) {
-      dialogo.close();
+    setMontado(true)
+  }, [])
+
+  const ativo = aberto && montado
+
+  useEffect(() => {
+    if (!ativo) return
+
+    const quemAbriu = document.activeElement as HTMLElement | null
+    const painel = painelRef.current
+    pilha.push(id)
+    travarScroll()
+
+    const alvo =
+      focoInicialRef.current?.current ?? (painel ? (focaveisDe(painel)[0] ?? painel) : null)
+    alvo?.focus()
+
+    function aoTeclar(evento: KeyboardEvent) {
+      if (pilha[pilha.length - 1] !== id) return
+      const painel = painelRef.current
+      if (!painel) return
+
+      if (evento.key === "Escape") {
+        evento.preventDefault()
+        aoFecharRef.current()
+        return
+      }
+      if (evento.key !== "Tab") return
+
+      const focaveis = focaveisDe(painel)
+      if (focaveis.length === 0) {
+        evento.preventDefault()
+        painel.focus()
+        return
+      }
+
+      const primeiro = focaveis[0]
+      const ultimo = focaveis[focaveis.length - 1]
+      const ativo = document.activeElement
+
+      // Foco escapou para o fundo (clique no overlay, por exemplo): traz de volta.
+      if (!painel.contains(ativo)) {
+        evento.preventDefault()
+        ;(evento.shiftKey ? ultimo : primeiro).focus()
+        return
+      }
+      if (evento.shiftKey && (ativo === primeiro || ativo === painel)) {
+        evento.preventDefault()
+        ultimo.focus()
+      } else if (!evento.shiftKey && ativo === ultimo) {
+        evento.preventDefault()
+        primeiro.focus()
+      }
     }
-  }, [aberto]);
 
-  useEffect(() => {
-    const dialogo = ref.current;
+    // Fase de captura: o diálogo decide antes de qualquer campo lá dentro.
+    document.addEventListener("keydown", aoTeclar, true)
+
     return () => {
-      if (dialogo?.open) dialogo.close();
-      document.documentElement.style.overflow = "";
-    };
-  }, []);
+      document.removeEventListener("keydown", aoTeclar, true)
+      const indice = pilha.lastIndexOf(id)
+      if (indice >= 0) pilha.splice(indice, 1)
+      liberarScroll()
+      // Devolve o foco pro botão que abriu, se ele ainda estiver na tela.
+      if (quemAbriu && document.contains(quemAbriu)) quemAbriu.focus()
+    }
+  }, [ativo, id])
 
-  return (
-    <dialog
-      ref={ref}
-      role={papel}
-      aria-modal="true"
-      aria-labelledby={idTitulo}
-      aria-describedby={descricao ? idDescricao : undefined}
-      onCancel={(evento) => {
-        evento.preventDefault();
-        aoFechar();
-      }}
-      onClose={() => {
-        document.documentElement.style.overflow = "";
-        quemAbriu.current?.focus();
-      }}
-      onClick={(evento) => {
-        if (evento.target === ref.current) aoFechar();
-      }}
-      className={cn(
-        "m-auto w-[calc(100%-2rem)] overscroll-contain rounded-dialogo border border-borda bg-superficie p-0 text-tinta shadow-ct-xl",
-        "backdrop:bg-[var(--ct-veu)] open:animate-[ct-chegada_240ms_var(--ease-saida)]",
-        largura === "larga" ? "max-w-2xl" : "max-w-lg",
-      )}
-    >
-      <div className="flex max-h-[85dvh] flex-col">
-        <div className="flex items-start justify-between gap-4 border-b border-borda px-6 pb-4 pt-6">
-          <div>
-            <h2 id={idTitulo} className="text-xl font-bold">
-              {titulo}
-            </h2>
-            {descricao && (
-              <div id={idDescricao} className="mt-1.5 text-tinta-suave">
-                {descricao}
-              </div>
-            )}
-          </div>
-          <button
-            type="button"
-            onClick={aoFechar}
-            className="-mr-2 -mt-1 flex size-11 shrink-0 items-center justify-center rounded-campo text-tinta-suave hover:bg-suave hover:text-tinta"
-            aria-label={rotuloFechar}
-          >
-            <Icone nome="fechar" />
-          </button>
-        </div>
-        {children && <div className="overflow-y-auto px-6 py-5">{children}</div>}
-        {rodape && <div className="flex flex-col-reverse gap-3 border-t border-borda px-6 py-4 sm:flex-row sm:justify-end">{rodape}</div>}
-      </div>
-    </dialog>
-  );
+  // Entrada suave sem keyframes: pinta uma vez no estado inicial e só então
+  // troca as classes, deixando a transição do Tailwind fazer o resto.
+  useEffect(() => {
+    if (!ativo) {
+      setVisivel(false)
+      return
+    }
+    const quadro = requestAnimationFrame(() => setVisivel(true))
+    return () => cancelAnimationFrame(quadro)
+  }, [ativo])
+
+  return { painelRef, ativo, visivel, id }
+}
+
+export function PortalDialogo({ children }: { children: ReactNode }) {
+  return createPortal(children, document.body)
 }

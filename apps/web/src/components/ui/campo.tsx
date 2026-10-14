@@ -1,165 +1,115 @@
-"use client";
+"use client"
 
-/*
-  Campo de formulário: rótulo sempre visível, ajuda persistente embaixo, erro colado
-  no campo e ligado por aria-describedby (o erro vem antes da ajuda, porque é o que
-  a pessoa precisa ouvir primeiro). Altura mínima de 48px e texto de 17px, que também
-  evita o zoom automático do iPhone.
-*/
-
-import { useId, useState, type ComponentProps, type ReactNode, type Ref } from "react";
-import { cn } from "@/lib/cn";
-import { Icone } from "./icone";
-
-type BaseProps = {
-  rotulo: string;
-  ajuda?: ReactNode;
-  erro?: string | null;
-  obrigatorio?: boolean;
-  className?: string;
-};
-
-export const classeCampo =
-  "block w-full min-h-12 rounded-campo border border-borda-campo bg-superficie px-4 py-2.5 text-base text-tinta " +
-  "placeholder:text-tinta-suave/80 transition-[border-color,box-shadow] duration-200 " +
-  "focus-visible:outline-none focus-visible:border-primaria focus-visible:ring-4 focus-visible:ring-primaria/20 " +
-  "aria-invalid:border-perigo aria-invalid:focus-visible:ring-perigo/20";
-
-function Rotulo({ htmlFor, texto, obrigatorio }: { htmlFor: string; texto: string; obrigatorio?: boolean }) {
-  return (
-    <label htmlFor={htmlFor} className="mb-1.5 block font-bold text-tinta">
-      {texto}
-      {obrigatorio && (
-        <span className="ml-1 text-perigo" aria-hidden="true">
-          *
-        </span>
-      )}
-    </label>
-  );
-}
-
-function Mensagens({ ajudaId, erroId, ajuda, erro }: { ajudaId: string; erroId: string; ajuda?: ReactNode; erro?: string | null }) {
-  return (
-    <>
-      {erro && (
-        <p id={erroId} className="mt-1.5 flex items-start gap-1.5 font-bold text-perigo">
-          <Icone nome="atencao" tamanho={18} className="mt-0.5" />
-          <span>{erro}</span>
-        </p>
-      )}
-      {ajuda && (
-        <p id={ajudaId} className="mt-1.5 text-[0.95rem] text-tinta-suave">
-          {ajuda}
-        </p>
-      )}
-    </>
-  );
-}
-
-function descritoPor(ajudaId: string, erroId: string, ajuda?: ReactNode, erro?: string | null) {
-  return [erro ? erroId : null, ajuda ? ajudaId : null].filter(Boolean).join(" ") || undefined;
-}
-
-type PropsCampo = BaseProps & Omit<ComponentProps<"input">, "className">;
-
-export function Campo({ rotulo, ajuda, erro, obrigatorio, className, id, ...resto }: PropsCampo) {
-  const gerado = useId();
-  const idCampo = id ?? `campo-${gerado}`;
-  const ajudaId = `${idCampo}-ajuda`;
-  const erroId = `${idCampo}-erro`;
-  return (
-    <div className={className}>
-      <Rotulo htmlFor={idCampo} texto={rotulo} obrigatorio={obrigatorio} />
-      <input
-        id={idCampo}
-        className={classeCampo}
-        aria-invalid={erro ? true : undefined}
-        aria-required={obrigatorio || undefined}
-        aria-describedby={descritoPor(ajudaId, erroId, ajuda, erro)}
-        {...resto}
-      />
-      <Mensagens ajudaId={ajudaId} erroId={erroId} ajuda={ajuda} erro={erro} />
-    </div>
-  );
-}
-
-type PropsSenha = PropsCampo & { textoMostrar: string; textoEsconder: string };
-
-/** Campo de senha com botão de mostrar e esconder. Colar e gerenciador de senha funcionam. */
-export function CampoSenha({ rotulo, ajuda, erro, obrigatorio, className, id, textoMostrar, textoEsconder, ...resto }: PropsSenha) {
-  const gerado = useId();
-  const idCampo = id ?? `senha-${gerado}`;
-  const ajudaId = `${idCampo}-ajuda`;
-  const erroId = `${idCampo}-erro`;
-  const [visivel, setVisivel] = useState(false);
-  return (
-    <div className={className}>
-      <Rotulo htmlFor={idCampo} texto={rotulo} obrigatorio={obrigatorio} />
-      <div className="relative">
-        <input
-          id={idCampo}
-          type={visivel ? "text" : "password"}
-          className={cn(classeCampo, "pr-14")}
-          aria-invalid={erro ? true : undefined}
-          aria-required={obrigatorio || undefined}
-          aria-describedby={descritoPor(ajudaId, erroId, ajuda, erro)}
-          spellCheck={false}
-          autoCapitalize="none"
-          {...resto}
-        />
-        <button
-          type="button"
-          onClick={() => setVisivel((v) => !v)}
-          className="absolute inset-y-0 right-0 flex w-12 items-center justify-center rounded-r-campo text-tinta-suave hover:text-tinta"
-          aria-label={visivel ? textoEsconder : textoMostrar}
-          aria-pressed={visivel}
-          aria-controls={idCampo}
-        >
-          <Icone nome={visivel ? "esconder" : "mostrar"} />
-        </button>
-      </div>
-      <Mensagens ajudaId={ajudaId} erroId={erroId} ajuda={ajuda} erro={erro} />
-    </div>
-  );
-}
-
-type ItemResumo = { campoId: string; mensagem: string };
+import type { ReactNode } from "react"
+import { cn } from "@/lib/cn"
 
 /**
- * Resumo de erros: aparece no topo do formulário depois de uma tentativa de envio,
- * recebe o foco e liga cada item ao campo com problema. Os erros embaixo de cada
- * campo continuam lá.
+ * A parte chata de um campo de formulário, escrita uma vez só.
+ *
+ * Rótulo ligado ao controle, mensagem de erro anunciada, texto de ajuda
+ * referenciado por `aria-describedby`: input, textarea e select compartilham
+ * exatamente isto. Duas cópias dessa fiação divergem no primeiro ajuste.
  */
-export function ResumoDeErros({ titulo, itens, refResumo }: { titulo: string; itens: ItemResumo[]; refResumo: Ref<HTMLDivElement> }) {
-  if (itens.length === 0) return null;
+
+export type PropsCompartilhadasDeCampo = {
+  /** Sempre obrigatório: campo sem rótulo é campo inacessível. */
+  rotulo: string
+  /** Mensagem de erro. Presente = campo inválido (`aria-invalid`). */
+  erro?: string
+  /** Dica curta abaixo do campo. Some quando há erro, para não competir. */
+  ajuda?: string
+  obrigatorio?: boolean
+  /** Esconde o rótulo dos olhos, não do leitor de tela. Use com muita parcimônia. */
+  ocultarRotulo?: boolean
+  /** Classe do bloco inteiro (rótulo + controle + mensagens). */
+  classeCampo?: string
+}
+
+/**
+ * Id da mensagem que descreve o campo agora.
+ *
+ * Segue a mesma precedência do render (erro cala a ajuda). Apontar
+ * `aria-describedby` para um id que não está na tela deixa o leitor de tela mudo.
+ */
+export function descricaoDoCampo(id: string, ajuda?: string, erro?: string) {
+  if (erro) return `${id}-erro`
+  if (ajuda) return `${id}-ajuda`
+  return undefined
+}
+
+/**
+ * Altura dos controles: 48px.
+ *
+ * Um campo de 40px cabe no dedo, mas parece um campo de formulário de 2014. Os
+ * 48px são o que dá ao controle a mesma presença da superfície em que ele está.
+ * Vale para input, select e busca. O textarea cresce, então usa `min-height`.
+ */
+export const ALTURA_CONTROLE = "h-12"
+
+/**
+ * Classes do controle em si. `pr` fica de fora para quem tem ícone à direita.
+ *
+ * `.superficie-elevada` no lugar da cor chapada: o mesmo gradiente e o mesmo fio
+ * de 1px por dentro que o resto do app usa, mais uma sombra externa de 1px que
+ * levanta o campo do cartão. O anel de foco continua saindo do `:focus-visible`
+ * global (2px na cor de ação), que é `outline` e não briga com esse `box-shadow`.
+ */
+export function classesControle(temErro?: boolean) {
+  return cn(
+    "superficie-elevada w-full rounded-ds border px-3 text-sm text-ink transition-colors duration-150",
+    "placeholder:text-muted disabled:cursor-not-allowed disabled:opacity-60",
+    temErro
+      ? "border-danger focus-visible:outline-danger"
+      : "border-hairline hover:border-muted/40 focus-visible:border-primary"
+  )
+}
+
+export function EnvelopeCampo({
+  id,
+  rotulo,
+  ajuda,
+  erro,
+  obrigatorio,
+  ocultarRotulo,
+  className,
+  children,
+}: Omit<PropsCompartilhadasDeCampo, "classeCampo"> & {
+  id: string
+  /** Já vem de `classeCampo` nos campos; aqui é só o bloco todo. */
+  className?: string
+  children: ReactNode
+}) {
   return (
-    <div
-      ref={refResumo}
-      tabIndex={-1}
-      role="alert"
-      aria-labelledby="resumo-erros-titulo"
-      className="rounded-campo border-2 border-perigo bg-superficie p-4 focus-visible:outline-offset-4"
-    >
-      <p id="resumo-erros-titulo" className="flex items-center gap-2 font-bold text-perigo">
-        <Icone nome="atencao" />
-        {titulo}
-      </p>
-      <ul className="mt-2 list-disc space-y-1 pl-9">
-        {itens.map((item) => (
-          <li key={item.campoId}>
-            <a
-              href={`#${item.campoId}`}
-              className="text-tinta underline underline-offset-4"
-              onClick={(e) => {
-                e.preventDefault();
-                document.getElementById(item.campoId)?.focus();
-              }}
-            >
-              {item.mensagem}
-            </a>
-          </li>
-        ))}
-      </ul>
+    <div className={cn("flex flex-col gap-1.5", className)}>
+      <label
+        htmlFor={id}
+        className={cn(
+          "text-[13px] font-medium text-ink",
+          ocultarRotulo && "sr-only"
+        )}
+      >
+        {rotulo}
+        {obrigatorio && (
+          <span aria-hidden="true" className="ml-0.5 text-danger">
+            *
+          </span>
+        )}
+      </label>
+
+      {children}
+
+      {/* O erro cala a ajuda: duas mensagens ao mesmo tempo viram ruído. */}
+      {erro ? (
+        <p id={`${id}-erro`} role="alert" className="text-[13px] text-danger">
+          {erro}
+        </p>
+      ) : (
+        ajuda && (
+          <p id={`${id}-ajuda`} className="text-[13px] leading-relaxed text-muted">
+            {ajuda}
+          </p>
+        )
+      )}
     </div>
-  );
+  )
 }

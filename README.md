@@ -1,6 +1,6 @@
 # CareTwin
 
-Projeto UPX (UniFacens). Pulseira com ESP32-S3, API FastAPI, Supabase, PWA em Next.js e IA que explica os dados com base em uma linha de base pessoal.
+Projeto UPX (UniFacens). Pulseira com ESP32-S3, API FastAPI, Supabase, site em Next.js e IA que explica os dados com base em uma linha de base pessoal.
 
 Equipe: Rafael (produto, UX, frontend e hardware), Fabricio (backend, banco, API, infra) e Lucas (IA e linha de base).
 Quadro de tarefas: https://trello.com/b/v8PlBQcb/upx
@@ -8,14 +8,14 @@ Quadro de tarefas: https://trello.com/b/v8PlBQcb/upx
 ## Como as partes se conectam
 
   Pulseira (ESP32-S3)  ->  HTTPS  ->  API FastAPI (Railway)  ->  Supabase (Postgres)
-  Site PWA (Vercel)    ->  HTTPS  ->  API FastAPI
+  Site (Vercel)        ->  HTTPS  ->  API FastAPI
   API  ->  modulo de IA (ai/)  ->  texto em linguagem natural
 
 A API e o centro: todo mundo conversa com ela e o contrato fica em docs/openapi.yaml. O site nunca fala direto com o banco nem com a IA.
 
 ## Estrutura
 
-  apps/web      Site PWA (Next.js, React, Tailwind, TypeScript). Dono: Rafael. Deploy: Vercel, Root Directory apps/web
+  apps/web      Site (Next.js, React, Tailwind, TypeScript). Dono: Rafael. Deploy: Vercel, Root Directory apps/web
   apps/api      API (FastAPI). Dono: Fabricio. Deploy: Railway, Root Directory apps/api
   ai            Linha de base pessoal e geracao de texto. Dono: Lucas. Comeca como modulo Python usado pela API
   firmware      Programa da pulseira, com simulador Wokwi e testes. Dono: Rafael
