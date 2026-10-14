@@ -104,8 +104,14 @@ export async function perfilDoGoogle(
   })
 
   if (!perfil.ok) return null
-  const dados = (await perfil.json()) as { name?: string; email?: string }
-  if (!dados.email) return null
+  const dados = (await perfil.json()) as {
+    name?: string
+    email?: string
+    email_verified?: boolean
+  }
+  // E-mail não confirmado pelo Google não prova nada, e a lista de e-mails
+  // permitidos confia nele.
+  if (!dados.email || dados.email_verified === false) return null
 
   return {
     nome: dados.name?.trim() || dados.email.split("@")[0],
