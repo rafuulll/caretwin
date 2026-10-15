@@ -59,7 +59,8 @@ export function bancoConfigurado(): boolean {
  */
 let cliente: postgres.Sql | null = null
 
-function conexao(): postgres.Sql | null {
+/** Também usada pelas rotas de `/api/v1`, que leem as tabelas de verdade (`src/lib/familia.ts`). */
+export function conexao(): postgres.Sql | null {
   const url = urlDoBanco()
   if (!url) return null
   cliente ??= postgres(url, { prepare: false, max: 3, idle_timeout: 20 })

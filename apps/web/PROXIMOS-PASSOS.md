@@ -21,7 +21,7 @@ Dois itens já estão construídos e desligados: o login com Google e o banco no
 
 ## 1. API do CareTwin
 
-**O que é.** A pulseira manda o resumo do dia e o registro da noite para a API própria do projeto (FastAPI com Supabase). O app passa a ler de lá.
+**O que é.** A pulseira manda o resumo do dia e o registro da noite para a API do projeto, que mora neste mesmo Next.js, nas rotas de `src/app/api/v1` (cartão 2.4), com o Postgres do Supabase. O contrato está em `docs/openapi.yaml`. O app passa a ler de lá.
 
 **Por que vem primeiro.** É o que transforma o protótipo no CareTwin de verdade: o normal deixa de ser calculado sobre pessoas inventadas e passa a ser o da pessoa que usa a pulseira.
 

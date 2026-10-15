@@ -956,6 +956,8 @@ components:
           type: integer
           minimum: 0
           maximum: 100
+          nullable: true
+          description: null enquanto a pulseira nunca informou a bateria
         ultimaSincronizacao:
           type: string
           format: date-time
