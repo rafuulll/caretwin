@@ -66,7 +66,7 @@ O projeto vive em `apps/web` dentro do repositório do CareTwin. Na Vercel:
 2. Não precisa de variável de ambiente. Sem chaves, o app roda com os dados de exemplo de quem abre.
 3. A branch principal vira o site oficial, e cada outra branch ou PR ganha um link de prévia.
 
-Antes de divulgar o link, ative a proteção da prévia em Settings, Deployment Protection. Sem isso, qualquer pessoa com a URL abre o app. Com o banco desligado, a rota `/api/dados` responde "desligado" e não guarda nada. Com o banco ligado, ela recusa (401) quem não entrou com uma conta de `EMAILS_PERMITIDOS`.
+Antes de divulgar o link, ative a proteção da prévia em Settings, Deployment Protection. Sem isso, qualquer pessoa com a URL abre o app. Com o banco desligado, a rota `/api/dados` responde "desligado" e não guarda nada. Com o banco ligado, ela recusa (401) quem não entrou com uma conta de `EMAILS_PERMITIDOS`. A rota `/api/health` responde 200 e diz se o banco está configurado, para conferir o deploy sem abrir o painel.
 
 ## O que está desligado de propósito
 
