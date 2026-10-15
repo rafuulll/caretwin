@@ -9,7 +9,7 @@ import { sistema } from "@/content/site"
 import { cn } from "@/lib/cn"
 import { quantosNovos } from "@/lib/consultas"
 import { contar } from "@/lib/formato"
-import { useDados, usePessoaNaTela } from "@/lib/store"
+import { useConta, useDados, usePessoaNaTela } from "@/lib/store"
 import { Icone } from "./icone"
 import { Logo } from "./logo"
 
@@ -31,6 +31,9 @@ export function BarraLateral({ aberta, aoFechar }: PropsBarraLateral) {
   // O número ao lado de Alertas é o da pessoa que está na tela, o mesmo que a
   // tela de alertas mostra. Somar todo mundo faria o menu e a tela discordarem.
   const novos = pessoa ? quantosNovos(dados, pessoa.id) : 0
+  const conta = useConta()
+  // Sem conta não existe família: o item só atrapalharia o protótipo de exemplo.
+  const itens = sistema.nav.filter((item) => !("soConta" in item) || conta)
   const refFechar = useRef<HTMLButtonElement>(null)
 
   // No celular, chegar na rota é o fim da tarefa: o menu sai da frente sozinho.
@@ -127,7 +130,7 @@ export function BarraLateral({ aberta, aoFechar }: PropsBarraLateral) {
           className="flex-1 overflow-y-auto px-3 py-4"
         >
           <ul className="flex flex-col gap-0.5">
-            {sistema.nav.map((item) => {
+            {itens.map((item) => {
               const ativo = ehAtivo(atual, item.href)
 
               return (

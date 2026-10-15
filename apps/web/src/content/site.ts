@@ -184,6 +184,8 @@ export const sistema = {
     { rotulo: "Sono", href: "/app/sono", icone: "sono" },
     { rotulo: "Batimentos", href: "/app/batimentos", icone: "batimentos" },
     { rotulo: "Alertas", href: "/app/alertas", icone: "alertas", contaNovos: true },
+    // Só aparece para quem entrou com conta: sem conta não existe família.
+    { rotulo: "Família", href: "/app/familia", icone: "familia", soConta: true },
     { rotulo: "Configurações", href: "/app/configuracoes", icone: "settings" },
   ],
 
@@ -255,8 +257,30 @@ export const sistema = {
       titulo: "Os primeiros dados estão a caminho",
       texto:
         "A pulseira de {nome} está conectada e ainda não mandou nada. Na pulseira de verdade isso acontece sozinho; aqui dá pra simular a primeira sincronização.",
+      textoConta:
+        "A pulseira de {nome} está ligada e ainda não mandou nada. Os dados aparecem aqui sozinhos assim que ela sincronizar.",
       acao: "Simular a primeira sincronização",
       feito: "Pulseira sincronizada agora.",
+      verFamilia: "Ver a família",
+    },
+    /** O que quem entrou com conta vê antes de ter uma pessoa na tela. */
+    conta: {
+      semVinculo: {
+        titulo: "Ligue a primeira pulseira",
+        texto:
+          "Digite o código impresso atrás da pulseira. Se ela já tiver família, quem administra recebe o seu pedido para entrar.",
+        acao: "Ligar uma pulseira",
+      },
+      esperando: {
+        titulo: "Seu pedido está esperando",
+        texto: "Quem administra a família da pulseira precisa aprovar. Assim que aprovar, a pessoa aparece aqui.",
+      },
+      outra: "Ligar outra pulseira",
+      falhou: {
+        titulo: "Não deu para carregar a sua família agora",
+        texto: "Confira a internet e tente de novo em alguns instantes.",
+        acao: "Tentar de novo",
+      },
     },
     pulseira: {
       titulo: "Pulseira {codigo}",
@@ -273,6 +297,7 @@ export const sistema = {
   painel: {
     titulo: "Painel",
     descricao: "O dia de {nome} comparado com o próprio normal, e não com a meta dos outros.",
+    descricaoPropria: "O seu dia comparado com o seu próprio normal, e não com a meta dos outros.",
     passos: {
       titulo: "Passos até agora",
       normalAteAgora: "O normal até este horário: {baixo} a {alto}",
@@ -457,6 +482,151 @@ export const sistema = {
       nome: "Escreva como a família chama essa pessoa.",
       quemAcompanha: "Escreva quem acompanha, mesmo que seja a própria pessoa.",
     },
+
+    /**
+     * Com conta: o código vai para o servidor, e a pergunta de quem é a
+     * pulseira define o papel (a própria pessoa ou quem cuida).
+     */
+    ligar: {
+      titulo: "Ligar uma pulseira",
+      descricao:
+        "Digite o código e diga de quem é a pulseira. Se ela já tiver família, quem administra recebe o seu pedido.",
+      passos: ["A pulseira", "De quem é", "Pronto"],
+      dono: {
+        titulo: "Esta pulseira é sua ou de alguém que você cuida?",
+        texto: "A resposta define o que você vê e o que pode fazer na família desta pulseira.",
+        legenda: "De quem é a pulseira",
+        acompanhada: { rotulo: "É minha", ajuda: "Eu uso a pulseira e quero ver o meu dia." },
+        cuidador: { rotulo: "É de alguém que eu cuido", ajuda: "Eu acompanho a pessoa que usa a pulseira." },
+        erro: "Escolha uma das duas opções.",
+      },
+      nome: {
+        titulo: "Esta pulseira ainda não tem família",
+        texto:
+          "Você vai administrar a família: aprova quem pedir para entrar e pode remover quem cuida. Falta só o nome.",
+        rotuloPropria: "Como a família chama você",
+        rotuloCuidador: "Como a família chama essa pessoa",
+        exemplo: "Ex.: Dona Helena",
+        ajuda: "É o nome que aparece no painel e no resumo do dia.",
+        erro: "Escreva o nome, com pelo menos duas letras.",
+      },
+      continuar: "Continuar",
+      enviar: "Ligar a pulseira",
+      pronto: {
+        titulo: "Tudo pronto",
+        textoCuidador:
+          "A pulseira de {nome} está ligada. Nos primeiros {dias} dias o CareTwin só observa: depois disso, cada dia passa a ser comparado com o normal de {nome}.",
+        textoPropria:
+          "A sua pulseira está ligada. Nos primeiros {dias} dias o CareTwin só observa: depois disso, cada dia passa a ser comparado com o seu normal.",
+        ir: "Ir para o painel",
+      },
+      pedido: {
+        titulo: "Pedido enviado",
+        texto:
+          "A pulseira {codigo} já tem família. Quem administra precisa aprovar o seu pedido, e a pessoa aparece no app assim que isso acontecer.",
+        ir: "Voltar para o início",
+      },
+      erros: {
+        codigo_inexistente: "Não existe pulseira com esse código. Confira as letras e os números atrás da pulseira.",
+        ja_tem_vinculo: "Você já faz parte desta família ou já pediu para entrar.",
+        ja_tem_acompanhada:
+          "Esta pulseira já tem uma conta como a própria pessoa. Se você cuida de quem usa, escolha a outra opção.",
+        pulseira_em_encerramento:
+          "Esta pulseira está travada porque o acompanhamento foi encerrado. Ela fica livre de novo em {data}.",
+        invalido: "Confira o código, no formato CT-0000.",
+      },
+    },
+  },
+
+  /** Família (`/app/familia`): quem acompanha a pessoa, os pedidos, sair e encerrar. */
+  familia: {
+    titulo: "Família",
+    descricao: "Quem acompanha {nome}, os pedidos para entrar e a sua participação.",
+    carregando: "Carregando a família",
+    semConta: {
+      titulo: "A família aparece com a sua conta",
+      texto: "Entre com e-mail e senha para ver quem acompanha cada pessoa e responder pedidos para entrar.",
+    },
+    papeis: { cuidador: "Cuida", acompanhada: "A própria pessoa" },
+    papeisNoPedido: { cuidador: "quem cuida", acompanhada: "a própria pessoa" },
+    voce: "você",
+    administra: "Administra",
+    desde: "Desde {data}",
+    membros: {
+      titulo: "Quem acompanha {nome}",
+      descricao: "Todas as contas que veem os dados de {nome}.",
+      remover: "Remover",
+      rotuloRemover: "Remover {nome} da família",
+      confirmar: {
+        titulo: "Remover {nome} da família?",
+        texto:
+          "{nome} deixa de ver os dados de {pessoa}. Os dias e os alertas continuam. Se precisar, {nome} pode pedir para entrar de novo.",
+        confirmar: "Remover",
+      },
+      removido: "{nome} saiu da família.",
+    },
+    pedidos: {
+      titulo: "Pedidos para entrar",
+      descricao: "Quem digitou o código da pulseira de {nome} e espera a sua resposta.",
+      vazio: "Nenhum pedido esperando.",
+      pediuComo: "Pediu para entrar como {papel}, {quando}.",
+      aprovar: "Aprovar",
+      recusar: "Recusar",
+      rotuloAprovar: "Aprovar o pedido de {nome}",
+      rotuloRecusar: "Recusar o pedido de {nome}",
+      aprovado: "{nome} agora faz parte da família.",
+      recusado: "O pedido de {nome} foi recusado.",
+    },
+    sair: {
+      titulo: "Sair da família",
+      texto: "Você deixa de ver os dados de {nome}. Os dias e os alertas continuam para quem fica.",
+      acao: "Sair da família de {nome}",
+      confirmar: {
+        titulo: "Sair da família de {nome}?",
+        texto: "Para voltar, você precisa digitar o código da pulseira de novo e esperar alguém aprovar.",
+        confirmar: "Sair",
+      },
+    },
+    encerrar: {
+      titulo: "Encerrar o acompanhamento",
+      texto:
+        "Você é a última pessoa na família de {nome}. Encerrar tira {nome} de todas as telas e trava a pulseira. Durante {dias} dias, dá para recuperar tudo. Depois disso, os dias e os alertas são apagados de vez e a pulseira fica livre.",
+      instrucao: "Para confirmar, escreva esta frase:",
+      rotulo: "Frase de confirmação",
+      ajuda: "Pode escrever sem acento e sem ponto final.",
+      acao: "Encerrar o acompanhamento",
+    },
+    pendencias: {
+      pedidosTitulo: "Seus pedidos esperando",
+      pedidoItem: "Pulseira {codigo}, como {papel}, {quando}.",
+      desistir: "Desistir",
+      rotuloDesistir: "Desistir do pedido da pulseira {codigo}",
+      desistiu: "Pedido da pulseira {codigo} retirado.",
+      encerradasTitulo: "Acompanhamentos encerrados",
+      encerradaItem: "Dá para recuperar até {data}.",
+      recuperar: "Recuperar",
+      rotuloRecuperar: "Recuperar o acompanhamento de {nome}",
+      recuperado: "{nome} voltou para o app.",
+    },
+    erros: {
+      ultimo_membro: "Você é a última pessoa da família. Para sair, encerre o acompanhamento.",
+      outros_membros: "Ainda há outras pessoas na família. Nesse caso, o caminho é sair.",
+      confirmacao_errada: "A frase não confere. Escreva exatamente como aparece acima.",
+      so_admin: "Só quem administra a família pode fazer isso.",
+      nao_remove_acompanhada: "A própria pessoa não pode ser removida por outra conta.",
+      use_sair: "Para sair da família, use a opção de sair.",
+      ja_tem_acompanhada:
+        "Esta pessoa já tem uma conta como a própria pessoa. Recuse este pedido, ou peça para a conta entrar como quem cuida.",
+      mudou: "Isso mudou enquanto a tela estava aberta. A lista foi atualizada.",
+    },
+  },
+
+  /** Erros que qualquer chamada ao servidor pode dar. */
+  erros: {
+    geral: "Não deu certo agora. Tente de novo em alguns minutos.",
+    semRede: "Sem conexão com a internet. Confira a rede e tente de novo.",
+    semConta: "Esta parte do app precisa de uma conta com e-mail e senha.",
+    desligado: "O banco não está ligado neste ambiente.",
   },
 
   /**
@@ -481,6 +651,7 @@ export const sistema = {
   configuracoes: {
     titulo: "Configurações",
     descricao: "Os dados de exemplo e o seu perfil.",
+    descricaoConta: "A sua conta e o tour do app.",
 
     dados: {
       titulo: "Dados de exemplo",
@@ -507,6 +678,8 @@ export const sistema = {
       titulo: "Perfil",
       descricao:
         "O nome que aparece no topo do app. Nesta versão não existe conta nem servidor por trás: é uma sessão guardada neste navegador.",
+      descricaoConta:
+        "A conta que você usa para entrar. Para trocar a senha, use a opção de esqueci minha senha na tela de entrar.",
       nome: "Nome",
       email: "E-mail",
       ajudaEmail: "Fica só neste navegador. Nenhuma mensagem é enviada.",
@@ -789,8 +962,8 @@ export const comoUsar = {
       },
       {
         titulo: "Backend e banco de dados",
-        texto: "Hoje os dados ficam no navegador. O caminho para um banco já nasceu escrito e testado: ligar o Supabase é colar a string de conexão no .env.local, e o mesmo app passa a gravar no Postgres. Zero linha de código e nenhuma tela mudando. No CareTwin quem guarda os dados é a API, então este caminho fica desligado de propósito.",
-        onde: "src/lib/banco.ts e src/app/api/dados",
+        texto: "O banco no Supabase guarda as contas, as pessoas, as pulseiras e quem vê quem. Com a DATABASE_URL no .env.local e as migrações rodadas, quem entra com e-mail e senha vê só a própria família. Sem ela, o app segue com os dados de exemplo neste navegador.",
+        onde: "src/lib/banco.ts, src/lib/familia.ts e banco/migracoes",
       },
       {
         titulo: "Login com Google",

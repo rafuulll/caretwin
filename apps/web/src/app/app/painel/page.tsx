@@ -10,7 +10,7 @@ import { sistema } from "@/content/site"
 import { useAgora } from "@/lib/agora"
 import { estadoDaPulseira, passosDeHoje, pulseiraDe, ultimosDias } from "@/lib/consultas"
 import { dataPorExtenso, numero, paraISO, preencher } from "@/lib/formato"
-import { useDados, usePessoaNaTela, useSessao } from "@/lib/store"
+import { useConta, useDados, usePessoaNaTela, useSessao } from "@/lib/store"
 
 const textos = sistema.painel
 const comum = sistema.comum
@@ -36,8 +36,17 @@ export default function PaginaPainel() {
   const { dados } = useDados()
   const pessoa = usePessoaNaTela()
   const sessao = useSessao()
+  const conta = useConta()
   const agora = useAgora()
   if (!agora) return null
+
+  // Quem usa a pulseira e entrou com a própria conta lê "o seu dia" (cartão 7.2).
+  const propria = pessoa ? conta?.vinculos[pessoa.id]?.papel === "acompanhada" : false
+  const descricao = pessoa
+    ? propria
+      ? textos.descricaoPropria
+      : preencher(textos.descricao, { nome: pessoa.nome })
+    : ""
 
   const primeiroNome = sessao?.nome.trim().split(/\s+/)[0] ?? ""
   const saudacao = saudacaoPara(agora.getHours())
@@ -46,7 +55,7 @@ export default function PaginaPainel() {
     <>
       <CabecalhoPagina
         titulo={primeiroNome ? preencher(comum.saudacao.comNome, { saudacao, nome: primeiroNome }) : saudacao}
-        descricao={`${dataPorExtenso(paraISO(agora))}. ${pessoa ? preencher(textos.descricao, { nome: pessoa.nome }) : ""}`}
+        descricao={`${dataPorExtenso(paraISO(agora))}. ${descricao}`}
       />
 
       <EstadoDaPessoa pessoa={pessoa}>

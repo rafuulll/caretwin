@@ -186,7 +186,7 @@ export function AssistentePrimeiroUso() {
             <Button variante="secundaria" tamanho="lg" onClick={() => setPasso(0)} iconeEsquerda={<Icone nome="seta-esquerda" />}>
               {textos.voltar}
             </Button>
-            <Button type="submit" tamanho="lg" iconeDireita={<Icone nome="check" />} className="h-14 flex-1 text-lg">
+            <Button type="submit" tamanho="lg" iconeDireita={<Icone nome="check" />} className="h-14 text-lg sm:flex-1">
               {textos.concluir}
             </Button>
           </div>

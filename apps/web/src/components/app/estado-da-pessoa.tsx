@@ -6,8 +6,9 @@ import { Button, Card, EstadoVazio } from "@/components/ui"
 import { sistema } from "@/content/site"
 import { aprendizado, temDados } from "@/lib/consultas"
 import { contar, preencher } from "@/lib/formato"
-import { useDados } from "@/lib/store"
+import { useConta, useDados } from "@/lib/store"
 import type { Pessoa } from "@/lib/types"
+import { SemFamilia } from "./familia/sem-familia"
 import { Icone } from "./icone"
 
 const textos = sistema.comum
@@ -19,6 +20,10 @@ const textos = sistema.comum
  * pulseira nenhuma ainda (a saída é conectar), ou a pulseira está conectada e
  * os dados ainda não chegaram (a saída é esperar, e aqui dá pra simular a
  * chegada). Uma tela com zeros no lugar disso pareceria defeito.
+ *
+ * Com conta, os dois vazios mudam de saída: sem pessoa, a tela é a de ligar
+ * a pulseira ou a do pedido esperando; sem dados, não existe simulação,
+ * porque inventar um dia na família de alguém seria mentir para ela.
  */
 export function EstadoDaPessoa({
   pessoa,
@@ -28,7 +33,10 @@ export function EstadoDaPessoa({
   children: (pessoa: Pessoa) => ReactNode
 }) {
   const { dados, sincronizarPulseira } = useDados()
+  const conta = useConta()
   const [aviso, setAviso] = useState("")
+
+  if (!pessoa && conta) return <SemFamilia conta={conta} />
 
   if (!pessoa) {
     return (
@@ -40,6 +48,23 @@ export function EstadoDaPessoa({
           acao={
             <BotaoLink href="/app/primeiro-uso" tamanho="lg" iconeEsquerda={<Icone nome="mais" />}>
               {textos.semPessoa.acao}
+            </BotaoLink>
+          }
+        />
+      </Card>
+    )
+  }
+
+  if (!temDados(dados, pessoa.id) && conta) {
+    return (
+      <Card>
+        <EstadoVazio
+          icone={<Icone nome="sincronizar" />}
+          titulo={textos.esperandoDados.titulo}
+          texto={preencher(textos.esperandoDados.textoConta, { nome: pessoa.nome })}
+          acao={
+            <BotaoLink href="/app/familia" variante="secundaria" tamanho="lg" iconeEsquerda={<Icone nome="familia" />}>
+              {textos.esperandoDados.verFamilia}
             </BotaoLink>
           }
         />

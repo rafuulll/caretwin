@@ -88,30 +88,6 @@ export function lerCookieDeSessao(valor: string | undefined): Sessao | null {
   }
 }
 
-/**
- * Quem pode mexer nos dados guardados no banco.
- *
- * Sessão assinada prova que a pessoa entrou com uma conta Google, não que a
- * conta é dela: qualquer um tem uma. Por isso a lista `EMAILS_PERMITIDOS`
- * (separada por vírgula) é o segundo trinco. Lista vazia ou ausente recusa
- * todo mundo, porque abrir por esquecimento é o erro caro e fechar é o barato.
- * Quando existir a tabela de usuários, esta lista some e cada cuidador passa a
- * ver só as pessoas ligadas a ele.
- */
-export function emailPermitido(email: string): boolean {
-  const lista = (process.env.EMAILS_PERMITIDOS ?? "")
-    .split(",")
-    .map((item) => item.trim().toLowerCase())
-    .filter(Boolean)
-  return lista.includes(email.trim().toLowerCase())
-}
-
-/** Sessão válida e de alguém da lista, ou `null`. É o porteiro das rotas de dados. */
-export function sessaoAutorizada(valorDoCookie: string | undefined): Sessao | null {
-  const sessao = lerCookieDeSessao(valorDoCookie)
-  return sessao && emailPermitido(sessao.email) ? sessao : null
-}
-
 /** As opções do cookie, iguais em todo lugar que grava sessão. */
 export function opcoesDoCookie(duracaoSegundos = DURACAO_DA_SESSAO) {
   return {

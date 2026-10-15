@@ -38,6 +38,7 @@ import {
   Trash2,
   TriangleAlert,
   User,
+  Users,
   Watch,
   X,
   type LucideIcon,
@@ -57,6 +58,7 @@ const ICONES = {
   sono: Moon,
   batimentos: HeartPulse,
   alertas: Bell,
+  familia: Users,
   settings: Settings,
   // O que a pulseira conta e o estado dela.
   passos: Footprints,

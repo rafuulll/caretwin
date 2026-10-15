@@ -1,5 +1,6 @@
 import type postgres from "postgres"
 import { conexao } from "./banco"
+import { confirmacaoConfere, DIAS_PARA_RECUPERAR } from "./encerramento"
 
 /**
  * Quem vê qual pessoa: usuários, pessoas, pulseiras e vínculos (cartão 5.9).
@@ -28,7 +29,7 @@ import { conexao } from "./banco"
  * `{ erro, codigo?, quando? }`.
  */
 
-export const DIAS_PARA_RECUPERAR = 30
+export { DIAS_PARA_RECUPERAR }
 
 export type Papel = "cuidador" | "acompanhada"
 
@@ -101,30 +102,8 @@ function banco(): postgres.Sql {
 
 // --- a frase de confirmação ------------------------------------------------
 
-/** A frase que a pessoa escreve para encerrar. A tela mostra exatamente esta. */
-export function fraseDeEncerramento(nome: string): string {
-  return `Encerrar o acompanhamento de ${nome.trim()}`
-}
-
-/**
- * Compara sem maiúsculas, acentos, espaços a mais ou ponto final. A frase tem
- * que ser difícil de escrever sem querer, não difícil de acertar: quem usa
- * pode ser uma pessoa idosa digitando no celular.
- */
-function normalizar(texto: string): string {
-  return texto
-    .normalize("NFD")
-    .replace(/\p{Diacritic}/gu, "")
-    .toLowerCase()
-    .replace(/\s+/g, " ")
-    .trim()
-    .replace(/[.!]+$/u, "")
-    .trim()
-}
-
-export function confirmacaoConfere(digitada: string, nome: string): boolean {
-  return normalizar(digitada) === normalizar(fraseDeEncerramento(nome))
-}
+// A frase e o prazo moram em `encerramento.ts` porque a tela também usa.
+export { confirmacaoConfere, fraseDeEncerramento } from "./encerramento"
 
 // --- leituras ----------------------------------------------------------------
 

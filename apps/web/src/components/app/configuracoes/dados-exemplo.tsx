@@ -12,7 +12,7 @@ import {
   Confirmar,
 } from "@/components/ui"
 import { sistema as textos } from "@/content/site"
-import { useDados } from "@/lib/store"
+import { useConta, useDados } from "@/lib/store"
 
 const copy = textos.configuracoes.dados
 
@@ -21,6 +21,7 @@ type Pendente = "restaurar" | "limpar" | null
 export function DadosExemplo() {
   const { dados, restaurarExemplos, limparTudo } = useDados()
   const [pendente, setPendente] = useState<Pendente>(null)
+  const conta = useConta()
 
   const contagens = [
     { rotulo: textos.cadastros.pessoa.plural, valor: dados.pessoas.length },
@@ -28,6 +29,10 @@ export function DadosExemplo() {
     { rotulo: textos.cadastros.dia.plural, valor: dados.dias.length },
     { rotulo: textos.cadastros.alerta.plural, valor: dados.alertas.length },
   ]
+
+  // Com conta, o que está na tela é a família de alguém: não há exemplo para
+  // restaurar nem nada que um botão daqui deva apagar.
+  if (conta) return null
 
   function confirmar() {
     if (pendente === "restaurar") restaurarExemplos()
