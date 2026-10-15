@@ -1,13 +1,13 @@
-import { neon } from "@neondatabase/serverless"
+import postgres from "postgres"
 import type { Alerta, Dados, DiaRegistrado, Pessoa, Pulseira } from "./types"
 
 /**
- * O banco no Neon, montado e desligado.
+ * O banco no Supabase (Postgres), montado e desligado.
  *
- * No CareTwin quem vai guardar os dados de verdade é a API própria, que recebe
- * o que a pulseira manda. Este arquivo continua aqui inteiro de propósito: é o
- * caminho já testado pra guardar os dados num Postgres sem tocar em tela
- * nenhuma, e serve de ponte enquanto a API não estiver no ar.
+ * Esta é a ponte: guarda as telas fora do navegador numa tabela só, enquanto as
+ * rotas novas da API (que leem as tabelas de banco/migracoes/) não estão no
+ * ar. É o caminho já testado pra guardar os dados num Postgres sem tocar em
+ * tela nenhuma.
  *
  * O app inteiro funciona sem ele: o `store` guarda tudo no navegador e ninguém
  * precisa criar conta em lugar nenhum pra rodar `npm run dev`. Quando a
@@ -19,8 +19,8 @@ import type { Alerta, Dados, DiaRegistrado, Pessoa, Pulseira } from "./types"
  * em `jsonb`. É a escolha que sobrevive a um produto ainda mudando: um campo
  * novo na pessoa, uma métrica nova no dia registrado ou um cadastro a mais não
  * pedem migração aqui. Numa coluna por campo, cada mudança de ideia no produto viraria
- * `ALTER TABLE`. O desenho com tabelas de verdade, com índice e chave
- * estrangeira, está no `banco/schema.sql`.
+ * `ALTER TABLE`. As tabelas de verdade, com chave estrangeira e as regras de
+ * vínculo, estão em `banco/migracoes/0001_tabelas.sql`.
  *
  * Este arquivo só é importado pelas rotas de `src/app/api`. A `DATABASE_URL`
  * traz a senha do banco dentro dela e nunca chega no navegador.
@@ -34,13 +34,36 @@ export function ehColecao(valor: unknown): valor is Colecao {
   return typeof valor === "string" && (COLECOES as readonly string[]).includes(valor)
 }
 
-function conexao() {
-  const url = process.env.DATABASE_URL?.trim()
-  return url ? neon(url) : null
+function urlDoBanco(): string | null {
+  return process.env.DATABASE_URL?.trim() || null
 }
 
 export function bancoConfigurado(): boolean {
-  return conexao() !== null
+  return urlDoBanco() !== null
+}
+
+/**
+ * Uma conexão só por servidor, criada na primeira vez que alguém precisa.
+ *
+ * O `postgres` abre um pequeno grupo de conexões e reaproveita. Criar um novo a
+ * cada requisição abriria conexões sem fim até o banco recusar. Ele também não
+ * conecta na hora em que é criado, só na primeira consulta.
+ *
+ * O jsonb vai sempre por `sql.json(objeto)`, nunca como texto com `::jsonb`:
+ * este driver já converte o objeto, e um texto convertido de novo seria
+ * gravado como uma string dentro do jsonb, não como o registro.
+ *
+ * `prepare: false` é exigência do pooler do Supabase (o endereço da porta
+ * 6543, o certo para a Vercel): ele reparte a mesma conexão entre muitas
+ * requisições e não guarda consultas preparadas de uma para a outra.
+ */
+let cliente: postgres.Sql | null = null
+
+function conexao(): postgres.Sql | null {
+  const url = urlDoBanco()
+  if (!url) return null
+  cliente ??= postgres(url, { prepare: false, max: 3, idle_timeout: 20 })
+  return cliente
 }
 
 /**
@@ -53,7 +76,7 @@ export function bancoConfigurado(): boolean {
  */
 let preparacao: Promise<void> | null = null
 
-async function preparar(sql: NonNullable<ReturnType<typeof conexao>>) {
+async function preparar(sql: postgres.Sql) {
   if (!preparacao) {
     preparacao = (async () => {
       await sql`
@@ -71,6 +94,10 @@ async function preparar(sql: NonNullable<ReturnType<typeof conexao>>) {
         CREATE INDEX IF NOT EXISTS registros_colecao_criado_em
         ON registros (colecao, criado_em DESC)
       `
+      // O Supabase publica toda tabela do schema public numa API automática.
+      // RLS ligada sem regra nenhuma fecha essa porta; o app segue lendo e
+      // gravando porque é o dono da tabela.
+      await sql`ALTER TABLE registros ENABLE ROW LEVEL SECURITY`
     })().catch((erro) => {
       // Falhou a preparação, esquece a promessa: a próxima requisição tenta de
       // novo em vez de herdar o erro pra sempre.
@@ -105,9 +132,9 @@ function montar(linhas: Linha[]): Dados {
 export async function lerTudo(): Promise<Dados | null> {
   const sql = await pronto()
   if (!sql) return null
-  const linhas = (await sql`
+  const linhas = await sql<Linha[]>`
     SELECT colecao, id, dados FROM registros ORDER BY criado_em DESC
-  `) as Linha[]
+  `
   return montar(linhas)
 }
 
@@ -116,7 +143,7 @@ export async function inserir(colecao: Colecao, item: { id: string }): Promise<v
   if (!sql) return
   await sql`
     INSERT INTO registros (colecao, id, dados)
-    VALUES (${colecao}, ${item.id}, ${JSON.stringify(item)}::jsonb)
+    VALUES (${colecao}, ${item.id}, ${sql.json(item as postgres.JSONValue)})
     ON CONFLICT (colecao, id) DO UPDATE SET dados = EXCLUDED.dados
   `
 }
@@ -137,7 +164,7 @@ export async function atualizar(
   if (!sql) return
   await sql`
     UPDATE registros
-    SET dados = dados || ${JSON.stringify(patch)}::jsonb
+    SET dados = dados || ${sql.json(patch as postgres.JSONValue)}
     WHERE colecao = ${colecao} AND id = ${id}
   `
 }
@@ -171,20 +198,20 @@ export async function substituirTudo(dados: Dados): Promise<void> {
   const sql = await pronto()
   if (!sql) return
 
-  const linhas: Array<[Colecao, string, string]> = []
+  const linhas: Array<[Colecao, string, postgres.JSONValue]> = []
   for (const colecao of COLECOES) {
     for (const item of dados[colecao] as Array<{ id: string }>) {
-      linhas.push([colecao, item.id, JSON.stringify(item)])
+      linhas.push([colecao, item.id, item as postgres.JSONValue])
     }
   }
 
-  await sql.transaction((tx) => [
-    tx`DELETE FROM registros`,
-    ...linhas.map(
-      ([colecao, id, corpo]) => tx`
+  await sql.begin(async (tx) => {
+    await tx`DELETE FROM registros`
+    for (const [colecao, id, corpo] of linhas) {
+      await tx`
         INSERT INTO registros (colecao, id, dados)
-        VALUES (${colecao}, ${id}, ${corpo}::jsonb)
+        VALUES (${colecao}, ${id}, ${tx.json(corpo)})
       `
-    ),
-  ])
+    }
+  })
 }

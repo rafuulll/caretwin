@@ -74,7 +74,7 @@ Cada item já está escrito e só espera valores no `.env.local`. Copie o `.env.
 
 - API do CareTwin: troque as funções de `src/lib/store.ts` por chamadas à API. As telas só falam com `useDados()` e `usePessoaNaTela()`.
 - Login com Google: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` e `AUTH_SECRET`. O fluxo está em `src/lib/google.ts` e `src/app/api/auth`.
-- Banco Neon: `DATABASE_URL`. Fica desligado porque, no CareTwin, quem guarda os dados é a API.
+- Banco no Supabase: `DATABASE_URL`. A conexão está em `src/lib/banco.ts`; as tabelas definitivas estão em `banco/migracoes/` e se criam colando o arquivo no SQL Editor do Supabase.
 - IA que escreve os textos: `OPENAI_API_KEY`, ou a IA local (Ollama) pela API. A chamada sai sempre de uma rota do servidor. Hoje os textos são de exemplo (`src/lib/respostas-ia.ts`).
 - Automações: `n8n/` tem o docker-compose e um guia com dois exemplos do CareTwin.
 
