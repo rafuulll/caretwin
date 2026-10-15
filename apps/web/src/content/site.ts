@@ -699,7 +699,7 @@ export const comoUsar = {
       },
       {
         titulo: "Backend e banco de dados",
-        texto: "Hoje os dados ficam no navegador. O caminho para um banco já nasceu escrito e testado: ligar o Neon é colar a string de conexão no .env.local, e o mesmo app passa a gravar no Postgres. Zero linha de código e nenhuma tela mudando. No CareTwin quem guarda os dados é a API, então este caminho fica desligado de propósito.",
+        texto: "Hoje os dados ficam no navegador. O caminho para um banco já nasceu escrito e testado: ligar o Supabase é colar a string de conexão no .env.local, e o mesmo app passa a gravar no Postgres. Zero linha de código e nenhuma tela mudando. No CareTwin quem guarda os dados é a API, então este caminho fica desligado de propósito.",
         onde: "src/lib/banco.ts e src/app/api/dados",
       },
       {

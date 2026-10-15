@@ -4,7 +4,7 @@ O protótipo funciona sozinho: sem servidor, sem banco e sem chave de API. É is
 
 Este arquivo é o mapa do que vem depois. A página Como usar (`/como-usar`) é a versão dele dentro do app, navegável.
 
-Dois itens já estão construídos e desligados: o login com Google e o banco no Neon. O código está escrito e testado, esperando só as chaves no `.env.local`. Do terceiro em diante é mapa: o que é, por que vale para o CareTwin e onde encaixa.
+Dois itens já estão construídos e desligados: o login com Google e o banco no Supabase. O código está escrito e testado, esperando só as chaves no `.env.local`. Do terceiro em diante é mapa: o que é, por que vale para o CareTwin e onde encaixa.
 
 ## A ordem
 
@@ -14,7 +14,7 @@ Dois itens já estão construídos e desligados: o login com Google e o banco no
 - [ ] 4. **Envio de e-mail**: mandar o resumo do dia para quem acompanha
 - [ ] 5. **WhatsApp**: avisar quem acompanha onde a família realmente lê
 - [ ] 6. **n8n**: fazer o e-mail e o WhatsApp acontecerem sozinhos
-- [ ] 7. **Banco no Neon**: guardar fora do navegador sem esperar a API · *já construído, falta a conexão*
+- [ ] 7. **Banco no Supabase**: guardar fora do navegador sem esperar a API · *já construído, falta a conexão*
 - [ ] 8. **Antes de publicar**: rota protegida · *falta a Deployment Protection e as variáveis na Vercel*
 
 ---
@@ -65,13 +65,13 @@ Dois itens já estão construídos e desligados: o login com Google e o banco no
 
 **Onde encaixa.** O app ou a API chamam o endereço do webhook guardado em `N8N_WEBHOOK_URL`, e o n8n faz o resto (e-mail, WhatsApp, planilha).
 
-## 7. Banco no Neon
+## 7. Banco no Supabase
 
 > **Já está construído.** Falta só a conexão.
 
-**O que fazer.** Crie um projeto Postgres no Neon, copie a string de conexão e cole em `DATABASE_URL` no `.env.local`. O app cria a tabela sozinho na primeira chamada (o desenho está em `banco/schema.sql`) e passa a gravar lá, sem nenhuma tela mudar.
+**O que fazer.** Crie um projeto no Supabase, copie a connection string do "Transaction pooler" (botão Connect, porta 6543) e cole em `DATABASE_URL` no `.env.local`, com `?sslmode=require` no final. O app cria a tabela-ponte sozinho na primeira chamada (`banco/schema.sql`) e passa a gravar lá, sem nenhuma tela mudar. As tabelas definitivas (usuários, pessoas, pulseiras, vínculos, dias e alertas) estão em `banco/migracoes/0001_tabelas.sql`: cole no SQL Editor do Supabase e execute uma vez.
 
-**Por que fica desligado.** No CareTwin quem guarda os dados é a API do projeto. O Neon é a ponte pronta, caso o grupo queira dados fora do navegador antes de a API estar no ar.
+**Por que fica desligado.** No CareTwin quem guarda os dados é a API do projeto. O Supabase com a tabela-ponte é o caminho pronto, caso o grupo queira dados fora do navegador antes de a API estar no ar.
 
 ## 8. Antes de publicar
 
