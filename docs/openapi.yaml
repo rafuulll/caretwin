@@ -1,17 +1,93 @@
 openapi: 3.0.3
 info:
   title: CareTwin API
-  version: 0.1.0
+  version: 0.2.0
   description: >
-    Contrato inicial. Os tres endpoints /v1/device/* ja sao usados pelo firmware
-    (ver firmware/README.md e simulador/README.md). Os endpoints do site (leitura) ainda serao definidos.
+    Contrato da API do CareTwin. Fonte da verdade entre pulseira, backend e site.
+
+
+    v0.2: o backend passa a morar dentro do proprio Next.js (apps/web, rotas em
+    src/app/api), no lugar do FastAPI previsto antes (card 2.4 do Trello).
+    Os caminhos /v1/device/* NAO mudaram, so o endereco base (servers). Entao o
+    firmware troca a URL e segue igual. Foram acrescentados os endpoints do site
+    (tag app) e o vinculo entre usuario, pessoa e pulseira.
+
+
+    Login (cards 5.3 e 7.2): as rotas do site usam a sessao do app, um cookie
+    httpOnly assinado criado no login com e-mail e senha (Supabase Auth, rotas
+    /api/auth/conta/*). O id da conta no Supabase Auth e o mesmo de usuarios.id
+    no banco.
+
+
+    Vinculos (card 5.9): quem ve qual pessoa. Digitar o codigo de uma pulseira
+    livre cria a pessoa e um vinculo ja aprovado, e quem digitou passa a
+    administrar a familia. Digitar o codigo de uma pulseira que ja tem familia
+    cria um pedido, que um administrador aprova ou recusa. Administram: quem
+    cadastrou a pessoa (pessoas.cadastrada_por) e a propria pessoa acompanhada,
+    quando tem conta aprovada. Toda rota de leitura exige vinculo aprovado; sem
+    ele, 404.
+
+
+    Encerramento (card 5.9): o ultimo membro aprovado pode encerrar o
+    acompanhamento, escrevendo uma frase de confirmacao. Nada e apagado na hora:
+    a pessoa fica encerrada por 30 dias, some de todas as telas e quem encerrou
+    pode recuperar tudo nesse prazo. Durante esses dias a pulseira fica travada
+    (ninguem consegue liga-la) e os dados que ela mandar nao sao gravados: as
+    rotas /v1/device/* respondem 200 com esses itens em rejected, para o
+    firmware nao reenviar. Passados os 30 dias, uma tarefa agendada no banco
+    (pg_cron) apaga a pessoa, os dias e os alertas de vez e libera a pulseira.
+
+
+    Convencao de nomes: o que a pulseira manda usa snake_case (steps,
+    active_minutes), porque e o formato do firmware desde a v0.1. O que o site
+    le e escreve usa camelCase, o mesmo de apps/web/src/lib/types.ts, para a tela
+    receber o dado sem conversao (steps vira passos, counts vira contagens).
+
+
+    Quem calcula o alerta: a API. Quando a pulseira entrega dias novos, o
+    backend recalcula o normal da pessoa (regra do card 2.3, hoje em
+    apps/web/src/lib/normal.ts) e cria os alertas. O texto do alerta vem da IA,
+    com o texto de regra como reserva. O site so mostra.
 servers:
-  - url: http://localhost:8000
-    description: local
+  - url: http://localhost:3000/api
+    description: local (npm run dev em apps/web)
+  - url: https://SEU-DOMINIO-NA-VERCEL/api
+    description: producao (trocar pelo dominio real quando houver)
 tags:
+  - name: infra
+    description: Checagens do servidor, sem login
   - name: device
-    description: Enviados pela pulseira
+    description: Enviados pela pulseira (token de dispositivo)
+  - name: app
+    description: Usados pelo site (sessao do login com e-mail e senha)
+  - name: futuro
+    description: Reservado. Documentado para o formato ja estar combinado, nao implementar ainda
 paths:
+  /health:
+    get:
+      tags: [infra]
+      summary: O servidor esta de pe (e se o banco esta configurado)
+      description: >
+        Nao pede login, porque quem checa e uma maquina. A resposta nao revela
+        nenhuma variavel de ambiente: so diz se o banco esta configurado e nao
+        conversa com ele. Em producao a Vercel Authentication continua na frente.
+      responses:
+        '200':
+          description: Servidor no ar
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [ok, banco]
+                properties:
+                  ok:
+                    type: boolean
+                  banco:
+                    type: string
+                    enum: [configurado, desligado]
+              example:
+                ok: true
+                banco: desligado
   /v1/device/daily:
     post:
       tags: [device]
@@ -49,6 +125,10 @@ paths:
     post:
       tags: [device]
       summary: Janela da noite (840 valores, um por minuto)
+      description: >
+        Atencao: night_date e o dia em que a noite COMECA (20h). No site a noite
+        fica no dia em que TERMINA, entao night_date 2026-10-20 aparece dentro do
+        dia 2026-10-21 na leitura. Gravar em night_date mais um dia.
       security:
         - DeviceToken: []
       requestBody:
@@ -94,6 +174,553 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AcceptedRejected'
+  /v1/device/heartrate:
+    post:
+      tags: [futuro]
+      summary: Medicoes de batimentos (reservado)
+      description: >
+        O firmware ainda NAO envia batimentos: o MAX30102 so e usado na bancada
+        (card 3.4). O formato fica combinado aqui para o dia em que a medicao
+        no pulso for validada. Nao implementar agora.
+      security:
+        - DeviceToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HeartratePayload'
+            example:
+              measurements:
+                - ts: '2026-10-20T15:04:05-03:00'
+                  bpm: 78
+      responses:
+        '401':
+          description: Sem o cabecalho Authorization ou token invalido
+        '422':
+          description: Corpo da requisicao invalido
+        '200':
+          description: Quais medicoes foram aceitas (identificadas pelo ts) e quais recusadas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcceptedRejected'
+
+  /v1/me:
+    get:
+      tags: [app]
+      summary: Quem esta logado, e os pedidos que ainda esperam aprovacao
+      description: >
+        Devolve a conta da sessao atual e os pedidos de entrada que ela fez e que
+        ainda nao foram respondidos. O site usa isso, junto com GET /v1/pessoas,
+        para escolher a primeira tela: com pessoas aprovadas, o painel; so com
+        pedidos, "seu pedido esta esperando"; sem nada, "ligar uma pulseira".
+        Sessao sem conta no Supabase Auth (o login com Google feito a mao, ate o
+        card 5.3) responde 403.
+      security:
+        - SessaoDoApp: []
+      responses:
+        '200':
+          description: A conta e os pedidos pendentes dela
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Eu'
+        '401':
+          $ref: '#/components/responses/NaoAutenticado'
+        '403':
+          $ref: '#/components/responses/SemPermissao'
+  /v1/pessoas:
+    get:
+      tags: [app]
+      summary: As pessoas que o usuario pode ver
+      description: >
+        So as pessoas com vinculo aprovado do usuario (cuidador ou a propria
+        acompanhada); pedidos pendentes nao entram. Cada item traz o papel do
+        usuario ali, se ele administra a familia, e a pulseira da pessoa.
+      security:
+        - SessaoDoApp: []
+      responses:
+        '200':
+          description: Lista, possivelmente vazia
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PessoaComPulseira'
+        '401':
+          $ref: '#/components/responses/NaoAutenticado'
+  /v1/pessoas/{pessoaId}:
+    parameters:
+      - $ref: '#/components/parameters/PessoaId'
+    get:
+      tags: [app]
+      summary: Uma pessoa, com a pulseira e o papel do usuario
+      security:
+        - SessaoDoApp: []
+      responses:
+        '200':
+          description: A pessoa
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PessoaComPulseira'
+        '401':
+          $ref: '#/components/responses/NaoAutenticado'
+        '404':
+          $ref: '#/components/responses/NaoEncontrado'
+  /v1/pessoas/{pessoaId}/dias:
+    parameters:
+      - $ref: '#/components/parameters/PessoaId'
+    get:
+      tags: [app]
+      summary: Dias registrados de uma pessoa
+      description: >
+        Passos, noite (840 contagens) e batimentos de cada dia, do mais antigo
+        para o mais novo. Sem filtros devolve os ultimos 30 dias.
+      security:
+        - SessaoDoApp: []
+      parameters:
+        - name: de
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+          description: Primeiro dia (AAAA-MM-DD), inclusive
+        - name: ate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+          description: Ultimo dia (AAAA-MM-DD), inclusive
+      responses:
+        '200':
+          description: Lista de dias, possivelmente vazia
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DiaRegistrado'
+        '401':
+          $ref: '#/components/responses/NaoAutenticado'
+        '404':
+          $ref: '#/components/responses/NaoEncontrado'
+        '422':
+          description: Datas fora do formato ou de maior que ate
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+  /v1/pessoas/{pessoaId}/alertas:
+    parameters:
+      - $ref: '#/components/parameters/PessoaId'
+    get:
+      tags: [app]
+      summary: Alertas de uma pessoa
+      description: Do mais recente para o mais antigo.
+      security:
+        - SessaoDoApp: []
+      parameters:
+        - name: lido
+          in: query
+          required: false
+          schema:
+            type: boolean
+          description: true so os ja vistos, false so os novos, ausente todos
+      responses:
+        '200':
+          description: Lista de alertas, possivelmente vazia
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Alerta'
+        '401':
+          $ref: '#/components/responses/NaoAutenticado'
+        '404':
+          $ref: '#/components/responses/NaoEncontrado'
+  /v1/alertas/{alertaId}:
+    patch:
+      tags: [app]
+      summary: Marcar um alerta como lido (ou voltar para novo)
+      security:
+        - SessaoDoApp: []
+      parameters:
+        - name: alertaId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [lido]
+              properties:
+                lido:
+                  type: boolean
+            example:
+              lido: true
+      responses:
+        '200':
+          description: O alerta depois da mudanca
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Alerta'
+        '401':
+          $ref: '#/components/responses/NaoAutenticado'
+        '404':
+          $ref: '#/components/responses/NaoEncontrado'
+        '422':
+          description: Corpo invalido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+  /v1/vinculos:
+    post:
+      tags: [app]
+      summary: Digitar o codigo CT-XXXX da pulseira (ligar, ou pedir para entrar)
+      description: >
+        A pessoa digita o codigo impresso atras da pulseira e responde se a
+        pulseira e dela (papel acompanhada) ou de alguem que ela cuida (papel
+        cuidador).
+
+
+        Pulseira livre (sem pessoa): cria a pessoa com o nome enviado, liga a
+        pulseira a ela, cria o vinculo ja aprovado e marca quem digitou como
+        administrador (pessoas.cadastrada_por). Os dias que a pulseira ja tinha
+        mandado ganham a pessoa na mesma operacao. Responde 201.
+
+
+        Pulseira que ja tem familia: cria um pedido (vinculo com aprovado falso)
+        e responde 202. O nome enviado e ignorado. Quem pediu nao ve nada da
+        pessoa ate ser aprovado, por isso a resposta nao traz o nome dela.
+
+
+        O codigo sozinho nao abre os dados de ninguem: ele so cria a pessoa
+        quando a pulseira ainda nao tem familia. Tentativas repetidas com codigos
+        errados devem ser limitadas pelo backend.
+      security:
+        - SessaoDoApp: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VinculoNovo'
+            example:
+              codigo: CT-4F7K
+              papel: cuidador
+              nome: Dona Cida
+      responses:
+        '201':
+          description: Pulseira livre. Pessoa criada e vinculo aprovado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PessoaComPulseira'
+        '202':
+          description: Pulseira com familia. Pedido criado, esperando aprovacao.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Pedido'
+        '401':
+          $ref: '#/components/responses/NaoAutenticado'
+        '403':
+          $ref: '#/components/responses/SemPermissao'
+        '404':
+          description: Nao existe pulseira com esse codigo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+        '409':
+          description: >
+            A conta ja tem vinculo ou pedido com essa pessoa (codigo
+            ja_tem_vinculo); pediu o papel acompanhada e a pessoa ja tem uma
+            acompanhada aprovada (codigo ja_tem_acompanhada); ou a pulseira esta
+            travada porque o acompanhamento foi encerrado ha menos de 30 dias
+            (codigo pulseira_em_encerramento, com a data em que ela fica livre em
+            quando)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+        '422':
+          description: >
+            Codigo fora do formato CT-XXXX, papel invalido, ou nome ausente
+            quando a pulseira esta livre (codigo nome_obrigatorio)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+  /v1/pessoas/{pessoaId}/vinculo:
+    delete:
+      tags: [app]
+      summary: Sair da familia desta pessoa (apagar o proprio vinculo)
+      description: >
+        Apaga o vinculo do usuario logado com a pessoa. Os dias e os alertas
+        ficam, porque sao da pessoa. Tambem serve para desistir de um pedido que
+        ainda nao foi respondido.
+
+
+        Se a familia ficar sem administrador, o cuidador aprovado mais antigo
+        assume (pessoas.cadastrada_por). Pedidos pendentes nao contam: quem nao
+        foi aprovado nao herda a administracao.
+
+
+        Se o usuario for o ultimo membro aprovado, responde 409 (codigo
+        ultimo_membro): sair deixaria os dados sem ninguem. O caminho e
+        encerrar o acompanhamento (POST /v1/pessoas/{pessoaId}/encerrar).
+      security:
+        - SessaoDoApp: []
+      parameters:
+        - $ref: '#/components/parameters/PessoaId'
+      responses:
+        '204':
+          description: Vinculo ou pedido apagado
+        '401':
+          $ref: '#/components/responses/NaoAutenticado'
+        '404':
+          $ref: '#/components/responses/NaoEncontrado'
+        '409':
+          description: O usuario e o ultimo membro aprovado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+  /v1/pessoas/{pessoaId}/membros:
+    get:
+      tags: [app]
+      summary: Quem faz parte da familia (membros aprovados)
+      description: >
+        Qualquer membro aprovado ve a lista. Cada item diz o papel e se a conta
+        administra a familia. O e-mail dos outros membros nao aparece.
+      security:
+        - SessaoDoApp: []
+      parameters:
+        - $ref: '#/components/parameters/PessoaId'
+      responses:
+        '200':
+          description: Membros aprovados, do mais antigo para o mais novo
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Membro'
+        '401':
+          $ref: '#/components/responses/NaoAutenticado'
+        '404':
+          $ref: '#/components/responses/NaoEncontrado'
+  /v1/pessoas/{pessoaId}/membros/{usuarioId}:
+    delete:
+      tags: [app]
+      summary: Remover um cuidador da familia
+      description: >
+        So quem administra. Remove cuidadores; a propria pessoa acompanhada nao
+        pode ser removida por outra conta. Para sair, o proprio usuario usa
+        DELETE /v1/pessoas/{pessoaId}/vinculo (aqui, responde 409 com codigo
+        use_sair). Se quem foi removido administrava, vale a regra de sair: o
+        cuidador aprovado mais antigo assume quando a familia fica sem
+        administrador.
+      security:
+        - SessaoDoApp: []
+      parameters:
+        - $ref: '#/components/parameters/PessoaId'
+        - $ref: '#/components/parameters/UsuarioId'
+      responses:
+        '204':
+          description: Cuidador removido
+        '401':
+          $ref: '#/components/responses/NaoAutenticado'
+        '403':
+          $ref: '#/components/responses/SemPermissao'
+        '404':
+          $ref: '#/components/responses/NaoEncontrado'
+        '409':
+          description: Tentou remover a si mesmo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+  /v1/pessoas/{pessoaId}/pedidos:
+    get:
+      tags: [app]
+      summary: Pedidos de entrada esperando resposta
+      description: So quem administra a familia ve os pedidos.
+      security:
+        - SessaoDoApp: []
+      parameters:
+        - $ref: '#/components/parameters/PessoaId'
+      responses:
+        '200':
+          description: Pedidos pendentes, do mais antigo para o mais novo
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PedidoRecebido'
+        '401':
+          $ref: '#/components/responses/NaoAutenticado'
+        '403':
+          $ref: '#/components/responses/SemPermissao'
+        '404':
+          $ref: '#/components/responses/NaoEncontrado'
+  /v1/pessoas/{pessoaId}/pedidos/{usuarioId}:
+    delete:
+      tags: [app]
+      summary: Recusar um pedido de entrada
+      description: So quem administra. Apaga o pedido; quem pediu pode pedir de novo.
+      security:
+        - SessaoDoApp: []
+      parameters:
+        - $ref: '#/components/parameters/PessoaId'
+        - $ref: '#/components/parameters/UsuarioId'
+      responses:
+        '204':
+          description: Pedido recusado
+        '401':
+          $ref: '#/components/responses/NaoAutenticado'
+        '403':
+          $ref: '#/components/responses/SemPermissao'
+        '404':
+          $ref: '#/components/responses/NaoEncontrado'
+  /v1/pessoas/{pessoaId}/pedidos/{usuarioId}/aprovar:
+    post:
+      tags: [app]
+      summary: Aprovar um pedido de entrada
+      description: >
+        So quem administra. O pedido vira membro aprovado. Se o papel pedido for
+        acompanhada e a pessoa ja tiver uma acompanhada aprovada, responde 409
+        (codigo ja_tem_acompanhada).
+      security:
+        - SessaoDoApp: []
+      parameters:
+        - $ref: '#/components/parameters/PessoaId'
+        - $ref: '#/components/parameters/UsuarioId'
+      responses:
+        '200':
+          description: O novo membro
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Membro'
+        '401':
+          $ref: '#/components/responses/NaoAutenticado'
+        '403':
+          $ref: '#/components/responses/SemPermissao'
+        '404':
+          $ref: '#/components/responses/NaoEncontrado'
+        '409':
+          description: A pessoa ja tem uma acompanhada aprovada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+  /v1/pessoas/{pessoaId}/encerrar:
+    post:
+      tags: [app]
+      summary: Encerrar o acompanhamento (com 30 dias para recuperar)
+      description: >
+        So vale para o ultimo membro aprovado da familia. Com outros membros
+        aprovados, responde 409 (codigo outros_membros): nesse caso o caminho e
+        sair da familia.
+
+
+        A conta precisa mandar a frase de confirmacao escrita pela pessoa:
+        "Encerrar o acompanhamento de " seguido do nome da pessoa, como em
+        "Encerrar o acompanhamento de Dona Cida". A comparacao ignora maiusculas,
+        acentos e espacos a mais. Frase diferente responde 422 (codigo
+        confirmacao_errada) e nada muda. A conferencia e do servidor; a da tela
+        e so ajuda.
+
+
+        Nada e apagado na hora. A pessoa fica encerrada: some de todas as rotas
+        (404 para todo mundo), os pedidos pendentes sao apagados e a pulseira
+        fica travada. Quem encerrou pode recuperar ate apagaEm
+        (POST /v1/pessoas/{pessoaId}/recuperar). Depois disso a pessoa, os dias
+        e os alertas sao apagados de vez e a pulseira fica livre.
+      security:
+        - SessaoDoApp: []
+      parameters:
+        - $ref: '#/components/parameters/PessoaId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [confirmacao]
+              properties:
+                confirmacao:
+                  type: string
+                  maxLength: 200
+            example:
+              confirmacao: Encerrar o acompanhamento de Dona Cida
+      responses:
+        '200':
+          description: Acompanhamento encerrado, recuperavel ate apagaEm
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Encerramento'
+        '401':
+          $ref: '#/components/responses/NaoAutenticado'
+        '404':
+          $ref: '#/components/responses/NaoEncontrado'
+        '409':
+          description: Ainda ha outros membros aprovados na familia
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+        '422':
+          description: A frase de confirmacao nao confere
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+  /v1/pessoas/{pessoaId}/recuperar:
+    post:
+      tags: [app]
+      summary: Recuperar um acompanhamento encerrado (ate 30 dias)
+      description: >
+        So quem encerrou, e so ate apagaEm. Tudo volta como estava: a pessoa, o
+        historico, a pulseira ligada e a conta como membro aprovado e
+        administradora. Os dias que a pulseira mandou durante o encerramento nao
+        foram gravados e nao voltam. Depois do prazo, a pessoa ja nao existe e a
+        resposta e 404.
+      security:
+        - SessaoDoApp: []
+      parameters:
+        - $ref: '#/components/parameters/PessoaId'
+      responses:
+        '200':
+          description: Acompanhamento recuperado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PessoaComPulseira'
+        '401':
+          $ref: '#/components/responses/NaoAutenticado'
+        '404':
+          description: Nao ha acompanhamento encerrado por esta conta com esse id, ou o prazo acabou
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
 components:
   securitySchemes:
     DeviceToken:
@@ -102,7 +729,59 @@ components:
       name: Authorization
       description: >
         Formato usado pelo firmware: "Authorization: Device <token>". Sem o cabecalho,
-        a API responde 401. A emissao e a validacao dos tokens ficam com o backend.
+        a API responde 401. Cada pulseira tem o seu token; o backend guarda so o
+        hash dele e acha por ele qual pulseira esta falando. Como o token chega
+        ao firmware e questao em aberto (card 5.3).
+    SessaoDoApp:
+      type: apiKey
+      in: cookie
+      name: sessao
+      description: >
+        Cookie httpOnly assinado, criado no login com e-mail e senha
+        (/api/auth/conta/*). O navegador manda sozinho, o JavaScript da pagina
+        nao le. Sem ele, 401. As rotas do site exigem que a sessao traga o id da
+        conta no Supabase Auth; sem ele, 403.
+  parameters:
+    PessoaId:
+      name: pessoaId
+      in: path
+      required: true
+      schema:
+        type: string
+      description: >
+        Se o usuario nao tem vinculo aprovado com a pessoa, a resposta e 404 e
+        nao 403, para nao revelar que o id existe. Pessoa encerrada conta como
+        inexistente. Excecoes: sair da familia tambem aceita quem so tem um
+        pedido pendente, e recuperar aceita quem encerrou a pessoa.
+    UsuarioId:
+      name: usuarioId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: O id da conta (usuarios.id, o mesmo do Supabase Auth)
+  responses:
+    NaoAutenticado:
+      description: Sem sessao ou sessao invalida
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Erro'
+    NaoEncontrado:
+      description: Nao existe, ou o usuario nao tem vinculo aprovado com isso
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Erro'
+    SemPermissao:
+      description: >
+        A conta nao pode fazer isso: nao administra a familia, ou a sessao nao
+        tem conta no Supabase Auth
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Erro'
   schemas:
     DailyPayload:
       type: object
@@ -129,6 +808,8 @@ components:
         steps:
           type: integer
           minimum: 0
+          maximum: 60000
+          description: Acima de 60000 o dia e recusado (card 5.5)
         active_minutes:
           type: integer
           minimum: 0
@@ -162,6 +843,23 @@ components:
         ts:
           type: string
           format: date-time
+    HeartratePayload:
+      type: object
+      required: [measurements]
+      properties:
+        measurements:
+          type: array
+          items:
+            type: object
+            required: [ts, bpm]
+            properties:
+              ts:
+                type: string
+                format: date-time
+              bpm:
+                type: integer
+                minimum: 30
+                maximum: 220
     AcceptedRejected:
       type: object
       required: [accepted, rejected]
@@ -174,3 +872,269 @@ components:
           type: array
           items:
             type: string
+    Erro:
+      type: object
+      required: [erro]
+      properties:
+        erro:
+          type: string
+          description: Frase curta e sem detalhe interno
+        codigo:
+          type: string
+          description: >
+            Motivo curto, para a tela escolher o texto certo. Exemplos:
+            ja_tem_vinculo, ja_tem_acompanhada, nome_obrigatorio, ultimo_membro,
+            outros_membros, use_sair, confirmacao_errada,
+            pulseira_em_encerramento
+        quando:
+          type: string
+          format: date-time
+          description: >
+            Data ligada ao motivo, quando houver. Em pulseira_em_encerramento, e
+            quando a pulseira volta a ficar livre.
+    Sessao:
+      type: object
+      required: [nome, email, entrouEm]
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: >
+            Id da conta no Supabase Auth. Ausente no login com Google feito a
+            mao, que nao tem conta no Supabase.
+        nome:
+          type: string
+        email:
+          type: string
+        entrouEm:
+          type: string
+          format: date-time
+    Eu:
+      allOf:
+        - $ref: '#/components/schemas/Sessao'
+        - type: object
+          required: [id, pedidosPendentes, encerradas]
+          properties:
+            id:
+              type: string
+              format: uuid
+            pedidosPendentes:
+              type: array
+              items:
+                $ref: '#/components/schemas/Pedido'
+            encerradas:
+              type: array
+              description: Acompanhamentos que esta conta encerrou e ainda pode recuperar
+              items:
+                $ref: '#/components/schemas/Encerramento'
+    Papel:
+      type: string
+      enum: [cuidador, acompanhada]
+      description: O papel do usuario naquela pessoa
+    Pessoa:
+      type: object
+      required: [id, nome, criadoEm]
+      properties:
+        id:
+          type: string
+        nome:
+          type: string
+          description: 'Do jeito que a familia chama: "Dona Cida"'
+        criadoEm:
+          type: string
+          format: date-time
+    Pulseira:
+      type: object
+      required: [id, codigo, bateria, ultimaSincronizacao]
+      properties:
+        id:
+          type: string
+        codigo:
+          type: string
+          pattern: '^CT-[A-Z0-9]{4}$'
+        bateria:
+          type: integer
+          minimum: 0
+          maximum: 100
+        ultimaSincronizacao:
+          type: string
+          format: date-time
+          nullable: true
+          description: null enquanto a pulseira nunca mandou nada
+    PessoaComPulseira:
+      allOf:
+        - $ref: '#/components/schemas/Pessoa'
+        - type: object
+          required: [papel, administra, pulseira]
+          properties:
+            papel:
+              $ref: '#/components/schemas/Papel'
+            administra:
+              type: boolean
+              description: Se o usuario aprova pedidos e remove cuidadores desta familia
+            pulseira:
+              allOf:
+                - $ref: '#/components/schemas/Pulseira'
+              nullable: true
+    VinculoNovo:
+      type: object
+      required: [codigo, papel]
+      properties:
+        codigo:
+          type: string
+          pattern: '^CT-[A-Z0-9]{4}$'
+        papel:
+          allOf:
+            - $ref: '#/components/schemas/Papel'
+          description: >
+            acompanhada: "esta pulseira e minha". cuidador: "e de alguem que eu
+            cuido".
+        nome:
+          type: string
+          minLength: 1
+          maxLength: 80
+          description: >
+            Como a familia chama a pessoa. Obrigatorio quando a pulseira esta
+            livre; ignorado nos pedidos.
+    Pedido:
+      type: object
+      required: [pessoaId, codigo, papel, criadoEm]
+      description: >
+        Um pedido de entrada feito pela conta logada, ainda sem resposta. Nao traz
+        o nome da pessoa, porque quem pediu ainda nao foi aprovado.
+      properties:
+        pessoaId:
+          type: string
+          description: Serve para desistir do pedido (DELETE /v1/pessoas/{pessoaId}/vinculo)
+        codigo:
+          type: string
+          pattern: '^CT-[A-Z0-9]{4}$'
+        papel:
+          $ref: '#/components/schemas/Papel'
+        criadoEm:
+          type: string
+          format: date-time
+    PedidoRecebido:
+      type: object
+      required: [usuarioId, nome, papel, criadoEm]
+      description: Um pedido de entrada, visto por quem administra a familia
+      properties:
+        usuarioId:
+          type: string
+          format: uuid
+        nome:
+          type: string
+          description: O nome da conta que pediu
+        papel:
+          $ref: '#/components/schemas/Papel'
+        criadoEm:
+          type: string
+          format: date-time
+    Encerramento:
+      type: object
+      required: [pessoaId, nome, encerradoEm, apagaEm]
+      properties:
+        pessoaId:
+          type: string
+        nome:
+          type: string
+        encerradoEm:
+          type: string
+          format: date-time
+        apagaEm:
+          type: string
+          format: date-time
+          description: Ate quando da para recuperar. Depois disso, tudo e apagado de vez.
+    Membro:
+      type: object
+      required: [usuarioId, nome, papel, administra, desde]
+      properties:
+        usuarioId:
+          type: string
+          format: uuid
+        nome:
+          type: string
+        papel:
+          $ref: '#/components/schemas/Papel'
+        administra:
+          type: boolean
+        desde:
+          type: string
+          format: date-time
+          description: Quando o vinculo foi criado
+    MedicaoBatimentos:
+      type: object
+      required: [em, bpm]
+      properties:
+        em:
+          type: string
+          format: date-time
+        bpm:
+          type: integer
+    Noite:
+      type: object
+      required: [inicio, contagens]
+      properties:
+        inicio:
+          type: string
+          format: date-time
+        contagens:
+          type: array
+          minItems: 840
+          maxItems: 840
+          items:
+            type: integer
+            nullable: true
+            minimum: 0
+    DiaRegistrado:
+      type: object
+      required: [id, pessoaId, data, passos, noite, batimentos]
+      properties:
+        id:
+          type: string
+        pessoaId:
+          type: string
+        data:
+          type: string
+          format: date
+        passos:
+          type: integer
+          nullable: true
+          description: null enquanto a pulseira nao mandou os passos do dia
+        noite:
+          allOf:
+            - $ref: '#/components/schemas/Noite'
+          nullable: true
+          description: A noite que terminou na manha deste dia
+        batimentos:
+          type: array
+          items:
+            $ref: '#/components/schemas/MedicaoBatimentos'
+    Alerta:
+      type: object
+      required: [id, pessoaId, data, metrica, direcao, desvio, texto, lido, criadoEm]
+      properties:
+        id:
+          type: string
+        pessoaId:
+          type: string
+        data:
+          type: string
+          format: date
+        metrica:
+          type: string
+          enum: [passos, sono, batimentos]
+        direcao:
+          type: string
+          enum: [abaixo, acima]
+        desvio:
+          type: integer
+          description: Quanto, em porcentagem, os dias recentes ficaram longe do normal
+        texto:
+          type: string
+          description: Explicacao em palavras simples, sem diagnostico
+        lido:
+          type: boolean
+        criadoEm:
+          type: string
+          format: date-time
