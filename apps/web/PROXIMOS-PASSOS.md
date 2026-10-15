@@ -9,7 +9,7 @@ Dois itens já estão construídos e desligados: o login com Google e o banco no
 ## A ordem
 
 - [ ] 1. **API do CareTwin**: trocar os dados de exemplo pelos dados reais da pulseira
-- [ ] 2. **Login com Google**: saber quem está usando · *já construído, falta a chave*
+- [ ] 2. **Login**: saber quem está usando · *e-mail e senha pelo Supabase Auth e Google: os dois construídos, falta ligar*
 - [ ] 3. **A IA que escreve os textos**: o resumo do dia e os alertas escritos de verdade
 - [ ] 4. **Envio de e-mail**: mandar o resumo do dia para quem acompanha
 - [ ] 5. **WhatsApp**: avisar quem acompanha onde a família realmente lê
@@ -27,9 +27,15 @@ Dois itens já estão construídos e desligados: o login com Google e o banco no
 
 **Onde encaixa.** `src/lib/store.ts`. As telas só chamam `useDados()` e `usePessoaNaTela()`, então trocar o miolo dessas funções por chamadas à API não muda tela nenhuma. A regra do normal da API e a de `src/lib/normal.ts` são a mesma (cartão 2.3), e dá pra comparar as duas lado a lado com os mesmos dados.
 
-## 2. Login com Google
+## 2. Login
 
-> **Já está construído.** Falta só a chave.
+São dois caminhos, e os dois gravam a mesma sessão assinada (`src/lib/sessao-servidor.ts`).
+
+**E-mail e senha (Supabase Auth).** Criar conta, entrar e "esqueci minha senha", com a senha guardada pelo Supabase. Para ligar: rode `banco/migracoes/0002_usuario_nasce_com_a_conta.sql` no SQL Editor, preencha `SUPABASE_URL` e `SUPABASE_PUBLISHABLE_KEY` no `.env.local` (junto com o `AUTH_SECRET`) e libere `http://localhost:3000/**` em Authentication → URL Configuration → Redirect URLs. O código está em `src/lib/conta.ts`, nas rotas de `src/app/api/auth/conta` e na página `/entrar/nova-senha`. O plano gratuito do Supabase manda poucos e-mails por hora; para testar com muita conta, desligue a confirmação de e-mail em Authentication → Sign In / Providers → Email, ou configure um SMTP próprio.
+
+### Google
+
+> **Já está construído.** Falta só a chave. Vai migrar para o Google do próprio Supabase num passo seguinte, para cair na mesma tabela `usuarios`.
 
 **O que fazer.** Abra `/entrar` e clique em "Continuar com Google". O modal é o passo a passo completo no Google Cloud Console (<https://console.cloud.google.com/apis/credentials>), com cada valor pronto para copiar. No fim ele dá três linhas para colar no `.env.local`. Reinicie o servidor e o mesmo botão passa a fazer login de verdade.
 

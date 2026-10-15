@@ -581,6 +581,96 @@ export const entrada = {
     link: "Como usar",
   },
 
+  /**
+   * O login de verdade, com a conta guardada no Supabase Auth. Toma o lugar do
+   * formulário simulado quando SUPABASE_URL, a chave publicável e o AUTH_SECRET
+   * estão no ambiente.
+   */
+  conta: {
+    entrar: {
+      botao: "Entrar",
+    },
+    criar: {
+      titulo: "Criar uma conta",
+      texto: "Use um e-mail que você abre sempre. Vamos mandar um link para confirmar que ele é seu.",
+      botao: "Criar conta",
+      enviado:
+        "Pronto. Mandamos um link de confirmação para o seu e-mail. Abra o link e depois entre por aqui com o e-mail e a senha.",
+    },
+    recuperar: {
+      titulo: "Esqueci minha senha",
+      texto: "Escreva o e-mail da sua conta. Se ele estiver cadastrado, chega um link para criar uma senha nova.",
+      botao: "Mandar o link",
+      enviado:
+        "Se existir uma conta com esse e-mail, o link para criar uma senha nova já está a caminho. Confira também a caixa de spam.",
+    },
+    trocar: {
+      esqueci: "Esqueci minha senha",
+      criar: "Ainda não tenho conta",
+      jaTenho: "Já tenho conta",
+      voltar: "Voltar para entrar",
+    },
+    campos: {
+      nome: {
+        rotulo: "Seu nome",
+        placeholder: "Ex.: Marina Alves",
+        ajuda: "É assim que você aparece no topo do app.",
+        erro: "Escreva seu nome, com pelo menos 2 letras.",
+      },
+      email: {
+        rotulo: "E-mail",
+        placeholder: "Ex.: marina@email.com",
+        erro: "Escreva um e-mail completo, como marina@email.com.",
+      },
+      senha: {
+        rotulo: "Senha",
+        ajudaNova: "Pelo menos 8 caracteres.",
+        erro: "Escreva a senha.",
+        erroCurta: "A senha precisa ter pelo menos 8 caracteres.",
+      },
+    },
+
+    /**
+     * Por que não deu certo. A chave é o `motivo` que as rotas de
+     * `src/app/api/auth/conta` devolvem; motivo fora da lista vira `falhou`.
+     */
+    motivos: {
+      credenciais: "E-mail ou senha não conferem. Confira os dois e tente de novo.",
+      nao_confirmado: "Falta confirmar o e-mail. Abra o link que mandamos quando você criou a conta.",
+      senha_fraca: "Essa senha é fácil de adivinhar. Escolha uma mais longa, misturando letras e números.",
+      senha_igual: "A senha nova precisa ser diferente da anterior.",
+      ja_existe: "Já existe uma conta com esse e-mail. Entre com ela ou use Esqueci minha senha.",
+      muitas_tentativas: "Foram muitas tentativas em pouco tempo. Espere alguns minutos e tente de novo.",
+      link_expirado: "Esse link expirou ou já foi usado. Peça um novo em Esqueci minha senha.",
+      invalido: "Algum campo veio vazio ou num formato que não reconhecemos. Confira e tente de novo.",
+      indisponivel: "O login está fora do ar agora. Tente de novo em alguns minutos.",
+      falhou: "Não deu certo desta vez. Tente de novo em alguns minutos.",
+    },
+
+    /** Avisos no topo do formulário. `confirmada` vem de `?conta=` no endereço. */
+    avisos: {
+      confirmada: "E-mail confirmado. Agora é só entrar com o seu e-mail e a senha.",
+      linkExpirado:
+        "Esse link expirou ou já foi usado. Entre com o e-mail e a senha, ou peça um link novo em Esqueci minha senha.",
+    },
+
+    nota: "A senha é conferida pelo Supabase e não fica guardada no app nem neste navegador.",
+
+    novaSenha: {
+      titulo: "Crie uma senha nova",
+      subtitulo: "Escolha a senha que você vai usar daqui em diante.",
+      rotulo: "Senha nova",
+      ajuda: "Pelo menos 8 caracteres.",
+      repetir: "Repita a senha nova",
+      erroDiferente: "As duas senhas precisam ser iguais.",
+      botao: "Salvar e entrar",
+      carregando: "Conferindo o link do e-mail.",
+      semLink: "Esta página só funciona pelo link que chega no seu e-mail. Peça um link novo na tela de entrar.",
+      desligado: "O login com e-mail ainda não está ligado neste app.",
+      irParaEntrar: "Ir para a tela de entrar",
+    },
+  },
+
   modalGoogle: {
     titulo: "Como conectar o Google de verdade",
     descricao:

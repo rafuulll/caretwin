@@ -91,6 +91,8 @@ export type Dados = {
 }
 
 export type Sessao = {
+  /** O id da conta no Supabase Auth. Só existe no login com e-mail e senha. */
+  id?: string
   nome: string
   email: string
   entrouEm: string
