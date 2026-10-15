@@ -1,17 +1,68 @@
 openapi: 3.0.3
 info:
   title: CareTwin API
-  version: 0.1.0
+  version: 0.2.0
   description: >
-    Contrato inicial. Os tres endpoints /v1/device/* ja sao usados pelo firmware
-    (ver firmware/README.md e simulador/README.md). Os endpoints do site (leitura) ainda serao definidos.
+    Contrato da API do CareTwin. Fonte da verdade entre pulseira, backend e site.
+
+
+    v0.2: o backend passa a morar dentro do proprio Next.js (apps/web, rotas em
+    src/app/api), no lugar do FastAPI previsto antes (card 2.4 do Trello).
+    Os caminhos /v1/device/* NAO mudaram, so o endereco base (servers). Entao o
+    firmware troca a URL e segue igual. Foram acrescentados os endpoints do site
+    (tag app) e o vinculo entre usuario, pessoa e pulseira.
+
+
+    Convencao de nomes: o que a pulseira manda usa snake_case (steps,
+    active_minutes), porque e o formato do firmware desde a v0.1. O que o site
+    le e escreve usa camelCase, o mesmo de apps/web/src/lib/types.ts, para a tela
+    receber o dado sem conversao (steps vira passos, counts vira contagens).
+
+
+    Quem calcula o alerta: a API. Quando a pulseira entrega dias novos, o
+    backend recalcula o normal da pessoa (regra do card 2.3, hoje em
+    apps/web/src/lib/normal.ts) e cria os alertas. O texto do alerta vem da IA,
+    com o texto de regra como reserva. O site so mostra.
 servers:
-  - url: http://localhost:8000
-    description: local
+  - url: http://localhost:3000/api
+    description: local (npm run dev em apps/web)
+  - url: https://SEU-DOMINIO-NA-VERCEL/api
+    description: producao (trocar pelo dominio real quando houver)
 tags:
+  - name: infra
+    description: Checagens do servidor, sem login
   - name: device
-    description: Enviados pela pulseira
+    description: Enviados pela pulseira (token de dispositivo)
+  - name: app
+    description: Usados pelo site (sessao do Google)
+  - name: futuro
+    description: Reservado. Documentado para o formato ja estar combinado, nao implementar ainda
 paths:
+  /health:
+    get:
+      tags: [infra]
+      summary: O servidor esta de pe (e se o banco esta configurado)
+      description: >
+        Nao pede login, porque quem checa e uma maquina. A resposta nao revela
+        nenhuma variavel de ambiente: so diz se o banco esta configurado e nao
+        conversa com ele. Em producao a Vercel Authentication continua na frente.
+      responses:
+        '200':
+          description: Servidor no ar
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [ok, banco]
+                properties:
+                  ok:
+                    type: boolean
+                  banco:
+                    type: string
+                    enum: [configurado, desligado]
+              example:
+                ok: true
+                banco: desligado
   /v1/device/daily:
     post:
       tags: [device]
@@ -49,6 +100,10 @@ paths:
     post:
       tags: [device]
       summary: Janela da noite (840 valores, um por minuto)
+      description: >
+        Atencao: night_date e o dia em que a noite COMECA (20h). No site a noite
+        fica no dia em que TERMINA, entao night_date 2026-10-20 aparece dentro do
+        dia 2026-10-21 na leitura. Gravar em night_date mais um dia.
       security:
         - DeviceToken: []
       requestBody:
@@ -94,6 +149,296 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AcceptedRejected'
+  /v1/device/heartrate:
+    post:
+      tags: [futuro]
+      summary: Medicoes de batimentos (reservado)
+      description: >
+        O firmware ainda NAO envia batimentos: o MAX30102 so e usado na bancada
+        (card 3.4). O formato fica combinado aqui para o dia em que a medicao
+        no pulso for validada. Nao implementar agora.
+      security:
+        - DeviceToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HeartratePayload'
+            example:
+              measurements:
+                - ts: '2026-10-20T15:04:05-03:00'
+                  bpm: 78
+      responses:
+        '401':
+          description: Sem o cabecalho Authorization ou token invalido
+        '422':
+          description: Corpo da requisicao invalido
+        '200':
+          description: Quais medicoes foram aceitas (identificadas pelo ts) e quais recusadas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcceptedRejected'
+
+  /v1/me:
+    get:
+      tags: [app]
+      summary: Quem esta logado
+      description: >
+        Devolve a sessao atual. Com sessao valida mas e-mail fora da lista
+        EMAILS_PERMITIDOS (ate existir a tabela de usuarios), responde 403.
+      security:
+        - SessaoGoogle: []
+      responses:
+        '200':
+          description: Dados da sessao
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Sessao'
+        '401':
+          description: Sem sessao ou sessao invalida
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+        '403':
+          description: Sessao valida, mas a conta nao tem permissao
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+  /v1/pessoas:
+    get:
+      tags: [app]
+      summary: As pessoas que o usuario pode ver
+      description: >
+        So as pessoas com vinculo ativo do usuario (cuidador ou a propria
+        acompanhada). Cada item traz o papel do usuario ali e a pulseira da pessoa.
+      security:
+        - SessaoGoogle: []
+      responses:
+        '200':
+          description: Lista, possivelmente vazia
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PessoaComPulseira'
+        '401':
+          $ref: '#/components/responses/NaoAutenticado'
+  /v1/pessoas/{pessoaId}:
+    parameters:
+      - $ref: '#/components/parameters/PessoaId'
+    get:
+      tags: [app]
+      summary: Uma pessoa, com a pulseira e o papel do usuario
+      security:
+        - SessaoGoogle: []
+      responses:
+        '200':
+          description: A pessoa
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PessoaComPulseira'
+        '401':
+          $ref: '#/components/responses/NaoAutenticado'
+        '404':
+          $ref: '#/components/responses/NaoEncontrado'
+  /v1/pessoas/{pessoaId}/dias:
+    parameters:
+      - $ref: '#/components/parameters/PessoaId'
+    get:
+      tags: [app]
+      summary: Dias registrados de uma pessoa
+      description: >
+        Passos, noite (840 contagens) e batimentos de cada dia, do mais antigo
+        para o mais novo. Sem filtros devolve os ultimos 30 dias.
+      security:
+        - SessaoGoogle: []
+      parameters:
+        - name: de
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+          description: Primeiro dia (AAAA-MM-DD), inclusive
+        - name: ate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+          description: Ultimo dia (AAAA-MM-DD), inclusive
+      responses:
+        '200':
+          description: Lista de dias, possivelmente vazia
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DiaRegistrado'
+        '401':
+          $ref: '#/components/responses/NaoAutenticado'
+        '404':
+          $ref: '#/components/responses/NaoEncontrado'
+        '422':
+          description: Datas fora do formato ou de maior que ate
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+  /v1/pessoas/{pessoaId}/alertas:
+    parameters:
+      - $ref: '#/components/parameters/PessoaId'
+    get:
+      tags: [app]
+      summary: Alertas de uma pessoa
+      description: Do mais recente para o mais antigo.
+      security:
+        - SessaoGoogle: []
+      parameters:
+        - name: lido
+          in: query
+          required: false
+          schema:
+            type: boolean
+          description: true so os ja vistos, false so os novos, ausente todos
+      responses:
+        '200':
+          description: Lista de alertas, possivelmente vazia
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Alerta'
+        '401':
+          $ref: '#/components/responses/NaoAutenticado'
+        '404':
+          $ref: '#/components/responses/NaoEncontrado'
+  /v1/alertas/{alertaId}:
+    patch:
+      tags: [app]
+      summary: Marcar um alerta como lido (ou voltar para novo)
+      security:
+        - SessaoGoogle: []
+      parameters:
+        - name: alertaId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [lido]
+              properties:
+                lido:
+                  type: boolean
+            example:
+              lido: true
+      responses:
+        '200':
+          description: O alerta depois da mudanca
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Alerta'
+        '401':
+          $ref: '#/components/responses/NaoAutenticado'
+        '404':
+          $ref: '#/components/responses/NaoEncontrado'
+        '422':
+          description: Corpo invalido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+  /v1/vinculos:
+    post:
+      tags: [app]
+      summary: Ligar a pulseira a uma pessoa pelo codigo CT-XXXX
+      description: >
+        A familia digita o codigo impresso atras da pulseira.
+
+
+        Pulseira livre (sem pessoa): o backend cria a pessoa com o nome enviado
+        e cria o vinculo do usuario como cuidador (criadoPor = o proprio usuario).
+
+
+        Pulseira que ja tem pessoa: responde 409. Entrar como segundo cuidador ou
+        como a propria pessoa acompanhada vai por convite de quem ja tem vinculo
+        ativo (v0.3, ainda nao desenhado). Sem convite, so o codigo nao basta,
+        porque o codigo fica impresso na pulseira e qualquer um que o leia
+        entraria nos dados de saude da pessoa.
+      security:
+        - SessaoGoogle: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VinculoNovo'
+            example:
+              codigo: CT-4F7K
+              nome: Dona Cida
+      responses:
+        '201':
+          description: Vinculo criado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PessoaComPulseira'
+        '401':
+          $ref: '#/components/responses/NaoAutenticado'
+        '404':
+          description: Nao existe pulseira com esse codigo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+        '409':
+          description: A pulseira ja esta ligada a uma pessoa
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+        '422':
+          description: Codigo fora do formato CT-XXXX ou nome vazio
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+  /v1/pessoas/{pessoaId}/vinculo:
+    delete:
+      tags: [app]
+      summary: Sair da familia desta pessoa (encerrar o proprio vinculo)
+      description: >
+        Encerra o vinculo do usuario logado com a pessoa (grava encerrado_em; a
+        linha e o historico da pessoa ficam). Um usuario so encerra o proprio
+        vinculo. Remover o vinculo de outro e regra de v0.3, junto com o convite.
+        Se era o ultimo vinculo ativo, a pessoa e a pulseira continuam existindo,
+        sem ninguem olhando; limpar ou apagar tudo fica para uma decisao propria.
+      security:
+        - SessaoGoogle: []
+      parameters:
+        - $ref: '#/components/parameters/PessoaId'
+      responses:
+        '204':
+          description: Vinculo encerrado
+        '401':
+          $ref: '#/components/responses/NaoAutenticado'
+        '404':
+          $ref: '#/components/responses/NaoEncontrado'
 components:
   securitySchemes:
     DeviceToken:
@@ -102,7 +447,39 @@ components:
       name: Authorization
       description: >
         Formato usado pelo firmware: "Authorization: Device <token>". Sem o cabecalho,
-        a API responde 401. A emissao e a validacao dos tokens ficam com o backend.
+        a API responde 401. Cada pulseira tem o seu token; o backend guarda so o
+        hash dele e acha por ele qual pulseira esta falando. Como o token chega
+        ao firmware e questao em aberto (card 5.3).
+    SessaoGoogle:
+      type: apiKey
+      in: cookie
+      name: sessao
+      description: >
+        Cookie httpOnly assinado, criado no login com o Google (/api/auth/*). O
+        navegador manda sozinho, o JavaScript da pagina nao le. Sem ele, 401.
+  parameters:
+    PessoaId:
+      name: pessoaId
+      in: path
+      required: true
+      schema:
+        type: string
+      description: >
+        Se o usuario nao tem vinculo ativo com a pessoa, a resposta e 404 e nao
+        403, para nao revelar que o id existe.
+  responses:
+    NaoAutenticado:
+      description: Sem sessao ou sessao invalida
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Erro'
+    NaoEncontrado:
+      description: Nao existe, ou o usuario nao tem vinculo ativo com isso
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Erro'
   schemas:
     DailyPayload:
       type: object
@@ -129,6 +506,8 @@ components:
         steps:
           type: integer
           minimum: 0
+          maximum: 60000
+          description: Acima de 60000 o dia e recusado (card 5.5)
         active_minutes:
           type: integer
           minimum: 0
@@ -162,6 +541,23 @@ components:
         ts:
           type: string
           format: date-time
+    HeartratePayload:
+      type: object
+      required: [measurements]
+      properties:
+        measurements:
+          type: array
+          items:
+            type: object
+            required: [ts, bpm]
+            properties:
+              ts:
+                type: string
+                format: date-time
+              bpm:
+                type: integer
+                minimum: 30
+                maximum: 220
     AcceptedRejected:
       type: object
       required: [accepted, rejected]
@@ -174,3 +570,155 @@ components:
           type: array
           items:
             type: string
+    Erro:
+      type: object
+      required: [erro]
+      properties:
+        erro:
+          type: string
+          description: Frase curta e sem detalhe interno
+    Sessao:
+      type: object
+      required: [nome, email, entrouEm]
+      properties:
+        nome:
+          type: string
+        email:
+          type: string
+        entrouEm:
+          type: string
+          format: date-time
+    Papel:
+      type: string
+      enum: [cuidador, acompanhada]
+      description: O papel do usuario naquela pessoa
+    Pessoa:
+      type: object
+      required: [id, nome, criadoEm]
+      properties:
+        id:
+          type: string
+        nome:
+          type: string
+          description: 'Do jeito que a familia chama: "Dona Cida"'
+        criadoEm:
+          type: string
+          format: date-time
+    Pulseira:
+      type: object
+      required: [id, codigo, bateria, ultimaSincronizacao]
+      properties:
+        id:
+          type: string
+        codigo:
+          type: string
+          pattern: '^CT-[A-Z0-9]{4}$'
+        bateria:
+          type: integer
+          minimum: 0
+          maximum: 100
+        ultimaSincronizacao:
+          type: string
+          format: date-time
+          nullable: true
+          description: null enquanto a pulseira nunca mandou nada
+    PessoaComPulseira:
+      allOf:
+        - $ref: '#/components/schemas/Pessoa'
+        - type: object
+          required: [papel, pulseira]
+          properties:
+            papel:
+              $ref: '#/components/schemas/Papel'
+            pulseira:
+              allOf:
+                - $ref: '#/components/schemas/Pulseira'
+              nullable: true
+    VinculoNovo:
+      type: object
+      required: [codigo, nome]
+      properties:
+        codigo:
+          type: string
+          pattern: '^CT-[A-Z0-9]{4}$'
+        nome:
+          type: string
+          minLength: 1
+          maxLength: 80
+          description: Como a familia chama a pessoa
+    MedicaoBatimentos:
+      type: object
+      required: [em, bpm]
+      properties:
+        em:
+          type: string
+          format: date-time
+        bpm:
+          type: integer
+    Noite:
+      type: object
+      required: [inicio, contagens]
+      properties:
+        inicio:
+          type: string
+          format: date-time
+        contagens:
+          type: array
+          minItems: 840
+          maxItems: 840
+          items:
+            type: integer
+            nullable: true
+            minimum: 0
+    DiaRegistrado:
+      type: object
+      required: [id, pessoaId, data, passos, noite, batimentos]
+      properties:
+        id:
+          type: string
+        pessoaId:
+          type: string
+        data:
+          type: string
+          format: date
+        passos:
+          type: integer
+          nullable: true
+          description: null enquanto a pulseira nao mandou os passos do dia
+        noite:
+          allOf:
+            - $ref: '#/components/schemas/Noite'
+          nullable: true
+          description: A noite que terminou na manha deste dia
+        batimentos:
+          type: array
+          items:
+            $ref: '#/components/schemas/MedicaoBatimentos'
+    Alerta:
+      type: object
+      required: [id, pessoaId, data, metrica, direcao, desvio, texto, lido, criadoEm]
+      properties:
+        id:
+          type: string
+        pessoaId:
+          type: string
+        data:
+          type: string
+          format: date
+        metrica:
+          type: string
+          enum: [passos, sono, batimentos]
+        direcao:
+          type: string
+          enum: [abaixo, acima]
+        desvio:
+          type: integer
+          description: Quanto, em porcentagem, os dias recentes ficaram longe do normal
+        texto:
+          type: string
+          description: Explicacao em palavras simples, sem diagnostico
+        lido:
+          type: boolean
+        criadoEm:
+          type: string
+          format: date-time
