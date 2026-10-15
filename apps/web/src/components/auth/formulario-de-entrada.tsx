@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { useCallback, useRef, useState, type FormEvent } from "react"
 import { Icone } from "@/components/app/icone"
 import { Logo } from "@/components/app/logo"
+import { FormularioConta } from "@/components/auth/formulario-conta"
 import { IconeGoogle } from "@/components/auth/icone-google"
 import { ModalGoogle } from "@/components/auth/modal-google"
 import { Button, Input } from "@/components/ui"
@@ -23,6 +24,14 @@ export type FormularioDeEntradaProps = {
   googleLigado: boolean
   /** Motivo de um login que não deu certo, vindo de `?google=` no endereço. */
   aviso?: string
+  /**
+   * O login com e-mail e senha está ligado NESTE ambiente (Supabase Auth e
+   * AUTH_SECRET no `.env.local`). Ligado, o formulário real toma o lugar do
+   * simulado. Quem descobre isso também é o servidor, em `page.tsx`.
+   */
+  contaLigada: boolean
+  /** Aviso do login por conta, vindo de `?conta=` no endereço. */
+  avisoConta?: string
 }
 
 type Erros = { usuario?: string; senha?: string }
@@ -37,7 +46,12 @@ function nomeDoEmail(email: string) {
     .join(" ")
 }
 
-export function FormularioDeEntrada({ googleLigado, aviso }: FormularioDeEntradaProps) {
+export function FormularioDeEntrada({
+  googleLigado,
+  aviso,
+  contaLigada,
+  avisoConta,
+}: FormularioDeEntradaProps) {
   const router = useRouter()
   const [usuario, setUsuario] = useState("")
   const [erros, setErros] = useState<Erros>({})
@@ -155,60 +169,66 @@ export function FormularioDeEntrada({ googleLigado, aviso }: FormularioDeEntrada
                 <span className="h-px flex-1 bg-hairline" />
               </div>
 
-              {/* `noValidate`: a validação é nossa, em português, e some assim que a pessoa corrige. */}
-              <form onSubmit={aoEnviar} noValidate className="flex flex-col gap-5">
-                <Input
-                  ref={refUsuario}
-                  rotulo={entrada.campos.usuario.rotulo}
-                  placeholder={entrada.campos.usuario.placeholder}
-                  ajuda={entrada.campos.usuario.ajuda}
-                  erro={erros.usuario}
-                  obrigatorio
-                  value={usuario}
-                  onChange={(evento) => {
-                    setUsuario(evento.target.value)
-                    if (erros.usuario) setErros((atual) => ({ ...atual, usuario: undefined }))
-                  }}
-                  autoComplete="username"
-                  autoCapitalize="none"
-                  spellCheck={false}
-                />
+              {contaLigada ? (
+                <FormularioConta aviso={avisoConta} />
+              ) : (
+                <>
+                  {/* `noValidate`: a validação é nossa, em português, e some assim que a pessoa corrige. */}
+                  <form onSubmit={aoEnviar} noValidate className="flex flex-col gap-5">
+                    <Input
+                      ref={refUsuario}
+                      rotulo={entrada.campos.usuario.rotulo}
+                      placeholder={entrada.campos.usuario.placeholder}
+                      ajuda={entrada.campos.usuario.ajuda}
+                      erro={erros.usuario}
+                      obrigatorio
+                      value={usuario}
+                      onChange={(evento) => {
+                        setUsuario(evento.target.value)
+                        if (erros.usuario) setErros((atual) => ({ ...atual, usuario: undefined }))
+                      }}
+                      autoComplete="username"
+                      autoCapitalize="none"
+                      spellCheck={false}
+                    />
 
-                <Input
-                  ref={refSenha}
-                  rotulo={entrada.campos.senha.rotulo}
-                  ajuda={entrada.campos.senha.ajuda}
-                  erro={erros.senha}
-                  obrigatorio
-                  type="password"
-                  autoComplete="current-password"
-                  onChange={() => {
-                    if (erros.senha) setErros((atual) => ({ ...atual, senha: undefined }))
-                  }}
-                />
+                    <Input
+                      ref={refSenha}
+                      rotulo={entrada.campos.senha.rotulo}
+                      ajuda={entrada.campos.senha.ajuda}
+                      erro={erros.senha}
+                      obrigatorio
+                      type="password"
+                      autoComplete="current-password"
+                      onChange={() => {
+                        if (erros.senha) setErros((atual) => ({ ...atual, senha: undefined }))
+                      }}
+                    />
 
-                <Button
-                  type="submit"
-                  tamanho="lg"
-                  larguraTotal
-                  carregando={entrando}
-                  className="mt-1 h-14 text-lg"
-                  iconeDireita={<Icone nome="seta-direita" />}
-                >
-                  {entrada.entrar}
-                </Button>
-              </form>
+                    <Button
+                      type="submit"
+                      tamanho="lg"
+                      larguraTotal
+                      carregando={entrando}
+                      className="mt-1 h-14 text-lg"
+                      iconeDireita={<Icone nome="seta-direita" />}
+                    >
+                      {entrada.entrar}
+                    </Button>
+                  </form>
 
-              <p className="mt-5 text-sm leading-relaxed text-muted">
-                {entrada.aviso.texto}{" "}
-                <Link
-                  href="/como-usar"
-                  className="inline-flex min-h-11 items-center font-medium text-ink underline underline-offset-4 pointer-fine:min-h-0"
-                >
-                  {entrada.aviso.link}
-                </Link>
-                .
-              </p>
+                  <p className="mt-5 text-sm leading-relaxed text-muted">
+                    {entrada.aviso.texto}{" "}
+                    <Link
+                      href="/como-usar"
+                      className="inline-flex min-h-11 items-center font-medium text-ink underline underline-offset-4 pointer-fine:min-h-0"
+                    >
+                      {entrada.aviso.link}
+                    </Link>
+                    .
+                  </p>
+                </>
+              )}
             </div>
           </main>
         </div>

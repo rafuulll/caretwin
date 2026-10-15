@@ -1,5 +1,6 @@
 import { FormularioDeEntrada } from "@/components/auth/formulario-de-entrada"
 import { entrada } from "@/content/site"
+import { contaLigada } from "@/lib/conta"
 import { googleConfigurado } from "@/lib/google"
 import { sessaoConfigurada } from "@/lib/sessao-servidor"
 
@@ -18,10 +19,10 @@ import { sessaoConfigurada } from "@/lib/sessao-servidor"
 // O que decide a tela vem do ambiente, então nada de página estática de build.
 export const dynamic = "force-dynamic"
 
-type Props = { searchParams: Promise<{ google?: string }> }
+type Props = { searchParams: Promise<{ google?: string; conta?: string }> }
 
 export default async function PaginaEntrar({ searchParams }: Props) {
-  const { google } = await searchParams
+  const { google, conta } = await searchParams
   const avisos = entrada.google.avisos as Record<string, string | undefined>
 
   return (
@@ -30,6 +31,9 @@ export default async function PaginaEntrar({ searchParams }: Props) {
       // Motivo desconhecido no endereço não vira mensagem: o parâmetro vem da
       // barra do navegador, e qualquer pessoa pode escrever o que quiser nele.
       aviso={google ? avisos[google] : undefined}
+      contaLigada={contaLigada()}
+      // Mesma regra do aviso do Google: só o valor que o app conhece vira texto.
+      avisoConta={conta === "confirmada" ? entrada.conta.avisos.confirmada : undefined}
     />
   )
 }
