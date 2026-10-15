@@ -12,7 +12,7 @@ Cada item diz o que foi decidido e por quê, com as palavras da proposta de valo
 - O site da raiz diz: a promessa com a prévia do app; o normal de cada um, desenhado com os dados de exemplo; o que muda no dia de quem usa; o percurso do dia, um passo por momento.
 - A entrada fica em: `/entrar`, com o título "Veja como está o dia de hoje".
 - A tela que abre o app é: o Painel (`/app/painel`), o momento 2.
-- As outras telas são: Sono, Batimentos, Alertas, Primeiro uso e Configurações.
+- As outras telas são: Sono, Batimentos, Alertas, Primeiro uso e Configurações, e Família para quem entrou com conta.
 - Ele não faz: diagnóstico, meta igual pra todo mundo, ranking, comparação entre pessoas, chat, pontos, pagamento, propaganda, nem manda dado pra fora do computador.
 
 ## Os momentos e as telas
@@ -102,6 +102,15 @@ Nenhuma biblioteca nova entrou. Consideradas e descartadas: biblioteca de gráfi
 - `src/components/onboarding/tour.tsx`: a última parada de cada página já guarda onde a jornada continua. Sem isso, quem clicava direto no "Entrar" destacado (que é o que a parada pede) chegava no app sem o tour retomar.
 - `src/lib/formato.ts`: saíram as funções de dinheiro (o CareTwin não tem dinheiro) e entraram as de duração e de tempo decorrido.
 - `src/components/auth/modal-google.tsx`: o rodapé ficou só com "Entendi". A entrada que funciona hoje (nome e senha) está logo atrás do modal, e um atalho de entrar sem senha furaria a validação.
+
+## Com conta (cartões 5.9, 7.2 e 7.10)
+
+- Quem entra com e-mail e senha, com o banco ligado, vê só as pessoas com vínculo aprovado. O `store` descobre isso pelo `GET /v1/me`; sem conta, tudo segue como antes, com os exemplos no navegador.
+- Ao digitar o código, a tela pergunta "Esta pulseira é sua ou de alguém que você cuida?". A resposta é o papel (acompanhada ou cuidador), para a primeira conta e para os pedidos. O nome só é pedido quando o servidor diz que a pulseira está livre.
+- Sem pessoa na tela, a conta vê "Ligue a primeira pulseira" ou "Seu pedido está esperando", com os pedidos e os encerramentos recuperáveis logo abaixo. A pessoa acompanhada lê "o seu dia" no painel.
+- Com conta não existe simulação nem dado de exemplo: os botões de sincronizar de exemplo, restaurar e limpar somem. Inventar um dia na família de alguém seria mentir para ela. Os dias e os alertas chegam com o cartão 5.6.
+- Sair é para quem tem mais gente na família; a última pessoa encerra, escrevendo a frase de confirmação, e tem 30 dias para recuperar. O botão de encerrar é vermelho porque, passado o prazo, os dados são apagados de vez.
+- A lista `EMAILS_PERMITIDOS`, a rota `/api/dados` e a tabela-ponte `registros` saíram: era uma tabela sem dono, e qualquer conta da lista via tudo.
 
 ## O que ficou de fora, e por quê
 

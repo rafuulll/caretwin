@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useSyncExternalStore } from "react"
+import { v1, type Eu, type Papel, type PessoaComPulseira, type Resposta } from "./cliente-v1"
 import { paraISO } from "./formato"
 import { fracaoDoDia } from "./normal"
 import { gerarExemplos, passosPrevistosParaHoje, recalcularAlertas } from "./seed"
@@ -11,18 +12,18 @@ import type { Alerta, Dados, DiaRegistrado, Pessoa, Pulseira, Sessao } from "./t
  *
  * Ela tem dois lados, e escolhe sozinha qual usar:
  *
- *   NAVEGADOR, o padrão. Sem configurar nada, tudo mora no localStorage. É o
- *   que faz `npm install && npm run dev` bastar: sem banco, sem conta em
- *   serviço nenhum, sem variável de ambiente.
+ *   NAVEGADOR, o padrão. Sem conta, tudo mora no localStorage, com os dados de
+ *   exemplo. É o que faz `npm install && npm run dev` bastar: sem banco, sem
+ *   conta em serviço nenhum, sem variável de ambiente.
  *
- *   BANCO. Quando a `DATABASE_URL` está no `.env.local`, a mesma porta passa a
- *   falar com o Postgres pela rota `/api/dados`.
+ *   CONTA. Quem entrou com e-mail e senha, com o banco ligado, vê só as
+ *   pessoas da própria família, lidas das rotas de `src/app/api/v1`. É o
+ *   `GET /v1/me` respondendo 200 que liga este lado.
  *
- * E é AQUI que a API do CareTwin vai entrar. Quando a pulseira estiver mandando
- * os dados para a API própria, as funções de baixo trocam o navegador por
- * chamadas a ela, e nenhuma tela fica sabendo: `useDados()` devolve os mesmos
- * dados e as mesmas funções. É por isso que a regra de nunca ler ou gravar fora
- * deste arquivo vale tanto.
+ * No lado da conta, por enquanto, chegam as pessoas e as pulseiras. Os dias e
+ * os alertas chegam com as rotas de leitura do cartão 5.6 (e a troca do
+ * cartão 7.3): até lá, as telas mostram que os dados ainda não chegaram, que é
+ * a verdade. Nada de exemplo aparece misturado com a família de alguém.
  */
 
 const CHAVE_DADOS = "caretwin-prototipo:dados:v1"
@@ -34,7 +35,7 @@ const CHAVE_PESSOA = "caretwin-prototipo:pessoa:v1"
 
 const VAZIO: Dados = { pessoas: [], pulseiras: [], dias: [], alertas: [] }
 
-type Modo = "descobrindo" | "navegador" | "banco"
+type Modo = "descobrindo" | "navegador" | "conta"
 
 /** O que as telas recebem. Um objeto só, com identidade estável. */
 export type EstadoDosDados = { dados: Dados; carregando: boolean }
@@ -130,88 +131,36 @@ function gravarNoNavegador(dados: Dados) {
   gravarTexto(CHAVE_DADOS, JSON.stringify(dados))
 }
 
-// --- lado do banco --------------------------------------------------------
-
-async function pedir(metodo: string, corpo: unknown) {
-  const resposta = await fetch("/api/dados", {
-    method: metodo,
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(corpo),
-  })
-  if (!resposta.ok) throw new Error(`/api/dados respondeu ${resposta.status}`)
-}
-
-/**
- * Manda a mudança pro banco depois de a tela já ter mudado.
- *
- * A tela não espera a rede: quem marcou um alerta como lido vê a marca na hora.
- * Se o banco recusar, a gente recarrega de lá e a tela volta pra verdade, em
- * vez de ficar mostrando uma mudança que não aconteceu.
- */
-function enviar(metodo: string, corpo: unknown) {
-  pedir(metodo, corpo).catch((erro) => {
-    console.error("[dados] gravação falhou, recarregando do banco", erro)
-    void recarregarDoBanco()
-  })
-}
-
-const COLECOES_DO_BANCO = ["pessoas", "pulseiras", "dias", "alertas"] as const
-
-/**
- * Sincronizar a pulseira mexe em três coleções de uma vez (a pulseira, o dia e
- * os alertas). Em vez de cada operação saber exatamente o que mudou, compara o
- * antes com o depois e manda só a diferença: o que entrou ou mudou vai como
- * gravação, o que sumiu vai como remoção.
- */
-function enviarDiferencas(antes: Dados, depois: Dados) {
-  for (const colecao of COLECOES_DO_BANCO) {
-    const anteriores = new Map((antes[colecao] as Array<{ id: string }>).map((i) => [i.id, i]))
-    for (const item of depois[colecao] as Array<{ id: string }>) {
-      const antigo = anteriores.get(item.id)
-      if (!antigo || JSON.stringify(antigo) !== JSON.stringify(item)) {
-        enviar("POST", { colecao, item })
-      }
-      anteriores.delete(item.id)
-    }
-    for (const id of anteriores.keys()) enviar("DELETE", { colecao, id })
-  }
-}
-
-async function recarregarDoBanco() {
-  try {
-    const resposta = await fetch("/api/dados", { cache: "no-store" })
-    const corpo = (await resposta.json()) as { ligado: boolean; dados: Dados | null }
-    if (corpo.ligado && corpo.dados) publicar(corpo.dados)
-  } catch (erro) {
-    console.error("[dados] leitura falhou", erro)
-  }
-}
-
 // --- descoberta do modo ---------------------------------------------------
 
 let descoberta: Promise<void> | null = null
 
 /**
- * Pergunta uma vez, no primeiro componente que monta, se existe banco ligado.
+ * Pergunta uma vez, no primeiro componente que monta, se existe uma conta
+ * dentro com o banco ligado.
  *
  * Enquanto a resposta não chega, `carregando` fica ligado e a casca do app
  * mostra o esqueleto. É de propósito: mostrar os dados de exemplo primeiro e
  * trocar depois pelos de verdade seria piscar o dia de outra pessoa na tela.
+ *
+ * Qualquer resposta que não seja 200 (banco desligado, ninguém dentro, ou o
+ * login com Google feito à mão, que não tem conta no banco) cai no navegador.
  */
 function descobrirModo() {
   if (descoberta) return descoberta
 
   descoberta = (async () => {
-    try {
-      const resposta = await fetch("/api/dados", { cache: "no-store" })
-      const corpo = (await resposta.json()) as { ligado: boolean; dados: Dados | null }
-      if (corpo.ligado && corpo.dados) {
-        modo = "banco"
-        publicar(corpo.dados)
-        return
-      }
-    } catch {
-      // Rota fora do ar ou resposta estranha: o navegador dá conta sozinho.
+    const eu = await v1.eu()
+    if (eu.ok && (await carregarConta(eu.corpo))) {
+      modo = "conta"
+      return
+    }
+    // O navegador lembra de uma conta (a sessão local tem id) e o servidor não
+    // reconhece mais o cookie: a sessão venceu. Cair nos exemplos aqui seria
+    // mostrar dados inventados para quem acha que está vendo a própria família.
+    if (!eu.ok && eu.status === 401 && lerSessao()?.id) {
+      sessaoExpirou()
+      return
     }
     modo = "navegador"
     const dados = lerDoNavegador()
@@ -231,18 +180,18 @@ function inscrever(o: Ouvinte) {
 }
 
 /**
- * Aplica a mudança nos dois lados: primeiro na tela, depois onde ela mora.
+ * Aplica a mudança na tela e no navegador.
  *
- * `remoto` recebe o antes e o depois, e fala com o banco. Cada operação escreve
- * as duas versões da mesma intenção, lado a lado, porque traduzir uma na outra
- * é onde os dois lados começam a divergir sem ninguém perceber.
+ * No lado da conta, nada daqui vale: estas operações são as do protótipo
+ * (sincronizar de exemplo, medir de exemplo, restaurar e limpar), e gravar
+ * uma delas por cima da família de alguém seria inventar dado. As telas da
+ * conta não mostram esses botões; esta trava é para o caso de algum escapar.
  */
-function aplicar(proximo: (atual: Dados) => Dados, remoto: (antes: Dados, depois: Dados) => void) {
-  const antes = instantaneo.dados
-  const depois = proximo(antes)
+function aplicar(proximo: (atual: Dados) => Dados) {
+  if (modo === "conta") return
+  const depois = proximo(instantaneo.dados)
   publicar(depois)
-  if (modo === "banco") remoto(antes, depois)
-  else gravarNoNavegador(depois)
+  gravarNoNavegador(depois)
 }
 
 /** Daqui pra frente, o que está guardado é de alguém, e não é mais refeito sozinho. */
@@ -291,21 +240,12 @@ export function useDados() {
       ultimaSincronizacao: null,
     }
     deixaDeSerExemplo()
-    aplicar(
-      (d) => ({ ...d, pessoas: [...d.pessoas, pessoa], pulseiras: [...d.pulseiras, pulseira] }),
-      () => {
-        enviar("POST", { colecao: "pessoas", item: pessoa })
-        enviar("POST", { colecao: "pulseiras", item: pulseira })
-      }
-    )
+    aplicar((d) => ({ ...d, pessoas: [...d.pessoas, pessoa], pulseiras: [...d.pulseiras, pulseira] }))
     return pessoa
   }, [])
 
   const atualizarPessoa = useCallback((id: string, patch: Partial<Pick<Pessoa, "nome" | "quemAcompanha">>) => {
-    aplicar(
-      (d) => ({ ...d, pessoas: d.pessoas.map((p) => (p.id === id ? { ...p, ...patch } : p)) }),
-      () => enviar("PATCH", { colecao: "pessoas", id, patch })
-    )
+    aplicar((d) => ({ ...d, pessoas: d.pessoas.map((p) => (p.id === id ? { ...p, ...patch } : p)) }))
   }, [])
 
   /**
@@ -315,16 +255,12 @@ export function useDados() {
    */
   const removerPessoa = useCallback((id: string) => {
     deixaDeSerExemplo()
-    aplicar(
-      (d) => ({
-        pessoas: d.pessoas.filter((p) => p.id !== id),
-        pulseiras: d.pulseiras.filter((p) => p.pessoaId !== id),
-        dias: d.dias.filter((dia) => dia.pessoaId !== id),
-        alertas: d.alertas.filter((a) => a.pessoaId !== id),
-      }),
-      // O banco faz a mesma limpeza do lado de lá, numa chamada só.
-      () => enviar("DELETE", { colecao: "pessoas", id })
-    )
+    aplicar((d) => ({
+      pessoas: d.pessoas.filter((p) => p.id !== id),
+      pulseiras: d.pulseiras.filter((p) => p.pessoaId !== id),
+      dias: d.dias.filter((dia) => dia.pessoaId !== id),
+      alertas: d.alertas.filter((a) => a.pessoaId !== id),
+    }))
   }, [])
 
   /**
@@ -336,63 +272,48 @@ export function useDados() {
   const sincronizarPulseira = useCallback((pessoaId: string) => {
     const agora = new Date()
     const hoje = paraISO(agora)
-    aplicar(
-      (d) => {
-        const pulseiras = d.pulseiras.map((p) =>
-          p.pessoaId === pessoaId
-            ? { ...p, ultimaSincronizacao: agora.toISOString(), bateria: Math.max(5, p.bateria - 1) }
-            : p
-        )
-        const previstos = passosPrevistosParaHoje(pessoaId, hoje)
-        const dias = comODiaDeHoje(d, pessoaId, (dia) => ({
-          ...dia,
-          passos: Math.max(dia.passos ?? 0, Math.round(previstos * fracaoDoDia(agora))),
-        }))
-        const comDia = { ...d, pulseiras, dias }
-        return { ...comDia, alertas: recalcularAlertas(comDia, agora) }
-      },
-      enviarDiferencas
-    )
+    aplicar((d) => {
+      const pulseiras = d.pulseiras.map((p) =>
+        p.pessoaId === pessoaId
+          ? { ...p, ultimaSincronizacao: agora.toISOString(), bateria: Math.max(5, (p.bateria ?? 100) - 1) }
+          : p
+      )
+      const previstos = passosPrevistosParaHoje(pessoaId, hoje)
+      const dias = comODiaDeHoje(d, pessoaId, (dia) => ({
+        ...dia,
+        passos: Math.max(dia.passos ?? 0, Math.round(previstos * fracaoDoDia(agora))),
+      }))
+      const comDia = { ...d, pulseiras, dias }
+      return { ...comDia, alertas: recalcularAlertas(comDia, agora) }
+    })
   }, [])
 
   /** Guarda uma medição de batimentos no dia de hoje da pessoa. */
   const registrarMedicao = useCallback((pessoaId: string, bpm: number) => {
     const agora = new Date()
-    aplicar(
-      (d) => {
-        const dias = comODiaDeHoje(d, pessoaId, (dia) => ({
-          ...dia,
-          batimentos: [...dia.batimentos, { em: agora.toISOString(), bpm }],
-        }))
-        const comDia = { ...d, dias }
-        return { ...comDia, alertas: recalcularAlertas(comDia, agora) }
-      },
-      enviarDiferencas
-    )
+    aplicar((d) => {
+      const dias = comODiaDeHoje(d, pessoaId, (dia) => ({
+        ...dia,
+        batimentos: [...dia.batimentos, { em: agora.toISOString(), bpm }],
+      }))
+      const comDia = { ...d, dias }
+      return { ...comDia, alertas: recalcularAlertas(comDia, agora) }
+    })
   }, [])
 
   const marcarAlerta = useCallback((id: string, lido: boolean) => {
-    aplicar(
-      (d) => ({ ...d, alertas: d.alertas.map((a) => (a.id === id ? { ...a, lido } : a)) }),
-      () => enviar("PATCH", { colecao: "alertas", id, patch: { lido } })
-    )
+    aplicar((d) => ({ ...d, alertas: d.alertas.map((a) => (a.id === id ? { ...a, lido } : a)) }))
   }, [])
 
   const marcarTodosComoLidos = useCallback((pessoaId: string) => {
-    aplicar(
-      (d) => ({
-        ...d,
-        alertas: d.alertas.map((a): Alerta => (a.pessoaId === pessoaId ? { ...a, lido: true } : a)),
-      }),
-      enviarDiferencas
-    )
+    aplicar((d) => ({
+      ...d,
+      alertas: d.alertas.map((a): Alerta => (a.pessoaId === pessoaId ? { ...a, lido: true } : a)),
+    }))
   }, [])
 
   const trocarTudo = useCallback((novos: Dados) => {
-    aplicar(
-      () => novos,
-      () => enviar("PUT", { dados: novos })
-    )
+    aplicar(() => novos)
   }, [])
 
   const restaurarExemplos = useCallback(() => trocarTudo(exemplosDeHoje()), [trocarTudo])
@@ -415,6 +336,150 @@ export function useDados() {
     restaurarExemplos,
     limparTudo,
   }
+}
+
+// --- conta e família ------------------------------------------------------
+
+/** Por pessoa: o papel de quem entrou e se administra a família. */
+export type VinculoNaTela = { papel: Papel; administra: boolean }
+
+/**
+ * O que o lado da conta sabe além dos dados: quem entrou, o papel em cada
+ * família e o que ainda espera resposta. `falhou` liga quando a conta respondeu
+ * mas as pessoas não: a tela mostra "tente de novo" em vez de fingir que a
+ * pessoa não tem família nenhuma.
+ */
+export type EstadoDaConta = {
+  eu: Eu
+  vinculos: Record<string, VinculoNaTela>
+  falhou: boolean
+}
+
+let instantaneoConta: EstadoDaConta | null = null
+
+function lerConta(): EstadoDaConta | null {
+  return instantaneoConta
+}
+
+/**
+ * No banco não existe o "quem acompanha" escrito à mão do protótipo: quem
+ * acompanha são os membros da família, que a tela Família lista.
+ */
+function pessoaDaApi(p: PessoaComPulseira): Pessoa {
+  return { id: p.id, nome: p.nome, quemAcompanha: "", criadoEm: p.criadoEm }
+}
+
+function pulseirasDaApi(pessoas: PessoaComPulseira[]): Pulseira[] {
+  return pessoas.flatMap((p) =>
+    p.pulseira
+      ? [
+          {
+            id: p.pulseira.id,
+            codigo: p.pulseira.codigo,
+            pessoaId: p.id,
+            bateria: p.pulseira.bateria,
+            ultimaSincronizacao: p.pulseira.ultimaSincronizacao,
+          },
+        ]
+      : []
+  )
+}
+
+/**
+ * A sessão do servidor venceu (ou o cookie sumiu) com o app aberto. Voltar
+ * para a entrada é o único caminho honesto: as rotas não vão responder mais
+ * nada para esta aba.
+ */
+function sessaoExpirou() {
+  sair()
+  window.location.assign("/entrar")
+}
+
+/** 401 só é "a sessão venceu" para quem já estava no lado da conta. */
+function conferirRecusa<T>(resposta: Resposta<T>) {
+  if (!resposta.ok && resposta.status === 401 && modo === "conta") sessaoExpirou()
+}
+
+/**
+ * Lê a conta e as pessoas e publica as duas juntas. Devolve `false` só quando
+ * nem a conta respondeu, que é o sinal de não estar no lado da conta.
+ */
+async function carregarConta(euJaLido?: Eu): Promise<boolean> {
+  let eu = euJaLido
+  if (!eu) {
+    const resposta = await v1.eu()
+    if (!resposta.ok) {
+      conferirRecusa(resposta)
+      return false
+    }
+    eu = resposta.corpo
+  }
+
+  const pessoas = await v1.pessoas()
+  if (!pessoas.ok) {
+    conferirRecusa(pessoas)
+    instantaneoConta = { eu, vinculos: instantaneoConta?.vinculos ?? {}, falhou: true }
+    publicar(instantaneo.carregando ? VAZIO : instantaneo.dados)
+    return true
+  }
+
+  instantaneoConta = {
+    eu,
+    vinculos: Object.fromEntries(
+      pessoas.corpo.map((p) => [p.id, { papel: p.papel, administra: p.administra }])
+    ),
+    falhou: false,
+  }
+  // Os dias e os alertas chegam com o cartão 5.6. Ver o comentário do topo.
+  publicar({ pessoas: pessoas.corpo.map(pessoaDaApi), pulseiras: pulseirasDaApi(pessoas.corpo), dias: [], alertas: [] })
+  return true
+}
+
+/** Relê a conta depois de qualquer mudança na família, para todas as telas verem a mesma coisa. */
+export function recarregarConta() {
+  return carregarConta()
+}
+
+/**
+ * Depois de uma mudança: deu certo, ou a pessoa sumiu no meio do caminho (404,
+ * outra conta mexeu antes), a conta é relida. A resposta volta intacta para a
+ * tela escolher a frase.
+ */
+async function depoisDeMudar<T>(resposta: Resposta<T>): Promise<Resposta<T>> {
+  conferirRecusa(resposta)
+  if (resposta.ok || resposta.status === 404) await carregarConta()
+  return resposta
+}
+
+async function lendo<T>(resposta: Promise<Resposta<T>>): Promise<Resposta<T>> {
+  const lida = await resposta
+  conferirRecusa(lida)
+  return lida
+}
+
+/**
+ * O que as telas da família podem fazer. Cada função devolve a resposta da
+ * rota, com o `codigo` do contrato quando não deu certo.
+ */
+export const familia = {
+  ligarPulseira: (entrada: { codigo: string; papel: Papel; nome?: string }) =>
+    v1.digitarCodigo(entrada).then(depoisDeMudar),
+  membros: (pessoaId: string) => lendo(v1.membros(pessoaId)),
+  pedidos: (pessoaId: string) => lendo(v1.pedidos(pessoaId)),
+  aprovar: (pessoaId: string, usuarioId: string) => v1.aprovar(pessoaId, usuarioId).then(depoisDeMudar),
+  recusar: (pessoaId: string, usuarioId: string) => v1.recusar(pessoaId, usuarioId).then(depoisDeMudar),
+  removerMembro: (pessoaId: string, usuarioId: string) =>
+    v1.removerMembro(pessoaId, usuarioId).then(depoisDeMudar),
+  /** Sair da família ou desistir de um pedido. */
+  sair: (pessoaId: string) => v1.sair(pessoaId).then(depoisDeMudar),
+  encerrar: (pessoaId: string, confirmacao: string) =>
+    v1.encerrar(pessoaId, confirmacao).then(depoisDeMudar),
+  recuperar: (pessoaId: string) => v1.recuperar(pessoaId).then(depoisDeMudar),
+}
+
+/** `null` no lado do navegador. Com conta, quem entrou e o papel em cada família. */
+export function useConta(): EstadoDaConta | null {
+  return useSyncExternalStore(inscrever, lerConta, () => null)
 }
 
 // --- pessoa na tela -------------------------------------------------------
@@ -520,9 +585,29 @@ function perguntarSessaoAoServidor() {
     } catch {
       // Sem resposta do servidor, fica valendo o que o navegador tem.
     }
+    sessaoConferida = true
+    avisarSessao()
   })()
 
   return perguntaDeSessao
+}
+
+/**
+ * Ligado depois que o servidor respondeu quem entrou (ou não respondeu).
+ *
+ * Quem acabou de entrar com e-mail e senha chega no app só com o cookie: a
+ * sessão do navegador ainda está vazia até esta resposta. Decidir "não tem
+ * ninguém, volta para entrar" antes dela mandava a pessoa de volta para a
+ * tela de entrar logo depois de entrar.
+ */
+let sessaoConferida = false
+
+function lerSessaoConferida() {
+  return sessaoConferida
+}
+
+export function useSessaoConferida() {
+  return useSyncExternalStore(inscreverSessao, lerSessaoConferida, () => false)
 }
 
 export function lerSessao(): Sessao | null {
@@ -545,6 +630,12 @@ export function entrar(nome = "Visitante", email = "voce@exemplo.com"): Sessao {
 export function sair() {
   if (typeof window === "undefined") return
   gravarSessaoLocal(null)
+  // A próxima conta (ou a entrada local) começa do zero: sem isso, a família de
+  // quem saiu continuaria na memória da aba até a página recarregar.
+  modo = "descobrindo"
+  descoberta = null
+  instantaneoConta = null
+  publicar(VAZIO, true)
   // O cookie do servidor precisa cair junto: sem isso, a próxima carga
   // perguntaria ao servidor, ele responderia a sessão antiga, e a pessoa
   // voltaria logada depois de clicar em sair.

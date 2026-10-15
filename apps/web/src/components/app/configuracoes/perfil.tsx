@@ -17,7 +17,7 @@ import {
 } from "@/components/ui"
 import { sistema as textos } from "@/content/site"
 import { tour } from "@/content/tour"
-import { entrar, sair, useSessao } from "@/lib/store"
+import { entrar, sair, useConta, useSessao } from "@/lib/store"
 
 const copy = textos.configuracoes.perfil
 
@@ -31,6 +31,7 @@ type Erros = { nome?: string; email?: string }
 export function Perfil() {
   const router = useRouter()
   const sessao = useSessao()
+  const conta = useConta()
   const rodarTour = useRodarTour()
   const [nome, setNome] = useState("")
   const [email, setEmail] = useState("")
@@ -89,49 +90,64 @@ export function Perfil() {
           </span>
           <CardTitulo como="h2">{copy.titulo}</CardTitulo>
         </div>
-        <CardDescricao>{copy.descricao}</CardDescricao>
+        <CardDescricao>{conta ? copy.descricaoConta : copy.descricao}</CardDescricao>
       </CardCabecalho>
 
       <CardConteudo className="flex-1">
-        {/* `noValidate`: as mensagens são nossas, em português e ligadas ao campo. */}
-        <form noValidate onSubmit={enviar} className="flex flex-col gap-4">
-          <Input
-            rotulo={copy.nome}
-            obrigatorio
-            value={nome}
-            onChange={(evento) => {
-              setNome(evento.target.value)
-              setSalvo(false)
-            }}
-            erro={erros.nome}
-            autoComplete="name"
-          />
-
-          <Input
-            rotulo={copy.email}
-            type="email"
-            obrigatorio
-            value={email}
-            onChange={(evento) => {
-              setEmail(evento.target.value)
-              setSalvo(false)
-            }}
-            erro={erros.email}
-            ajuda={copy.ajudaEmail}
-            autoComplete="email"
-          />
-
-          <div className="flex flex-wrap items-center gap-3">
-            <Button type="submit" iconeEsquerda={<Icone nome="check" />}>
-              {copy.salvar}
-            </Button>
-
-            {/* Sempre no DOM: região viva que só aparece depois não é anunciada. */}
-            <p role="status" className="text-[13px] text-success">
-              {salvo ? copy.salvo : ""}
-            </p>
-          </div>
-        </form>
+        {/* Com conta, o nome e o e-mail são os da conta no servidor. Editar
+            aqui mudaria só o navegador, e o topo do app passaria a mentir. */}
+        {conta ? (
+          <dl className="flex flex-col gap-3">
+            <div>
+              <dt className="text-sm text-muted">{copy.nome}</dt>
+              <dd className="text-base text-ink">{conta.eu.nome}</dd>
+            </div>
+            <div>
+              <dt className="text-sm text-muted">{copy.email}</dt>
+              <dd className="text-base break-all text-ink">{conta.eu.email}</dd>
+            </div>
+          </dl>
+        ) : (
+          // `noValidate`: as mensagens são nossas, em português e ligadas ao campo.
+          <form noValidate onSubmit={enviar} className="flex flex-col gap-4">
+            <Input
+              rotulo={copy.nome}
+              obrigatorio
+              value={nome}
+              onChange={(evento) => {
+                setNome(evento.target.value)
+                setSalvo(false)
+              }}
+              erro={erros.nome}
+              autoComplete="name"
+            />
+  
+            <Input
+              rotulo={copy.email}
+              type="email"
+              obrigatorio
+              value={email}
+              onChange={(evento) => {
+                setEmail(evento.target.value)
+                setSalvo(false)
+              }}
+              erro={erros.email}
+              ajuda={copy.ajudaEmail}
+              autoComplete="email"
+            />
+  
+            <div className="flex flex-wrap items-center gap-3">
+              <Button type="submit" iconeEsquerda={<Icone nome="check" />}>
+                {copy.salvar}
+              </Button>
+  
+              {/* Sempre no DOM: região viva que só aparece depois não é anunciada. */}
+              <p role="status" className="text-[13px] text-success">
+                {salvo ? copy.salvo : ""}
+              </p>
+            </div>
+          </form>
+        )}
       </CardConteudo>
 
       <CardRodape divisor>

@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import { CabecalhoPagina } from "@/components/app/cabecalho-pagina"
+import { CabecalhoConfiguracoes } from "@/components/app/configuracoes/cabecalho"
 import { DadosExemplo } from "@/components/app/configuracoes/dados-exemplo"
 import { Perfil } from "@/components/app/configuracoes/perfil"
 import { marca, sistema } from "@/content/site"
@@ -18,7 +18,7 @@ export const metadata: Metadata = {
 export default function PaginaConfiguracoes() {
   return (
     <>
-      <CabecalhoPagina titulo={copy.titulo} descricao={copy.descricao} />
+      <CabecalhoConfiguracoes />
 
       <div className="grid gap-6 sm:gap-8 lg:grid-cols-2">
         <DadosExemplo />

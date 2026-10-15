@@ -7,11 +7,12 @@ import { BarraSuperior } from "@/components/app/barra-superior"
 import { Logo } from "@/components/app/logo"
 import { Tour } from "@/components/onboarding/tour"
 import { sistema } from "@/content/site"
-import { sair, useDados, useSessao } from "@/lib/store"
+import { sair, useDados, useSessao, useSessaoConferida } from "@/lib/store"
 
 export default function LayoutSistema({ children }: { children: React.ReactNode }) {
   const router = useRouter()
   const sessao = useSessao()
+  const conferida = useSessaoConferida()
   // O store ainda não sabe se os dados moram no navegador ou no banco. Enquanto
   // não souber, a casca segura o esqueleto: mostrar os dados de exemplo e
   // trocar depois pelos do banco seria piscar conteúdo falso na tela.
@@ -28,9 +29,10 @@ export default function LayoutSistema({ children }: { children: React.ReactNode 
     setHidratado(true)
   }, [])
 
+  // Espera o servidor dizer quem entrou: com conta, a sessão chega por ele.
   useEffect(() => {
-    if (hidratado && !sessao) router.replace("/entrar")
-  }, [hidratado, sessao, router])
+    if (hidratado && conferida && !sessao) router.replace("/entrar")
+  }, [hidratado, conferida, sessao, router])
 
   const abrirMenu = useCallback(() => setMenuAberto(true), [])
   const fecharMenu = useCallback(() => setMenuAberto(false), [])

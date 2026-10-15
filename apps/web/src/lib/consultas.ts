@@ -24,7 +24,7 @@ export function quantosNovos(dados: Dados, pessoaId: string) {
 
 export type EstadoDaPulseira = {
   codigo: string
-  bateria: number
+  bateria: number | null
   bateriaBaixa: boolean
   ultimaSincronizacao: string | null
   atrasada: boolean
@@ -38,7 +38,7 @@ export function estadoDaPulseira(pulseira: Pulseira | null, agora: Date): Estado
   return {
     codigo: pulseira.codigo,
     bateria: pulseira.bateria,
-    bateriaBaixa: pulseira.bateria <= BATERIA_BAIXA,
+    bateriaBaixa: pulseira.bateria !== null && pulseira.bateria <= BATERIA_BAIXA,
     ultimaSincronizacao: pulseira.ultimaSincronizacao,
     atrasada: pulseira.ultimaSincronizacao !== null && minutos > MINUTOS_PARA_DADO_ATRASADO,
   }

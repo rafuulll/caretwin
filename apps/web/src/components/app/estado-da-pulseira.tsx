@@ -38,7 +38,11 @@ export function EstadoDaPulseiraCartao({
               nome={estado.bateriaBaixa ? "bateria-baixa" : "bateria"}
               className={cn("size-6", estado.bateriaBaixa ? "text-warning" : "text-ink")}
             />
-            <span className="font-display text-2xl tabular-nums text-ink">{estado.bateria}%</span>
+            {estado.bateria === null ? (
+              <span className="text-base text-muted">{sistema.comum.semDado}</span>
+            ) : (
+              <span className="font-display text-2xl tabular-nums text-ink">{estado.bateria}%</span>
+            )}
           </dd>
           {estado.bateriaBaixa && (
             <dd className="mt-1 text-sm font-medium text-warning">{textos.bateriaBaixa}</dd>

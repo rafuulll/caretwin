@@ -36,8 +36,8 @@ export type Pulseira = {
   /** O código impresso atrás da pulseira, no formato CT-XXXX. */
   codigo: string
   pessoaId: string
-  /** De 0 a 100. */
-  bateria: number
+  /** De 0 a 100. `null` enquanto a pulseira de verdade nunca mandou a bateria. */
+  bateria: number | null
   /** `null` enquanto a pulseira nunca mandou nada. */
   ultimaSincronizacao: string | null
 }

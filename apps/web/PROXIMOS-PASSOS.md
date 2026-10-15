@@ -75,26 +75,24 @@ São dois caminhos, e os dois gravam a mesma sessão assinada (`src/lib/sessao-s
 
 > **Já está construído.** Falta só a conexão.
 
-**O que fazer.** Crie um projeto no Supabase, copie a connection string do "Transaction pooler" (botão Connect, porta 6543) e cole em `DATABASE_URL` no `.env.local`, com `?sslmode=require` no final. O app cria a tabela-ponte sozinho na primeira chamada (`banco/schema.sql`) e passa a gravar lá, sem nenhuma tela mudar. As tabelas definitivas (usuários, pessoas, pulseiras, vínculos, dias e alertas) estão em `banco/migracoes/0001_tabelas.sql`: cole no SQL Editor do Supabase e execute uma vez.
+**O que fazer.** Crie um projeto no Supabase, copie a connection string do "Transaction pooler" (botão Connect, porta 6543) e cole em `DATABASE_URL` no `.env.local`, com `?sslmode=require` no final. As tabelas (usuários, pessoas, pulseiras, vínculos, dias e alertas) estão em `banco/migracoes/`: cole cada arquivo no SQL Editor do Supabase, em ordem, e execute uma vez. Com o banco ligado, quem entra com e-mail e senha vê só a própria família, e liga pulseiras, aprova pedidos, sai e encerra pela tela Família.
 
-**Por que fica desligado.** No CareTwin quem guarda os dados é a API do projeto. O Supabase com a tabela-ponte é o caminho pronto, caso o grupo queira dados fora do navegador antes de a API estar no ar.
+**O que ainda falta.** Os dias e os alertas da pessoa chegam ao site com as rotas de leitura (cartão 5.6) e a troca no `store` (cartão 7.3). Até lá, com conta, as telas dizem que os dados ainda não chegaram.
 
 ## 8. Antes de publicar
 
-**Estado hoje.** O app está publicado na Vercel, a partir da branch main e da pasta `apps/web`, com o link de produção aberto para quem tiver a URL. Ele só mostra dados de exemplo guardados no navegador de quem abre, e não há banco nem login ligados. Por isso está seguro para ser visto como protótipo. A rota `/api/dados` já está protegida para quando o banco for ligado (veja abaixo).
+**Estado hoje.** O app está publicado na Vercel, a partir da branch main e da pasta `apps/web`, com o link de produção aberto para quem tiver a URL. Sem banco, ele só mostra dados de exemplo guardados no navegador de quem abre.
 
-**Passo 1 está feito.** Com o banco ligado, a rota `src/app/api/dados` recusa (401) quem não tem a sessão assinada de `src/lib/sessao-servidor.ts` ou cujo e-mail não está em `EMAILS_PERMITIDOS`. Sem `AUTH_SECRET` ou sem a lista, ela também recusa. Com o banco desligado, como hoje, nada muda.
+**Passo 1 está feito.** Com o banco ligado, toda rota de `src/app/api/v1` exige a sessão assinada de uma conta com e-mail e senha, e só devolve as pessoas com vínculo aprovado com essa conta (sem vínculo, 404). A antiga lista `EMAILS_PERMITIDOS` e a rota `/api/dados` saíram: elas guardavam tudo numa tabela sem dono.
 
 **Falta, nesta ordem:**
 
 1. Ative a Deployment Protection na Vercel (Settings, Deployment Protection) para a prévia e para a produção, se o link deixar de ser só para mostrar.
-2. Coloque nas variáveis de ambiente da Vercel, todas juntas: `AUTH_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `EMAILS_PERMITIDOS` (seu e-mail e o de quem mais puder ver) e só por último `DATABASE_URL`. Cadastre também o endereço de produção em "URIs de redirecionamento autorizados" no Google Cloud Console.
-3. Entre com uma conta da lista e confira que os dados aparecem. Em janela anônima, sem entrar, o app tem que continuar mostrando só os exemplos.
-4. Troque os dados de exemplo pelos da API, e não o contrário.
+2. Coloque nas variáveis de ambiente da Vercel, todas juntas: `AUTH_SECRET`, `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY` e só por último `DATABASE_URL`.
+3. Entre com duas contas diferentes e confira que cada uma vê só a própria família. Em janela anônima, sem entrar, o app tem que continuar mostrando só os exemplos.
+4. Limite as tentativas de código errado ao ligar a pulseira (cartão 5.10) antes de abrir o cadastro para gente de fora do grupo.
 
-**Limite que continua valendo.** A lista é um trinco só: quem está nela vê todas as pessoas do banco. Separar "os que eu acompanho" por cuidador exige a tabela de usuários, que ainda não foi desenhada (veja `banco/schema.sql`).
-
-**Por quê.** Sem a lista e a sessão, qualquer visitante lê e grava dados de saúde pela URL pública assim que a `DATABASE_URL` entra na Vercel.
+**Por quê.** O código da pulseira tem só quatro caracteres. Sem limite de tentativas, alguém com uma conta poderia testar códigos até achar uma pulseira livre.
 
 ---
 
