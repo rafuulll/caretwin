@@ -1,45 +1,91 @@
 # CareTwin
 
-Projeto UPX (UniFacens). Pulseira com ESP32-S3, API FastAPI, Supabase, site em Next.js e IA que explica os dados com base em uma linha de base pessoal.
+Pulseira e app que acompanham o dia de uma pessoa (passos, sono estimado e batimentos de bancada) e comparam cada dia com o normal da propria pessoa. Quando algo muda de forma consistente, a familia le um aviso em palavras simples, sem diagnostico e sem tom de alarme.
 
-Equipe: Rafael (produto, UX, frontend e hardware), Fabricio (backend, banco, API, infra) e Lucas (IA e linha de base).
-Quadro de tarefas: https://trello.com/b/v8PlBQcb/upx
+Projeto academico da disciplina UPX, Engenharia da Computacao, UniFacens.
+
+- Equipe: Rafael (produto, UX, frontend e hardware), Fabricio (backend, banco e infra) e Lucas (IA e linha de base)
+- Quadro de tarefas: https://trello.com/b/v8PlBQcb/upx
+- Site publicado: https://caretwin-omega.vercel.app (protegido pela Vercel: abre so para quem entra com a conta do projeto ou recebe um link de compartilhamento)
+
+## Situacao atual (outubro de 2026)
+
+| Parte | Situacao |
+| --- | --- |
+| Site de apresentacao e app com dados de exemplo | Funciona, publicado na Vercel |
+| Contas com e-mail e senha (Supabase Auth) | Pronto e testado |
+| Familia: ligar pulseira pelo codigo, pedidos, aprovar, sair, encerrar e recuperar | Pronto e testado (52 verificacoes na API, 22 no navegador e teste manual com tres contas) |
+| Banco de producao no Supabase | Montado (migracoes 0001 a 0005) |
+| Site publicado usando o banco | Falta colocar as variaveis de ambiente na Vercel |
+| Pulseira enviando dados para a API | Falta a rota /v1/device no Next.js e apontar o firmware para ela |
+| Dias e alertas reais nas telas | Falta (cartoes 5.6 e 7.3) |
+| IA escrevendo os textos | Falta (hoje os textos sao modelos preenchidos com os numeros) |
+
+O roteiro completo do que falta esta em [apps/web/PROXIMOS-PASSOS.md](apps/web/PROXIMOS-PASSOS.md).
 
 ## Como as partes se conectam
 
-  Pulseira (ESP32-S3)  ->  HTTPS  ->  API FastAPI (Railway)  ->  Supabase (Postgres)
-  Site (Vercel)        ->  HTTPS  ->  API FastAPI
-  API  ->  modulo de IA (ai/)  ->  texto em linguagem natural
+```
+Pulseira (ESP32-S3)  --HTTPS-->  apps/web: API do Next.js (/api/v1)  -->  Supabase (PostgreSQL + Auth)
+Navegador            --HTTPS-->  apps/web: telas e API do Next.js
+API                  -->  IA (Ollama, planejado)  -->  texto em linguagem simples
+```
 
-A API e o centro: todo mundo conversa com ela e o contrato fica em docs/openapi.yaml. O site nunca fala direto com o banco nem com a IA.
+A API e o centro: o navegador e a pulseira so conversam com ela, e ela e a unica que fala com o banco. O contrato fica em [docs/openapi.yaml](docs/openapi.yaml).
 
-## Estrutura
+Desde 15/10/2026 o backend mora dentro do proprio Next.js, em `apps/web/src/app/api`, no lugar da API em Python (FastAPI na Railway) planejada no inicio. O motivo esta em [docs/decisoes/0004-backend-no-nextjs.md](docs/decisoes/0004-backend-no-nextjs.md).
 
-  apps/web      Site (Next.js, React, Tailwind, TypeScript). Dono: Rafael. Deploy: Vercel, Root Directory apps/web
-  apps/api      API (FastAPI). Dono: Fabricio. Deploy: Railway, Root Directory apps/api
-  ai            Linha de base pessoal e geracao de texto. Dono: Lucas. Comeca como modulo Python usado pela API
-  firmware      Programa da pulseira, com simulador Wokwi e testes. Dono: Rafael
-  simulador     Pulseira simulada em Python e API falsa, para testar sem o ESP32
-  docs          Contrato da API (openapi.yaml), decisoes e documentos de hardware
+## Estrutura do repositorio
 
-## Por onde comecar (cada um no seu papel)
+| Pasta | O que tem |
+| --- | --- |
+| `apps/web` | O site, o app e a API (Next.js, React, TypeScript, Tailwind). Deploy na Vercel com Root Directory `apps/web` |
+| `apps/web/banco` | As migracoes SQL do banco (Supabase) e as pulseiras de teste |
+| `apps/api` | Nao e mais usada. Ficou so um README explicando a mudanca |
+| `firmware` | Programa da pulseira (ESP32-S3, C++, PlatformIO), com simulador Wokwi e testes |
+| `simulador` | Pulseira simulada e API falsa em Python, para testar sem o ESP32 |
+| `ai` | O plano da IA: linha de base estatistica e texto por um modelo local |
+| `docs` | Contrato da API, registros de decisao e documentos de hardware |
 
-Backend ou IA, sem a pulseira:
-  1. Leia docs/openapi.yaml (o contrato v1).
-  2. Rode a API falsa e o simulador para ver os dados chegando: simulador/README.md.
-  3. Faca a sua API responder igual a simulador/mock_api.py e teste com o simulador apontando para ela.
+## Stack
 
-Site:
-  1. Rode o site com dados de exemplo (npm install e npm run dev em apps/web) e veja como ligar a API em apps/web/README.md.
-  2. Para encher o painel com dados realistas, use o simulador com a sua API local.
+| Camada | Tecnologia |
+| --- | --- |
+| Site, app e API | Next.js 16, React 19, TypeScript 6, Tailwind CSS 4, zod |
+| Banco e contas | Supabase: PostgreSQL, Supabase Auth e pg_cron |
+| Hospedagem | Vercel (deploy automatico da branch main, preview por pull request) |
+| Pulseira | ESP32-S3, MPU-6050, MAX30102, display ST7789, LiPo; PlatformIO e Wokwi |
+| Testes sem hardware | Python 3 (simulador e API falsa) |
+| Qualidade | TypeScript (tsc), ESLint, Storybook |
+| Container local | Docker (node:22-alpine) |
 
-Firmware:
-  1. Abra a pasta firmware no VS Code e siga firmware/README.md.
+## Como rodar o site
+
+Com Node.js 20.9 ou mais novo (recomendado 22):
+
+```bash
+cd apps/web
+npm install
+npm run dev
+```
+
+Abra http://localhost:3000. Sem nenhuma variavel de ambiente, o app roda no modo prototipo: o login aceita qualquer nome e senha e as telas mostram pessoas inventadas, guardadas no navegador. Para ligar contas e banco de verdade, siga [apps/web/README.md](apps/web/README.md).
+
+Firmware: abra a pasta `firmware` no VS Code e siga [firmware/README.md](firmware/README.md).
+Simulador: [simulador/README.md](simulador/README.md).
+
+## Onde esta cada coisa
+
+| Documento | Para que serve |
+| --- | --- |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | Como o grupo trabalha: branches, commits, pull requests, banco e segredos |
+| [apps/web/README.md](apps/web/README.md) | Como rodar, configurar e publicar o site, e como ele funciona por dentro |
+| [apps/web/DECISOES.md](apps/web/DECISOES.md) | O que foi decidido nas telas e por que |
+| [apps/web/PROXIMOS-PASSOS.md](apps/web/PROXIMOS-PASSOS.md) | O que falta e em que ordem |
+| [apps/web/AGENTS.md](apps/web/AGENTS.md) | As regras do codigo do site (textos, cores, acessibilidade) |
+| [docs/openapi.yaml](docs/openapi.yaml) | O contrato da API (v0.2) |
+| [docs/decisoes](docs/decisoes) | As decisoes de arquitetura |
 
 ## Variaveis de ambiente
 
-Cada app tem um .env.example com os NOMES das variaveis. Copie para .env (o .env nunca vai para o Git).
-
-## Fluxo de trabalho
-
-Leia CONTRIBUTING.md. Resumo: main protegida, branches curtas, Pull Request com revisao de outra pessoa, cada PR cita o cartao do Trello.
+Cada app tem um `.env.example` com os NOMES das variaveis e as instrucoes, sem valores. Copie para `.env.local` (que nunca vai para o Git). Em producao, os valores ficam no painel da Vercel.

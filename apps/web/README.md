@@ -1,53 +1,126 @@
-# CareTwin
+# CareTwin: site, app e API
 
 O CareTwin acompanha o dia a dia de uma pessoa por uma pulseira discreta, aprende o que é normal para ela e explica, em palavras simples, quando algo muda. É um acompanhamento gentil, sem diagnóstico e sem susto, para quem usa a pulseira e para o familiar ou cuidador que acompanha à distância.
 
-Este é o protótipo das telas, projeto acadêmico da disciplina UPX (Engenharia da Computação). Ele roda só neste computador, com pessoas e dias de exemplo guardados no navegador. Nenhum dado é de pessoa de verdade e nenhum dado sai daqui.
+Esta pasta tem as três coisas que rodam na web: o site de apresentação, o app e a API (o backend). É um projeto Next.js publicado na Vercel. Projeto acadêmico da disciplina UPX (Engenharia da Computação, UniFacens).
 
 ## Como rodar
 
-Com Node.js 20 ou mais novo:
+### Só o app, com dados de exemplo
+
+Com Node.js 20.9 ou mais novo (recomendado 22):
 
 ```bash
 npm install
 npm run dev
 ```
 
-Abra <http://localhost:3000>. Para entrar, escreva qualquer nome ou e-mail e qualquer senha: a senha não é conferida nem guardada.
+Abra <http://localhost:3000>. Sem nenhuma variável de ambiente, o app roda no **modo protótipo**: para entrar, qualquer nome e senha servem, e as telas mostram pessoas e dias inventados, guardados no seu navegador. Nenhum dado sai do computador.
 
-Com Docker (precisa do Docker Desktop aberto), na pasta do projeto:
+### Com contas e banco de verdade
+
+1. Crie um projeto de teste no [Supabase](https://supabase.com) (o plano gratuito basta).
+2. Em Database, Extensions, ligue a extensão `pg_cron`.
+3. No SQL Editor, rode em ordem os arquivos de `banco/migracoes/` (0001 a 0005), cada um uma vez.
+4. Rode `banco/dev/pulseiras-de-teste.sql`, que cria as pulseiras `CT-TST1`, `CT-TST2` e `CT-TST3`. **Só em banco de teste.**
+5. Copie o `.env.example` para `.env.local` e preencha:
+   - `DATABASE_URL`: em Connect, Transaction pooler (porta 6543), com `?sslmode=require` no final.
+   - `AUTH_SECRET`: 32 caracteres ou mais (`openssl rand -base64 32`).
+   - `SUPABASE_URL` e `SUPABASE_PUBLISHABLE_KEY`: em Project Settings, API Keys.
+6. Em Authentication, URL Configuration, coloque `http://localhost:3000` em Site URL e `http://localhost:3000/**` em Redirect URLs.
+7. Crie contas em Authentication, Users, "Add user", marcando a confirmação automática do e-mail (o plano gratuito manda poucos e-mails por hora).
+8. Reinicie o `npm run dev`.
+
+Para testar uma família com várias contas, use um navegador diferente para cada conta: o login fica num cookie, e o cookie é de cada navegador.
+
+### Com Docker
+
+Com o Docker Desktop aberto, nesta pasta:
 
 ```bash
 docker compose up --build
 ```
 
-Abra <http://localhost:3000>. Para parar, `Ctrl+C` e depois `docker compose down`. Depois de mudar qualquer tela, rode de novo o `up --build`, porque a imagem guarda o código do momento em que foi feita. A porta fica presa a este computador.
+Abra <http://localhost:3000>. Para parar, `Ctrl+C` e depois `docker compose down`. Depois de mudar o código, rode de novo o `up --build`. A porta fica presa a este computador. Para ligar o banco no container, descomente a linha `env_file` do `docker-compose.yml`.
 
-Outros comandos:
+### Comandos
 
 ```bash
-npm run build      # confere que o app compila como ficaria publicado
-npm run lint       # confere o estilo do código
-npm run storybook  # catálogo de componentes em http://localhost:6006
+npm run dev            # servidor de desenvolvimento em http://localhost:3000
+npx tsc --noEmit -p .  # confere os tipos
+npm run lint           # confere o padrão do código
+npm run build          # compila como a Vercel compila
+npm run storybook      # catálogo de componentes em http://localhost:6006
 ```
 
-Para o Next.js não enviar dados de uso, rode uma vez `npx next telemetry disable`. A telemetria do Storybook e a da imagem Docker já vêm desligadas.
+Para o Next.js não enviar dados de uso, rode uma vez `npx next telemetry disable`.
 
 ## As telas
 
-- Site, na raiz (`/`): o que o CareTwin resolve, com um normal de exemplo desenhado com os dados do app.
-- Entrar (`/entrar`): nome ou e-mail, senha e o botão do Google.
-- Como usar (`/como-usar`): o que já funciona e o que ainda falta ligar.
-- Painel (`/app/painel`): os passos de hoje contra o normal até este horário, a bateria e a última atualização da pulseira.
-- Sono (`/app/sono`): quanto a pessoa dormiu, quantas vezes acordou. É sempre uma estimativa.
-- Batimentos (`/app/batimentos`): medição guiada de 12 segundos e o histórico.
-- Alertas (`/app/alertas`): o resumo escrito do dia e os alertas de mudança, com marcar como lido.
-- Primeiro uso (`/app/primeiro-uso`): conectar a pulseira e criar o perfil.
-- Configurações (`/app/configuracoes`): dados de exemplo e perfil.
+| Endereço | Tela |
+| --- | --- |
+| `/` | Site: o que o CareTwin resolve, com um normal de exemplo desenhado com os dados do app |
+| `/entrar` | Entrar, criar conta e esqueci a senha |
+| `/como-usar` | O que já funciona e o que ainda falta ligar |
+| `/app/painel` | Os passos de hoje contra o normal até este horário, a bateria e a última sincronização da pulseira |
+| `/app/sono` | Quanto a pessoa dormiu e quantas vezes acordou. Sempre uma estimativa |
+| `/app/batimentos` | Medição guiada de 12 segundos e o histórico |
+| `/app/alertas` | O resumo escrito do dia e os alertas de mudança, com marcar como lido |
+| `/app/primeiro-uso` | Ligar uma pulseira: código, de quem é e, se for nova, o nome |
+| `/app/familia` | Membros, pedidos, sair, encerrar e recuperar. Só aparece para quem entrou com conta |
+| `/app/configuracoes` | Perfil e, no modo protótipo, os dados de exemplo |
 
-## Como o normal funciona
+## Como funciona por dentro
 
-A regra é a do cartão 2.3 do Trello. Os números estão em `src/lib/modelo.ts` e a conta em `src/lib/normal.ts`.
+Um clique percorre sempre o mesmo caminho:
+
+```
+tela (src/components)  ->  src/lib/store.ts  ->  src/lib/cliente-v1.ts  ->  rota (src/app/api/v1)
+      ->  src/lib/rota-v1.ts (quem chama?)  ->  src/lib/familia.ts (regras + SQL)  ->  PostgreSQL
+```
+
+- **`store.ts`** é a única porta de dados das telas. Ele escolhe sozinho entre o modo protótipo (dados no navegador) e o modo conta (dados da API), perguntando `GET /api/v1/me`.
+- **Rotas** (`src/app/api/v1/**/route.ts`) são finas: conferem a sessão, validam o corpo com zod e chamam a regra.
+- **`familia.ts`** tem todas as regras da família. Toda mudança roda numa transação que trava a linha da pessoa (`for update`).
+- **Sessão**: o login confere a senha no Supabase Auth (`src/lib/conta.ts`) e grava um cookie `httpOnly` assinado com HMAC (`src/lib/sessao-servidor.ts`). As rotas tiram o id da conta desse cookie, nunca do navegador.
+- **Sem vínculo aprovado, a pessoa não existe**: as rotas respondem 404, para não revelar ids.
+- **Erros** sempre como `{ erro, codigo, quando }`. A tela escolhe a frase pelo `codigo`, em `src/content/site.ts`.
+
+### A API
+
+O contrato completo está em [`../../docs/openapi.yaml`](../../docs/openapi.yaml).
+
+| Rota | Para quê |
+| --- | --- |
+| `POST /api/auth/conta/criar`, `/entrar`, `/recuperar`, `/nova-senha` | Contas com e-mail e senha |
+| `GET` e `DELETE /api/auth/sessao` | Quem está logado e sair |
+| `GET /api/health` | Se o servidor está de pé e se a `DATABASE_URL` chegou. Não pede login |
+| `GET /api/v1/me` | A conta, os pedidos esperando e o que dá para recuperar |
+| `GET /api/v1/pessoas` e `/pessoas/{id}` | As pessoas que a conta acompanha |
+| `POST /api/v1/vinculos` | Digitar o código da pulseira: livre cria a pessoa (201), com família vira pedido (202) |
+| `GET /api/v1/pessoas/{id}/membros` e `DELETE .../membros/{usuarioId}` | Ver a família e remover alguém |
+| `GET /api/v1/pessoas/{id}/pedidos`, `POST .../pedidos/{usuarioId}/aprovar`, `DELETE .../pedidos/{usuarioId}` | Pedidos para entrar |
+| `DELETE /api/v1/pessoas/{id}/vinculo` | Sair da família, ou desistir do pedido |
+| `POST /api/v1/pessoas/{id}/encerrar` | O último membro encerra, com a frase de confirmação |
+| `POST /api/v1/pessoas/{id}/recuperar` | Desfazer o encerramento em até 30 dias |
+
+Ainda não escritas (estão no contrato): as rotas da pulseira (`/api/v1/device/*`) e a leitura de dias e alertas (cartão 5.6).
+
+### O banco
+
+| Migração | O que faz |
+| --- | --- |
+| `0001_tabelas.sql` | As seis tabelas (usuarios, pessoas, pulseiras, vinculos, dias, alertas) e a RLS ligada sem regras |
+| `0002_usuario_nasce_com_a_conta.sql` | Gatilho que cria a linha em `usuarios` junto com a conta do Supabase Auth |
+| `0003_encerramento.sql` | Data e autor do encerramento em `pessoas` |
+| `0004_apagar_encerrados.sql` | Tarefa diária do pg_cron que apaga o que foi encerrado há mais de 30 dias |
+| `0005_tirar_a_ponte.sql` | Apaga a tabela `registros` do protótipo |
+
+Cada arquivo roda uma vez, em ordem, e nunca é editado depois: mudança nova vira o próximo número.
+
+### A regra do normal
+
+A do cartão 2.3. Os números estão em `src/lib/modelo.ts` e a conta em `src/lib/normal.ts`.
 
 1. O normal é a média dos 7 dias que vêm antes dos 3 dias mais recentes.
 2. A faixa do normal vai 20% para baixo e 20% para cima dessa média.
@@ -58,36 +131,30 @@ Os passos de hoje são comparados com o normal até este horário, e não com o 
 
 ## Publicar na Vercel
 
-Sem banco, o link mostra só dados de exemplo. Com o banco ligado, cada conta vê só as pessoas com quem tem vínculo aprovado (as regras estão em `src/lib/familia.ts`). Antes de colocar `DATABASE_URL` na Vercel, siga a ordem do item 8 do `PROXIMOS-PASSOS.md`.
+O projeto já está publicado em <https://caretwin-omega.vercel.app>, a partir da branch `main`, com Root Directory `apps/web`. Cada pull request ganha um link de preview.
 
-O projeto vive em `apps/web` dentro do repositório do CareTwin. Na Vercel:
+Para o site publicado usar o banco:
 
-1. Importe o repositório e escolha `apps/web` em Root Directory. O resto a Vercel detecta sozinha.
-2. Não precisa de variável de ambiente. Sem chaves, o app roda com os dados de exemplo de quem abre.
-3. A branch principal vira o site oficial, e cada outra branch ou PR ganha um link de prévia.
+1. Em Settings, Environment Variables, ambiente Production, coloque `AUTH_SECRET` (um valor novo, diferente do local), `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY` e, por último, `DATABASE_URL`, todos do projeto de produção do Supabase. Não use `EMAILS_PERMITIDOS`: essa variável não existe mais.
+2. Em Deployments, abra o último deploy e use Redeploy. Variável nova só vale para deploy novo.
+3. No Supabase de produção, em Authentication, URL Configuration: Site URL `https://caretwin-omega.vercel.app` e Redirect URLs `https://caretwin-omega.vercel.app/**`.
+4. Confira em `/api/health`: a resposta deve dizer `"banco": "configurado"`.
 
-Antes de divulgar o link, ative a proteção da prévia em Settings, Deployment Protection. Sem isso, qualquer pessoa com a URL abre o app. Com o banco desligado, as rotas `/api/v1` respondem 503 e o app fica nos exemplos do navegador. Com o banco ligado, elas recusam (401) quem não entrou, e devolvem 404 para qualquer pessoa sem vínculo aprovado com a conta. A rota `/api/health` responde 200 e diz se o banco está configurado, para conferir o deploy sem abrir o painel.
+Sem essas variáveis, o site publicado roda no modo protótipo, em que qualquer e-mail e senha entram.
 
-## O que está desligado de propósito
-
-Cada item já está escrito e só espera valores no `.env.local`. Copie o `.env.example`, preencha só o que for usar e reinicie o `npm run dev`. Nenhuma tela muda.
-
-- API do CareTwin: troque as funções de `src/lib/store.ts` por chamadas à API. As telas só falam com `useDados()` e `usePessoaNaTela()`.
-- Login com Google: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` e `AUTH_SECRET`. O fluxo está em `src/lib/google.ts` e `src/app/api/auth`.
-- Banco no Supabase: `DATABASE_URL`. A conexão está em `src/lib/banco.ts`; as tabelas definitivas estão em `banco/migracoes/` e se criam colando o arquivo no SQL Editor do Supabase.
-- IA que escreve os textos: `OPENAI_API_KEY`, ou a IA local (Ollama) pela API. A chamada sai sempre de uma rota do servidor. Hoje os textos são de exemplo (`src/lib/respostas-ia.ts`).
-- Automações: `n8n/` tem o docker-compose e um guia com dois exemplos do CareTwin.
+A Deployment Protection está ligada: o site só abre para quem entra com a conta da Vercel do projeto. Para mostrar a alguém de fora, gere um link no botão Share do deploy ou desligue a proteção em Settings, Deployment Protection.
 
 ## Pastas
 
 ```
-src/app/            as rotas: site, entrar, como-usar, o app e as rotas de servidor (api)
-src/components/     ui (peças), app (telas de dentro), marketing (o site), auth, cena, graficos
+src/app/            as rotas: site, entrar, como-usar, o app (app/) e a API (api/)
+src/components/     ui (peças com Storybook), app (telas de dentro), marketing (o site), auth, onboarding, cena
 src/content/        todo texto que aparece na tela (site.ts e tour.ts)
-src/lib/            modelo, normal, sono, store (a porta de dados), seed (exemplos) e o resto
+src/lib/            store (a porta de dados), familia (regras), rota-v1, conta, sessao-servidor, banco, modelo, normal, seed
+banco/migracoes/    as migrações do banco, em ordem
+banco/dev/          pulseiras de teste (nunca em produção)
 design-system.json  cores, fonte e cantos do app inteiro
-banco/              o desenho da tabela do banco (desligado)
-n8n/                automações
+n8n/                automações para quando o n8n for ligado
 .storybook/         catálogo de componentes
 ```
 
@@ -96,5 +163,6 @@ n8n/                automações
 - Nenhum texto visível dentro de componente: tudo sai de `src/content`.
 - Nenhuma cor escrita na mão: tudo sai do `design-system.json`.
 - Nenhuma tela lê ou grava dado por fora de `src/lib/store.ts`.
+- O navegador nunca fala com o banco: tudo passa pelas rotas de `src/app/api`.
 
-As decisões de produto e de design estão em `DECISOES.md`, e o próximo passo de cada integração em `PROXIMOS-PASSOS.md`.
+As regras completas estão em `AGENTS.md`, as decisões de produto e de design em `DECISOES.md`, e o que falta em `PROXIMOS-PASSOS.md`. O jeito de trabalhar do grupo (branches, commits, pull requests) está no `CONTRIBUTING.md` da raiz do repositório.

@@ -73,7 +73,9 @@ Pinos evitados de proposito: 0, 3, 45 e 46 (inicializacao), 19 e 20 (USB), 26 a 
 
 A pulseira envia para a URL de include/config.h (API_BASE_URL) com o cabecalho Authorization: Device <DEVICE_TOKEN>, nas rotas /v1/device/daily, /nights e /live do contrato (../docs/openapi.yaml). Por padrao aponta para o eco do httpbin, que nao confirma nada.
 
-O Wokwi gratuito nao alcanca o computador (localhost). Para testar a API de verdade sem a placa, use o simulador Python em ../simulador. Com a placa real na mesma rede Wi-Fi, API_BASE_URL = http://IP-DO-COMPUTADOR:8080 funciona com a API falsa ou com a API real.
+A API real mora em apps/web (Next.js, decisao 0004): localmente em http://IP-DO-COMPUTADOR:3000/api e em producao em https://caretwin-omega.vercel.app/api. As rotas /v1/device/* estao no contrato, mas ainda nao foram escritas no Next.js; ate la, teste com a API falsa do simulador. Em producao, a Deployment Protection da Vercel barra a pulseira: quando as rotas existirem, sera preciso liberar esses caminhos ou desligar a protecao.
+
+O Wokwi gratuito nao alcanca o computador (localhost). Para testar a API de verdade sem a placa, use o simulador Python em ../simulador. Com a placa real na mesma rede Wi-Fi, API_BASE_URL = http://IP-DO-COMPUTADOR:8080 funciona com a API falsa. Com a API real, use http://IP-DO-COMPUTADOR:3000/api e rode o site aceitando conexoes da rede (npx next dev -H 0.0.0.0, dentro de apps/web).
 
 ## Montagem real
 

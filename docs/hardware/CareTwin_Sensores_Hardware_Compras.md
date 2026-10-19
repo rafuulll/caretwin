@@ -1,5 +1,7 @@
 # CareTwin — Sensores, hardware mínimo e lista de compras
 
+> **Atualização (outubro de 2026):** o grupo decidiu não comprar o T-Watch S3 e montar a pulseira com componentes separados (ESP32-S3, MPU-6050, MAX30102, display ST7789 e bateria LiPo de 400 mAh), para caber no orçamento e mostrar a montagem do zero. A montagem atual e os pinos estão em `firmware/README.md`. Este documento fica como registro da pesquisa de setembro.
+
 Data: 23/09/2026 · Base: CareTwin MVP v1, Auditoria de produto, Arquitetura completa (pacote vitrine + sensores) · Câmbio usado: US$ 1 = R$ 5,13 (dólar comercial, 23/09/2026)
 
 Marcas: **[E]** evidência ou dado de fabricante/loja consultado · **[D]** declarado na pesquisa · **[H]** estimativa ou hipótese a confirmar na bancada
