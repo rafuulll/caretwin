@@ -1,11 +1,9 @@
-# apps/api (FastAPI)
+# apps/api (nao usada)
 
-Deploy na Railway com Root Directory = apps/api.
+Esta pasta era para a API em Python (FastAPI na Railway). Em 15/10/2026 o grupo decidiu colocar o backend dentro do proprio Next.js, em `apps/web/src/app/api`. Nenhum codigo foi escrito aqui.
 
-Primeiros passos (quando for criar o projeto):
-  python -m venv .venv
-  pip install fastapi "uvicorn[standard]" pydantic-settings supabase
-  uvicorn app.main:app --reload
+- O motivo da mudanca: [docs/decisoes/0004-backend-no-nextjs.md](../../docs/decisoes/0004-backend-no-nextjs.md)
+- O contrato da API: [docs/openapi.yaml](../../docs/openapi.yaml)
+- Como rodar a API: [apps/web/README.md](../web/README.md)
 
-O FastAPI gera o OpenAPI sozinho em /openapi.json. Exporte e commite em ../../docs/openapi.yaml a cada mudanca de endpoint.
-Endpoints iniciais: ver docs/openapi.yaml (v1 da pulseira).
+A pasta pode ser apagada quando o grupo quiser.

@@ -11,3 +11,5 @@ Decisao: a regra oficial de comparacao e a do card 2.3 do Trello (base de 7 dias
 Decisao: o site nao e PWA nesta versao (sem modo offline nem instalacao no celular). Fica para depois, se o grupo quiser.
 
 Detalhes e o sistema de design: apps/web/DECISOES.md.
+
+Atualizacao (15/10/2026): com a decisao 0004, a API mora no proprio Next.js e o banco ja existe (Supabase). Com conta, o site le as pessoas pelas rotas /api/v1, e a regra do normal fica em TypeScript, calculada pelo backend quando os dias reais chegarem.

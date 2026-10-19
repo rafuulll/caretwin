@@ -10,8 +10,8 @@ Terminal 1 (API falsa):
 Terminal 2 (pulseira simulada, 14 dias de dados):
   python simulador/simulador.py --url http://localhost:8080
 
-Quando a API real (apps/api) estiver no ar, e so trocar a URL:
-  python simulador/simulador.py --url http://localhost:8000
+A API real mora em apps/web (Next.js). Quando as rotas /v1/device existirem nela, e so trocar a URL (com o npm run dev ligado em apps/web):
+  python simulador/simulador.py --url http://localhost:3000/api
 
 ## Cenarios (--cenario)
 
@@ -36,19 +36,19 @@ Quando a API real (apps/api) estiver no ar, e so trocar a URL:
 ## Exemplos por pessoa
 
 Backend (Fabricio): validar as rotas e a recusa de dados ruins
-  python simulador/simulador.py --url http://localhost:8000 --cenario invalidos
+  python simulador/simulador.py --url http://localhost:3000/api --cenario invalidos
 
 IA (Lucas): alimentar a linha de base com um caso conhecido e conferir o resultado
-  python simulador/simulador.py --url http://localhost:8000 --cenario queda --dias 10
+  python simulador/simulador.py --url http://localhost:3000/api --cenario queda --dias 10
   (7 dias de base e 3 dias recentes 40% abaixo: a regra de 20% deve sinalizar queda)
 
 Site (Rafael): encher o painel com dados e testar o modo ao vivo
-  python simulador/simulador.py --url http://localhost:8000 --dias 30
-  python simulador/simulador.py --url http://localhost:8000 --ao-vivo 20
+  python simulador/simulador.py --url http://localhost:3000/api --dias 30
+  python simulador/simulador.py --url http://localhost:3000/api --ao-vivo 20
 
 Fixtures de teste (sem rede):
   python simulador/simulador.py --salvar simulador/saida --cenario normal --dias 7
-  curl -X POST http://localhost:8000/v1/device/daily -H "Authorization: Device sim-token-nao-secreto" -H "Content-Type: application/json" -d @simulador/saida/daily_01.json
+  curl -X POST http://localhost:3000/api/v1/device/daily -H "Authorization: Device sim-token-nao-secreto" -H "Content-Type: application/json" -d @simulador/saida/daily_01.json
 
 A pasta simulador/saida esta no .gitignore.
 
