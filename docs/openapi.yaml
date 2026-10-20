@@ -92,6 +92,13 @@ paths:
     post:
       tags: [device]
       summary: Resumo diario (passos e minutos ativos)
+      description: >
+        Cada dia e conferido sozinho. Os certos vao para accepted e sao gravados
+        (reenviar o mesmo dia atualiza a linha). Um dia fora dos limites (passos
+        acima de 60000 ou negativos, minutos ativos acima de 1440, data que nao
+        existe, antes de 2025-01-01 ou depois de amanha) vai para rejected e nao
+        e gravado, sem impedir os outros dias do mesmo envio. O 422 fica para o
+        envelope errado (sem firmware, days que nao e lista, mais de 31 dias).
       security:
         - DeviceToken: []
       requestBody:
@@ -152,6 +159,11 @@ paths:
     post:
       tags: [device]
       summary: Modo ao vivo (passos de hoje, enviado a cada poucos segundos)
+      description: >
+        Nao cria dia: os passos de hoje entram pelo resumo diario quando o dia
+        fecha. A API so guarda a hora em que a pulseira deu sinal
+        (pulseiras.ultima_sincronizacao). accepted traz o ts recebido, ou fica
+        vazio quando ts veio null.
       security:
         - DeviceToken: []
       requestBody:
@@ -729,9 +741,14 @@ components:
       name: Authorization
       description: >
         Formato usado pelo firmware: "Authorization: Device <token>". Sem o cabecalho,
-        a API responde 401. Cada pulseira tem o seu token; o backend guarda so o
-        hash dele e acha por ele qual pulseira esta falando. Como o token chega
-        ao firmware e questao em aberto (card 5.3).
+        a API responde 401 (codigo sem_token); com um token que nao existe, 401
+        (codigo token_invalido). O 401 vem antes de olhar o corpo. Cada pulseira
+        tem o seu token; o backend guarda so o sha256 dele em hexadecimal
+        (pulseiras.token_hash) e acha por ele qual pulseira esta falando.
+        Como o token chega ao firmware (card 5.3): e gerado quando a pulseira e
+        montada, gravado em firmware/include/config.h (DEVICE_TOKEN) e so o hash
+        vai para o banco, junto com o codigo CT-XXXX impresso na pulseira.
+        Implementado em apps/web/src/lib/dispositivo.ts.
     SessaoDoApp:
       type: apiKey
       in: cookie
@@ -793,7 +810,12 @@ components:
           type: integer
           minimum: 0
           maximum: 100
+          nullable: true
+          description: >
+            null quando a pulseira nao conseguiu ler a bateria. Um valor fora de
+            0 a 100 e ignorado, sem recusar os dias.
         days:
+          maxItems: 31
           type: array
           items:
             $ref: '#/components/schemas/DayRecord'
@@ -813,6 +835,7 @@ components:
         active_minutes:
           type: integer
           minimum: 0
+          maximum: 1440
     NightPayload:
       type: object
       required: [night_date, window_start, counts]
@@ -833,6 +856,7 @@ components:
             type: integer
             nullable: true
             minimum: 0
+            maximum: 3000
     LivePayload:
       type: object
       required: [steps_today, ts]
@@ -840,9 +864,12 @@ components:
         steps_today:
           type: integer
           minimum: 0
+          maximum: 60000
         ts:
           type: string
           format: date-time
+          nullable: true
+          description: null quando o relogio da pulseira ainda nao acertou pela rede
     HeartratePayload:
       type: object
       required: [measurements]

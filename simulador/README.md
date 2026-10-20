@@ -10,8 +10,8 @@ Terminal 1 (API falsa):
 Terminal 2 (pulseira simulada, 14 dias de dados):
   python simulador/simulador.py --url http://localhost:8080
 
-A API real mora em apps/web (Next.js). Quando as rotas /v1/device existirem nela, e so trocar a URL (com o npm run dev ligado em apps/web):
-  python simulador/simulador.py --url http://localhost:3000/api
+A API real mora em apps/web (Next.js), com as rotas /v1/device prontas. Com o npm run dev ligado em apps/web e o banco de teste com as pulseiras de apps/web/banco/dev/pulseiras-de-teste.sql, e so trocar a URL e usar o token de uma pulseira de teste:
+  python simulador/simulador.py --url http://localhost:3000/api --token token-de-teste-1
 
 ## Cenarios (--cenario)
 
@@ -36,19 +36,19 @@ A API real mora em apps/web (Next.js). Quando as rotas /v1/device existirem nela
 ## Exemplos por pessoa
 
 Backend (Fabricio): validar as rotas e a recusa de dados ruins
-  python simulador/simulador.py --url http://localhost:3000/api --cenario invalidos
+  python simulador/simulador.py --url http://localhost:3000/api --token token-de-teste-1 --cenario invalidos
 
 IA (Lucas): alimentar a linha de base com um caso conhecido e conferir o resultado
-  python simulador/simulador.py --url http://localhost:3000/api --cenario queda --dias 10
+  python simulador/simulador.py --url http://localhost:3000/api --token token-de-teste-1 --cenario queda --dias 10
   (7 dias de base e 3 dias recentes 40% abaixo: a regra de 20% deve sinalizar queda)
 
 Site (Rafael): encher o painel com dados e testar o modo ao vivo
-  python simulador/simulador.py --url http://localhost:3000/api --dias 30
-  python simulador/simulador.py --url http://localhost:3000/api --ao-vivo 20
+  python simulador/simulador.py --url http://localhost:3000/api --token token-de-teste-1 --dias 30
+  python simulador/simulador.py --url http://localhost:3000/api --token token-de-teste-1 --ao-vivo 20
 
 Fixtures de teste (sem rede):
   python simulador/simulador.py --salvar simulador/saida --cenario normal --dias 7
-  curl -X POST http://localhost:3000/api/v1/device/daily -H "Authorization: Device sim-token-nao-secreto" -H "Content-Type: application/json" -d @simulador/saida/daily_01.json
+  curl -X POST http://localhost:3000/api/v1/device/daily -H "Authorization: Device token-de-teste-1" -H "Content-Type: application/json" -d @simulador/saida/daily_01.json
 
 A pasta simulador/saida esta no .gitignore.
 

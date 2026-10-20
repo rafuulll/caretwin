@@ -17,7 +17,8 @@ Projeto academico da disciplina UPX, Engenharia da Computacao, UniFacens.
 | Familia: ligar pulseira pelo codigo, pedidos, aprovar, sair, encerrar e recuperar | Pronto e testado (52 verificacoes na API, 22 no navegador e teste manual com tres contas) |
 | Banco de producao no Supabase | Montado (migracoes 0001 a 0005) |
 | Site publicado usando o banco | Falta colocar as variaveis de ambiente na Vercel |
-| Pulseira enviando dados para a API | Falta a rota /v1/device no Next.js e apontar o firmware para ela |
+| Rotas que recebem os dados da pulseira (/v1/device) | Prontas e testadas com o simulador; falta apontar o firmware para elas (cartao 4.8) |
+| Alertas criados quando chegam dias novos | Falta (cartao 6.1) |
 | Dias e alertas reais nas telas | Falta (cartoes 5.6 e 7.3) |
 | IA escrevendo os textos | Falta (hoje os textos sao modelos preenchidos com os numeros) |
 
