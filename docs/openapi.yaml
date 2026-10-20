@@ -290,7 +290,12 @@ paths:
       summary: Dias registrados de uma pessoa
       description: >
         Passos, noite (840 contagens) e batimentos de cada dia, do mais antigo
-        para o mais novo. Sem filtros devolve os ultimos 30 dias.
+        para o mais novo. Sem filtros devolve os ultimos 30 dias, terminando
+        hoje no horario de Brasilia (America/Sao_Paulo). So com de, a janela de
+        30 dias vai para frente; so com ate, para tras. Parametro vazio conta
+        como ausente. A noite aparece no dia em que termina. batimentos volta
+        vazio enquanto a pulseira nao manda medicoes (/v1/device/heartrate e
+        futuro). Implementado em apps/web/src/lib/historico.ts.
       security:
         - SessaoDoApp: []
       parameters:
@@ -322,7 +327,7 @@ paths:
         '404':
           $ref: '#/components/responses/NaoEncontrado'
         '422':
-          description: Datas fora do formato ou de maior que ate
+          description: Data fora do formato ou inexistente, de maior que ate, ou mais de 366 dias
           content:
             application/json:
               schema:
@@ -333,7 +338,9 @@ paths:
     get:
       tags: [app]
       summary: Alertas de uma pessoa
-      description: Do mais recente para o mais antigo.
+      description: >
+        Do mais recente para o mais antigo. Os alertas sao criados pelo backend
+        quando chegam dias novos (card 6.1); ate la a lista volta vazia.
       security:
         - SessaoDoApp: []
       parameters:
@@ -356,10 +363,19 @@ paths:
           $ref: '#/components/responses/NaoAutenticado'
         '404':
           $ref: '#/components/responses/NaoEncontrado'
+        '422':
+          description: lido diferente de true ou false
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
   /v1/alertas/{alertaId}:
     patch:
       tags: [app]
       summary: Marcar um alerta como lido (ou voltar para novo)
+      description: >
+        O lido vale para a familia toda: qualquer membro aprovado da pessoa do
+        alerta pode mudar. Sem vinculo aprovado, ou pessoa encerrada, 404.
       security:
         - SessaoDoApp: []
       parameters:

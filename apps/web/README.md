@@ -103,6 +103,9 @@ O contrato completo está em [`../../docs/openapi.yaml`](../../docs/openapi.yaml
 | `DELETE /api/v1/pessoas/{id}/vinculo` | Sair da família, ou desistir do pedido |
 | `POST /api/v1/pessoas/{id}/encerrar` | O último membro encerra, com a frase de confirmação |
 | `POST /api/v1/pessoas/{id}/recuperar` | Desfazer o encerramento em até 30 dias |
+| `GET /api/v1/pessoas/{id}/dias?de=&ate=` | Os dias que a pulseira mandou, do mais antigo para o mais novo. Sem filtros, os últimos 30 dias até hoje (horário de Brasília) |
+| `GET /api/v1/pessoas/{id}/alertas?lido=` | Os alertas, do mais recente para o mais antigo; `lido=false` só os novos |
+| `PATCH /api/v1/alertas/{id}` | Marcar um alerta como lido (ou voltar para novo), para a família toda |
 
 As rotas da pulseira não usam a sessão do site: a pulseira manda `Authorization: Device <token>`, e o banco guarda só o sha256 do token (`pulseiras.token_hash`). A regra comum está em `src/lib/dispositivo.ts` e o formato em `src/app/api/v1/device/esquemas.ts`.
 
@@ -114,7 +117,9 @@ As rotas da pulseira não usam a sessão do site: a pulseira manda `Authorizatio
 
 Os resumos e as noites do mesmo dia se completam sem apagar um ao outro. Pulseira ainda sem pessoa grava os dias sem dona, e eles passam para a pessoa quando a família digita o código. Pessoa encerrada: tudo volta em `rejected` e nada é gravado. Para testar sem a pulseira, use o simulador (`python simulador/simulador.py --url http://localhost:3000/api --token token-de-teste-1`, com as pulseiras de `banco/dev/pulseiras-de-teste.sql`).
 
-Ainda não escritas (estão no contrato): a leitura de dias e alertas (cartão 5.6) e a criação de alertas quando chegam dias novos (cartão 6.1).
+As leituras de dias e alertas ficam em `src/lib/historico.ts`, com a mesma regra de acesso da família: sem vínculo aprovado, 404.
+
+Ainda não escritas: a criação de alertas quando chegam dias novos (cartão 6.1); até lá, a lista de alertas volta vazia. As telas ainda leem os dias de exemplo; a troca no `store.ts` para usar estas rotas é o cartão 7.3.
 
 ### O banco
 

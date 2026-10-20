@@ -4,18 +4,18 @@ O protótipo funciona sozinho: sem servidor, sem banco e sem chave de API. É is
 
 Este arquivo é o mapa do que vem depois. A página Como usar (`/como-usar`) é a versão dele dentro do app, navegável.
 
-Já estão construídos e testados (outubro de 2026): o login com e-mail e senha pelo Supabase Auth, o banco no Supabase e a família (ligar a pulseira pelo código, pedidos, aprovar, sair, encerrar e recuperar). O banco de produção está montado, com as migrações 0001 a 0005; falta colocar as variáveis de ambiente na Vercel. O login com Google também está escrito, esperando as chaves. O resto é mapa: o que é, por que vale para o CareTwin e onde encaixa.
+Já estão construídos e testados (outubro de 2026): o login com e-mail e senha pelo Supabase Auth, o banco no Supabase e a família (ligar a pulseira pelo código, pedidos, aprovar, sair, encerrar e recuperar). O banco de produção está montado, com as migrações 0001 a 0005, e o site publicado já usa ele (variáveis na Vercel desde 20/10/2026). O login com Google também está escrito, esperando as chaves. O resto é mapa: o que é, por que vale para o CareTwin e onde encaixa.
 
 ## A ordem
 
-- [ ] 1. **API do CareTwin**: trocar os dados de exemplo pelos dados reais da pulseira · *contas, família e as rotas da pulseira (`/v1/device`) prontas; faltam a leitura de dias e alertas (cartões 5.6 e 7.3), os alertas criados no servidor (6.1) e o firmware apontar para a API (4.8)*
+- [ ] 1. **API do CareTwin**: trocar os dados de exemplo pelos dados reais da pulseira · *contas, família e as rotas da pulseira (`/v1/device`) prontas; e as rotas de leitura de dias e alertas (5.6) prontas; faltam as telas lerem essas rotas (7.3), os alertas criados no servidor (6.1) e o firmware apontar para a API (4.8)*
 - [ ] 2. **Login**: saber quem está usando · *e-mail e senha pronto e testado, falta ligar em produção; Google escrito, falta a chave*
 - [ ] 3. **A IA que escreve os textos**: o resumo do dia e os alertas escritos de verdade
 - [ ] 4. **Envio de e-mail**: mandar o resumo do dia para quem acompanha
 - [ ] 5. **WhatsApp**: avisar quem acompanha onde a família realmente lê
 - [ ] 6. **n8n**: fazer o e-mail e o WhatsApp acontecerem sozinhos
 - [ ] 7. **Banco no Supabase**: guardar fora do navegador sem esperar a API · *montado em produção (0001 a 0005), falta a `DATABASE_URL` na Vercel*
-- [ ] 8. **Antes de publicar**: rota protegida · *Deployment Protection ligada; faltam as variáveis na Vercel e o limite de tentativas (cartão 5.10)*
+- [ ] 8. **Antes de publicar**: rota protegida · *Deployment Protection ligada e variáveis na Vercel feitas; falta o limite de tentativas (cartão 5.10)*
 
 ---
 
@@ -77,19 +77,19 @@ São dois caminhos, e os dois gravam a mesma sessão assinada (`src/lib/sessao-s
 
 **O que fazer.** Crie um projeto no Supabase e ligue a extensão `pg_cron` (Database → Extensions), que a migração 0004 usa. Depois, copie a connection string do "Transaction pooler" (botão Connect, porta 6543) e cole em `DATABASE_URL` no `.env.local`, com `?sslmode=require` no final. As tabelas (usuários, pessoas, pulseiras, vínculos, dias e alertas) estão em `banco/migracoes/`: cole cada arquivo no SQL Editor do Supabase, em ordem, e execute uma vez. Com o banco ligado, quem entra com e-mail e senha vê só a própria família, e liga pulseiras, aprova pedidos, sai e encerra pela tela Família.
 
-**O que ainda falta.** Os dias e os alertas da pessoa chegam ao site com as rotas de leitura (cartão 5.6) e a troca no `store` (cartão 7.3). Até lá, com conta, as telas dizem que os dados ainda não chegaram.
+**O que ainda falta.** As rotas de leitura dos dias e dos alertas já existem (cartão 5.6). Falta a troca no `store` para as telas usarem essas rotas (cartão 7.3). Até lá, com conta, as telas dizem que os dados ainda não chegaram.
 
 ## 8. Antes de publicar
 
-**Estado hoje.** O app está publicado na Vercel (<https://caretwin-omega.vercel.app>), a partir da branch main e da pasta `apps/web`, com a Deployment Protection ligada: só abre para quem entra com a conta da Vercel do projeto. Sem as variáveis de ambiente, ele roda no modo protótipo, com dados de exemplo guardados no navegador de quem abre e login simulado.
+**Estado hoje.** O app está publicado na Vercel (<https://caretwin-omega.vercel.app>), a partir da branch main e da pasta `apps/web`, com a Deployment Protection ligada: só abre para quem entra com a conta da Vercel do projeto. Desde 20/10/2026 as variáveis de ambiente estão na Vercel: o site publicado usa o banco de produção e o login de verdade.
 
 **Passo 1 está feito.** Com o banco ligado, toda rota de `src/app/api/v1` exige a sessão assinada de uma conta com e-mail e senha, e só devolve as pessoas com vínculo aprovado com essa conta (sem vínculo, 404). A antiga lista `EMAILS_PERMITIDOS`, a rota `/api/dados` e a tabela `registros` saíram: elas guardavam tudo numa tabela sem dono.
 
 **Falta, nesta ordem:**
 
-1. Coloque nas variáveis de ambiente da Vercel (Production), todas juntas: `AUTH_SECRET`, `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY` e só por último `DATABASE_URL`. Depois, faça Redeploy do último deploy.
-2. No Supabase de produção, em Authentication → URL Configuration: Site URL `https://caretwin-omega.vercel.app` e, em Redirect URLs, `https://caretwin-omega.vercel.app/**`.
-3. Confira `/api/health` (tem que dizer `"banco": "configurado"`), entre com duas contas diferentes e veja que cada uma vê só a própria família. Em janela anônima, sem entrar, o app tem que continuar mostrando só os exemplos.
+1. ~~Variáveis de ambiente na Vercel (Production): `AUTH_SECRET`, `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY` e `DATABASE_URL`, com Redeploy.~~ Feito em 20/10/2026.
+2. ~~No Supabase de produção, em Authentication → URL Configuration: Site URL `https://caretwin-omega.vercel.app` e Redirect URLs `https://caretwin-omega.vercel.app/**`.~~ Feito em 20/10/2026.
+3. Entre com duas contas diferentes e veja que cada uma vê só a própria família. O `/api/health` já responde `"banco": "configurado"`.
 4. Limite as tentativas de código errado ao ligar a pulseira (cartão 5.10) antes de abrir o cadastro para gente de fora do grupo.
 5. Para mostrar a alguém de fora (o professor, por exemplo), gere um link no botão Share do deploy ou desligue a proteção em Settings → Deployment Protection.
 
