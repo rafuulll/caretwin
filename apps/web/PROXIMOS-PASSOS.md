@@ -8,7 +8,7 @@ Já estão construídos e testados (outubro de 2026): o login com e-mail e senha
 
 ## A ordem
 
-- [ ] 1. **API do CareTwin**: trocar os dados de exemplo pelos dados reais da pulseira · *contas e família prontas; faltam as rotas da pulseira (`/v1/device`) e a leitura de dias e alertas (cartões 5.6 e 7.3)*
+- [ ] 1. **API do CareTwin**: trocar os dados de exemplo pelos dados reais da pulseira · *contas, família e as rotas da pulseira (`/v1/device`) prontas; faltam a leitura de dias e alertas (cartões 5.6 e 7.3), os alertas criados no servidor (6.1) e o firmware apontar para a API (4.8)*
 - [ ] 2. **Login**: saber quem está usando · *e-mail e senha pronto e testado, falta ligar em produção; Google escrito, falta a chave*
 - [ ] 3. **A IA que escreve os textos**: o resumo do dia e os alertas escritos de verdade
 - [ ] 4. **Envio de e-mail**: mandar o resumo do dia para quem acompanha
@@ -21,7 +21,7 @@ Já estão construídos e testados (outubro de 2026): o login com e-mail e senha
 
 ## 1. API do CareTwin
 
-**O que é.** A pulseira manda o resumo do dia e o registro da noite para a API do projeto, que mora neste mesmo Next.js, nas rotas de `src/app/api/v1` (cartão 2.4), com o Postgres do Supabase. O contrato está em `docs/openapi.yaml`. O app passa a ler de lá.
+**O que é.** A pulseira manda o resumo do dia e o registro da noite para a API do projeto, que mora neste mesmo Next.js, nas rotas de `src/app/api/v1` (decisão do cartão 2.4), com o Postgres do Supabase. As rotas que recebem os dados da pulseira já existem (`src/app/api/v1/device`, cartões 5.3, 5.4 e 5.5). O contrato está em `docs/openapi.yaml`. O app passa a ler de lá.
 
 **Por que vem primeiro.** É o que transforma o protótipo no CareTwin de verdade: o normal deixa de ser calculado sobre pessoas inventadas e passa a ser o da pessoa que usa a pulseira.
 

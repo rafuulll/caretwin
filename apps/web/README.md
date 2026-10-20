@@ -104,7 +104,17 @@ O contrato completo está em [`../../docs/openapi.yaml`](../../docs/openapi.yaml
 | `POST /api/v1/pessoas/{id}/encerrar` | O último membro encerra, com a frase de confirmação |
 | `POST /api/v1/pessoas/{id}/recuperar` | Desfazer o encerramento em até 30 dias |
 
-Ainda não escritas (estão no contrato): as rotas da pulseira (`/api/v1/device/*`) e a leitura de dias e alertas (cartão 5.6).
+As rotas da pulseira não usam a sessão do site: a pulseira manda `Authorization: Device <token>`, e o banco guarda só o sha256 do token (`pulseiras.token_hash`). A regra comum está em `src/lib/dispositivo.ts` e o formato em `src/app/api/v1/device/esquemas.ts`.
+
+| Rota da pulseira | Para quê |
+| --- | --- |
+| `POST /api/v1/device/daily` | Passos e minutos ativos dos dias na fila. Cada dia certo vai para `accepted`; dia com mais de 60000 passos, negativo ou com data impossível vai para `rejected` e não é gravado |
+| `POST /api/v1/device/nights` | Uma noite (840 minutos a partir das 20h). Grava no dia em que a noite termina: `night_date` 2026-10-20 aparece no dia 21 |
+| `POST /api/v1/device/live` | Modo ao vivo. Não cria dia; só marca a hora em que a pulseira deu sinal |
+
+Os resumos e as noites do mesmo dia se completam sem apagar um ao outro. Pulseira ainda sem pessoa grava os dias sem dona, e eles passam para a pessoa quando a família digita o código. Pessoa encerrada: tudo volta em `rejected` e nada é gravado. Para testar sem a pulseira, use o simulador (`python simulador/simulador.py --url http://localhost:3000/api --token token-de-teste-1`, com as pulseiras de `banco/dev/pulseiras-de-teste.sql`).
+
+Ainda não escritas (estão no contrato): a leitura de dias e alertas (cartão 5.6) e a criação de alertas quando chegam dias novos (cartão 6.1).
 
 ### O banco
 

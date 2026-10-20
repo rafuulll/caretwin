@@ -69,6 +69,24 @@ export const NOITE = {
   inicioHora: 20,
 } as const
 
+/**
+ * O que a API aceita da pulseira (cartão 5.5). Fora disso o dado é recusado,
+ * nunca gravado com um valor que ninguém andou de verdade.
+ * - passosPorDia: o teto do contrato v0.2 (DayRecord.steps).
+ * - contagemPorMinuto: 3000 amostras por minuto no firmware (ct_params.h);
+ *   a contagem da noite é parte delas, então não passa disso.
+ * - diasNoFuturo e primeiroDia: uma pulseira sem relógio acertado manda datas
+ *   impossíveis; um dia depois de amanhã ou antes do projeto é recusado.
+ */
+export const LIMITES_DA_PULSEIRA = {
+  passosPorDia: 60000,
+  minutosAtivosPorDia: 1440,
+  contagemPorMinuto: 3000,
+  diasPorEnvio: 31,
+  diasNoFuturo: 1,
+  primeiroDia: "2025-01-01",
+} as const
+
 /** Quanto tempo a medição de batimentos pede para a pessoa ficar parada. */
 export const SEGUNDOS_MEDICAO = 12
 
