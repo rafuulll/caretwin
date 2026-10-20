@@ -3,6 +3,7 @@
 import { useCallback, useSyncExternalStore } from "react"
 import { v1, type Eu, type Papel, type PessoaComPulseira, type Resposta } from "./cliente-v1"
 import { paraISO } from "./formato"
+import { MINUTOS_PARA_RELER_A_CONTA } from "./modelo"
 import { fracaoDoDia } from "./normal"
 import { gerarExemplos, passosPrevistosParaHoje, recalcularAlertas } from "./seed"
 import type { Alerta, Dados, DiaRegistrado, Pessoa, Pulseira, Sessao } from "./types"
@@ -20,10 +21,11 @@ import type { Alerta, Dados, DiaRegistrado, Pessoa, Pulseira, Sessao } from "./t
  *   pessoas da própria família, lidas das rotas de `src/app/api/v1`. É o
  *   `GET /v1/me` respondendo 200 que liga este lado.
  *
- * No lado da conta, por enquanto, chegam as pessoas e as pulseiras. Os dias e
- * os alertas chegam com as rotas de leitura do cartão 5.6 (e a troca do
- * cartão 7.3): até lá, as telas mostram que os dados ainda não chegaram, que é
- * a verdade. Nada de exemplo aparece misturado com a família de alguém.
+ * No lado da conta chegam as pessoas e as pulseiras e, de cada pessoa, os dias
+ * que a pulseira mandou e os alertas (rotas do cartão 5.6, ligadas aqui no
+ * cartão 7.3). As telas fazem a mesma conta do normal nos dois lados, então
+ * nenhuma tela muda. Nada de exemplo aparece misturado com a família de alguém:
+ * sem dias no banco, as telas dizem que os dados ainda não chegaram.
  */
 
 const CHAVE_DADOS = "caretwin-prototipo:dados:v1"
@@ -153,6 +155,7 @@ function descobrirModo() {
     const eu = await v1.eu()
     if (eu.ok && (await carregarConta(eu.corpo))) {
       modo = "conta"
+      acompanharConta()
       return
     }
     // O navegador lembra de uma conta (a sessão local tem id) e o servidor não
@@ -302,10 +305,18 @@ export function useDados() {
   }, [])
 
   const marcarAlerta = useCallback((id: string, lido: boolean) => {
+    if (modo === "conta") return marcarNaConta([id], lido)
     aplicar((d) => ({ ...d, alertas: d.alertas.map((a) => (a.id === id ? { ...a, lido } : a)) }))
   }, [])
 
   const marcarTodosComoLidos = useCallback((pessoaId: string) => {
+    if (modo === "conta") {
+      const novos = instantaneo.dados.alertas.filter((a) => a.pessoaId === pessoaId && !a.lido)
+      return marcarNaConta(
+        novos.map((a) => a.id),
+        true
+      )
+    }
     aplicar((d) => ({
       ...d,
       alertas: d.alertas.map((a): Alerta => (a.pessoaId === pessoaId ? { ...a, lido: true } : a)),
@@ -401,10 +412,49 @@ function conferirRecusa<T>(resposta: Resposta<T>) {
 }
 
 /**
- * Lê a conta e as pessoas e publica as duas juntas. Devolve `false` só quando
- * nem a conta respondeu, que é o sinal de não estar no lado da conta.
+ * Cada leitura da conta ganha um número. Duas leituras podem se cruzar (a
+ * releitura de 5 em 5 minutos e a de depois de aprovar um pedido, por
+ * exemplo), e a que termina por último nem sempre é a que começou por último.
+ * Só a mais nova publica.
+ */
+let ultimaLeitura = 0
+
+type DoServidor = { dias: DiaRegistrado[]; alertas: Alerta[] }
+
+/**
+ * Os dias e os alertas de cada pessoa, lidos em paralelo (são de 1 a 3
+ * pessoas). Se a leitura de uma pessoa falhar, ficam os dados que já estavam
+ * na tela para ela: sumir com o dia de alguém por um tropeço da rede seria
+ * mostrar "os dados ainda não chegaram" quando eles chegaram.
+ */
+async function lerDiasEAlertas(pessoas: PessoaComPulseira[]): Promise<DoServidor> {
+  const anteriores = instantaneo.dados
+  const lidas = await Promise.all(
+    pessoas.map(async (p) => {
+      const [dias, alertas] = await Promise.all([v1.dias(p.id), v1.alertas(p.id)])
+      return { pessoaId: p.id, dias, alertas }
+    })
+  )
+  const resultado: DoServidor = { dias: [], alertas: [] }
+  for (const { pessoaId, dias, alertas } of lidas) {
+    conferirRecusa(dias)
+    conferirRecusa(alertas)
+    resultado.dias.push(...(dias.ok ? dias.corpo : anteriores.dias.filter((d) => d.pessoaId === pessoaId)))
+    resultado.alertas.push(
+      ...(alertas.ok ? alertas.corpo : anteriores.alertas.filter((a) => a.pessoaId === pessoaId))
+    )
+  }
+  return resultado
+}
+
+/**
+ * Lê a conta, as pessoas, os dias e os alertas, e publica tudo junto, uma vez
+ * só, para a tela não mostrar a pessoa sem os dias por um instante. Devolve
+ * `false` só quando nem a conta respondeu, que é o sinal de não estar no lado
+ * da conta.
  */
 async function carregarConta(euJaLido?: Eu): Promise<boolean> {
+  const leitura = ++ultimaLeitura
   let eu = euJaLido
   if (!eu) {
     const resposta = await v1.eu()
@@ -418,10 +468,14 @@ async function carregarConta(euJaLido?: Eu): Promise<boolean> {
   const pessoas = await v1.pessoas()
   if (!pessoas.ok) {
     conferirRecusa(pessoas)
+    if (leitura !== ultimaLeitura) return true
     instantaneoConta = { eu, vinculos: instantaneoConta?.vinculos ?? {}, falhou: true }
     publicar(instantaneo.carregando ? VAZIO : instantaneo.dados)
     return true
   }
+
+  const { dias, alertas } = await lerDiasEAlertas(pessoas.corpo)
+  if (leitura !== ultimaLeitura) return true
 
   instantaneoConta = {
     eu,
@@ -430,9 +484,54 @@ async function carregarConta(euJaLido?: Eu): Promise<boolean> {
     ),
     falhou: false,
   }
-  // Os dias e os alertas chegam com o cartão 5.6. Ver o comentário do topo.
-  publicar({ pessoas: pessoas.corpo.map(pessoaDaApi), pulseiras: pulseirasDaApi(pessoas.corpo), dias: [], alertas: [] })
+  publicar({ pessoas: pessoas.corpo.map(pessoaDaApi), pulseiras: pulseirasDaApi(pessoas.corpo), dias, alertas })
   return true
+}
+
+/**
+ * Marcar alertas no lado da conta. A tela muda na hora, sem esperar a rede,
+ * porque é o que a pessoa acabou de pedir. Se o servidor recusar algum, a conta
+ * é relida e a tela volta ao que o banco diz: nunca fica mostrando "lido" num
+ * alerta que continua novo para o resto da família.
+ */
+function marcarNaConta(ids: string[], lido: boolean) {
+  if (ids.length === 0) return
+  const escolhidos = new Set(ids)
+  publicar({
+    ...instantaneo.dados,
+    alertas: instantaneo.dados.alertas.map((a) => (escolhidos.has(a.id) ? { ...a, lido } : a)),
+  })
+  void Promise.all(ids.map((id) => v1.marcarAlerta(id, lido))).then((respostas) => {
+    const recusa = respostas.find((r) => !r.ok)
+    if (!recusa) return
+    conferirRecusa(recusa)
+    void carregarConta()
+  })
+}
+
+/**
+ * Com o app aberto, a pulseira continua mandando dias. A conta é relida quando
+ * a aba volta a aparecer (a pessoa voltou para o app) e de tempos em tempos
+ * enquanto ela está à vista, para o dia novo aparecer sem recarregar a página.
+ * Aba escondida não lê nada: seria gastar rede e banco sem ninguém olhando.
+ */
+let relogioDaConta: number | null = null
+
+function aoVoltarParaAba() {
+  if (modo === "conta" && document.visibilityState === "visible") void carregarConta()
+}
+
+function acompanharConta() {
+  if (relogioDaConta !== null) return
+  relogioDaConta = window.setInterval(aoVoltarParaAba, MINUTOS_PARA_RELER_A_CONTA * 60_000)
+  document.addEventListener("visibilitychange", aoVoltarParaAba)
+}
+
+function pararDeAcompanhar() {
+  if (relogioDaConta === null) return
+  window.clearInterval(relogioDaConta)
+  relogioDaConta = null
+  document.removeEventListener("visibilitychange", aoVoltarParaAba)
 }
 
 /** Relê a conta depois de qualquer mudança na família, para todas as telas verem a mesma coisa. */
@@ -634,6 +733,7 @@ export function sair() {
   // quem saiu continuaria na memória da aba até a página recarregar.
   modo = "descobrindo"
   descoberta = null
+  pararDeAcompanhar()
   instantaneoConta = null
   publicar(VAZIO, true)
   // O cookie do servidor precisa cair junto: sem isso, a próxima carga

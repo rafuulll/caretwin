@@ -63,6 +63,13 @@ export const BATERIA_BAIXA = 20
 /** Sem sincronizar por mais que isso, a tela avisa que o dado pode estar atrasado. */
 export const MINUTOS_PARA_DADO_ATRASADO = 180
 
+/**
+ * Com conta, de quanto em quanto tempo o app relê os dias enquanto está aberto
+ * e à vista. A pulseira sincroniza de 3 em 3 horas (de 3 em 3 minutos na
+ * simulação), então 5 minutos mostram o dia novo cedo sem martelar o banco.
+ */
+export const MINUTOS_PARA_RELER_A_CONTA = 5
+
 /** A janela da noite que a pulseira envia: 840 minutos, das 20h às 10h. */
 export const NOITE = {
   minutos: 840,

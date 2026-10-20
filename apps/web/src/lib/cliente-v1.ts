@@ -6,7 +6,7 @@ import type {
   PedidoRecebido,
   PessoaComPulseira,
 } from "./familia"
-import type { Sessao } from "./types"
+import type { Alerta, DiaRegistrado, Sessao } from "./types"
 
 /**
  * As chamadas do navegador às rotas de `src/app/api/v1`.
@@ -91,4 +91,14 @@ export const v1 = {
   encerrar: (pessoaId: string, confirmacao: string) =>
     chamar<Encerramento>("POST", `/pessoas/${p(pessoaId)}/encerrar`, { confirmacao }),
   recuperar: (pessoaId: string) => chamar<PessoaComPulseira>("POST", `/pessoas/${p(pessoaId)}/recuperar`),
+
+  /**
+   * Os dias que a pulseira mandou (cartão 5.6). Sem filtro, a rota devolve os
+   * últimos 30 dias: o gráfico mostra 14, e o normal de cada um deles olha os
+   * 10 dias anteriores.
+   */
+  dias: (pessoaId: string) => chamar<DiaRegistrado[]>("GET", `/pessoas/${p(pessoaId)}/dias`),
+  alertas: (pessoaId: string) => chamar<Alerta[]>("GET", `/pessoas/${p(pessoaId)}/alertas`),
+  /** O lido vale para a família toda. */
+  marcarAlerta: (alertaId: string, lido: boolean) => chamar<Alerta>("PATCH", `/alertas/${p(alertaId)}`, { lido }),
 }

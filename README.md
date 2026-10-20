@@ -20,7 +20,7 @@ Projeto academico da disciplina UPX, Engenharia da Computacao, UniFacens.
 | Rotas que recebem os dados da pulseira (/v1/device) | Prontas e testadas com o simulador; falta apontar o firmware para elas (cartao 4.8) |
 | Alertas criados quando chegam dias novos | Falta (cartao 6.1) |
 | Rotas de leitura de dias e alertas (/v1/pessoas/{id}/dias e /alertas) | Prontas e testadas (cartao 5.6) |
-| Dias e alertas reais nas telas | Falta trocar o store.ts para usar as rotas de leitura (cartao 7.3) |
+| Dias e alertas reais nas telas (Painel, Sono, Alertas) | Pronto e testado no navegador nos tres cenarios: aprendendo, dentro e fora do normal (cartao 7.3) |
 | IA escrevendo os textos | Falta (hoje os textos sao modelos preenchidos com os numeros) |
 
 O roteiro completo do que falta esta em [apps/web/PROXIMOS-PASSOS.md](apps/web/PROXIMOS-PASSOS.md).

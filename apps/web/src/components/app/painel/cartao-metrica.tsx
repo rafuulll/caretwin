@@ -46,7 +46,7 @@ export function CartaoMetrica({ icone, rotulo, valor, dica }: PropsCartaoMetrica
       <dd className="mt-3">
         <span
           className={cn(
-            "block font-display leading-none tabular-nums text-ink",
+            "block font-display leading-none text-ink",
             valorLongo ? "text-[26px] sm:text-3xl" : "text-3xl sm:text-4xl"
           )}
         >

@@ -41,7 +41,7 @@ export function EstadoDaPulseiraCartao({
             {estado.bateria === null ? (
               <span className="text-base text-muted">{sistema.comum.semDado}</span>
             ) : (
-              <span className="font-display text-2xl tabular-nums text-ink">{estado.bateria}%</span>
+              <span className="font-display text-2xl text-ink">{estado.bateria}%</span>
             )}
           </dd>
           {estado.bateriaBaixa && (
@@ -53,7 +53,7 @@ export function EstadoDaPulseiraCartao({
           <dt className="text-sm text-muted">{textos.sincronizou}</dt>
           {estado.ultimaSincronizacao ? (
             <>
-              <dd className="mt-1 font-display text-2xl tabular-nums text-ink">
+              <dd className="mt-1 font-display text-2xl text-ink">
                 {horaDoCarimbo(estado.ultimaSincronizacao)}
               </dd>
               <dd className={cn("mt-1 text-sm", estado.atrasada ? "font-medium text-warning" : "text-muted")}>
