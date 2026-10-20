@@ -32,7 +32,7 @@ export function PassosDeHojeCartao({ dados }: { dados: PassosDeHoje }) {
             <SeloSituacao situacao={situacao} />
           </dd>
 
-          <dd className="col-span-2 mt-3 font-display text-5xl leading-none tabular-nums text-ink sm:text-6xl">
+          <dd className="col-span-2 mt-3 font-display text-5xl leading-none text-ink sm:text-6xl">
             {passos === null ? "0" : numero(passos)}
           </dd>
           {passos === null && <dd className="col-span-2 mt-2 text-sm text-muted">{textos.semPassos}</dd>}

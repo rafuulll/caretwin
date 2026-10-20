@@ -46,8 +46,12 @@ export function GraficoDias({ pontos, rotulo, formatar, formatarEixo, semValorHo
     ? Array.from({ length: Math.ceil(maximo / passoDoEixo) + 1 }, (_, i) => i * passoDoEixo)
     : marcasRedondas(maximo)
   const topo = marcas[marcas.length - 1]
+  // A margem esquerda cresce com o rótulo mais comprido do eixo: com 44 px
+  // fixos, "7,5 mil" perdia o 7 e virava ",5 mil". Uns 7 px por caractere no
+  // corpo 12, mais o respiro até a grade.
+  const esquerda = Math.max(MARGEM.esquerda, 14 + 7 * Math.max(...marcas.map((m) => formatarEixo(m).length)))
   const y = escala([0, topo], [ALTURA - MARGEM.base, MARGEM.topo])
-  const larguraUtil = Math.max(0, largura - MARGEM.esquerda - MARGEM.direita)
+  const larguraUtil = Math.max(0, largura - esquerda - MARGEM.direita)
   const fatia = pontos.length ? larguraUtil / pontos.length : 0
   const larguraBarra = Math.max(4, Math.min(22, fatia * 0.56))
   // Em tela estreita, um rótulo a cada dois dias: catorze números colados viram borrão.
@@ -61,21 +65,21 @@ export function GraficoDias({ pontos, rotulo, formatar, formatarEixo, semValorHo
             {marcas.map((marca) => (
               <g key={marca}>
                 <line
-                  x1={MARGEM.esquerda}
+                  x1={esquerda}
                   x2={largura - MARGEM.direita}
                   y1={y(marca)}
                   y2={y(marca)}
                   stroke={COR.grade}
                   strokeWidth={1}
                 />
-                <text x={MARGEM.esquerda - 8} y={y(marca) + 4} textAnchor="end" fontSize={12} fill={COR.texto}>
+                <text x={esquerda - 8} y={y(marca) + 4} textAnchor="end" fontSize={12} fill={COR.texto}>
                   {formatarEixo(marca)}
                 </text>
               </g>
             ))}
 
             {pontos.map((ponto, indice) => {
-              const centro = MARGEM.esquerda + fatia * indice + fatia / 2
+              const centro = esquerda + fatia * indice + fatia / 2
               const fora = ponto.situacao === "abaixo" || ponto.situacao === "acima"
               return (
                 <g key={ponto.data}>

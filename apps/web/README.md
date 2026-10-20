@@ -119,7 +119,9 @@ Os resumos e as noites do mesmo dia se completam sem apagar um ao outro. Pulseir
 
 As leituras de dias e alertas ficam em `src/lib/historico.ts`, com a mesma regra de acesso da família: sem vínculo aprovado, 404.
 
-Ainda não escritas: a criação de alertas quando chegam dias novos (cartão 6.1); até lá, a lista de alertas volta vazia. As telas ainda leem os dias de exemplo; a troca no `store.ts` para usar estas rotas é o cartão 7.3.
+Com conta, o `store.ts` lê os dias e os alertas de cada pessoa por estas rotas (cartão 7.3), junto com as pessoas, e publica tudo de uma vez. Ele relê sozinho quando a aba volta a aparecer e de 5 em 5 minutos com a aba à vista, para o dia novo da pulseira aparecer sem recarregar. Marcar um alerta como lido muda a tela na hora e grava pelo `PATCH`; se o servidor recusar, a tela volta ao que o banco diz.
+
+Ainda não escrita: a criação de alertas quando chegam dias novos (cartão 6.1); até lá, a lista de alertas volta vazia.
 
 ### O banco
 
