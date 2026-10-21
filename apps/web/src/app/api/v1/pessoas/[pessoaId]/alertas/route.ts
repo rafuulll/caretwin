@@ -6,8 +6,8 @@ import { erro, quemChama, responder, type Contexto } from "@/lib/rota-v1"
  * mais antigo. Sem `lido`, todos; `lido=false` são os que ninguém da família
  * marcou como vistos ainda.
  *
- * Os alertas nascem no servidor quando chegam dias novos (cartão 6.1). Até lá
- * a lista volta vazia.
+ * Os alertas nascem no servidor quando a pulseira entrega dias novos
+ * (`src/lib/alertas.ts`, cartão 6.1). Esta rota só lê.
  */
 
 export const dynamic = "force-dynamic"

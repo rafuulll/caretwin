@@ -121,7 +121,7 @@ As leituras de dias e alertas ficam em `src/lib/historico.ts`, com a mesma regra
 
 Com conta, o `store.ts` lê os dias e os alertas de cada pessoa por estas rotas (cartão 7.3), junto com as pessoas, e publica tudo de uma vez. Ele relê sozinho quando a aba volta a aparecer e de 5 em 5 minutos com a aba à vista, para o dia novo da pulseira aparecer sem recarregar. Marcar um alerta como lido muda a tela na hora e grava pelo `PATCH`; se o servidor recusar, a tela volta ao que o banco diz.
 
-Ainda não escrita: a criação de alertas quando chegam dias novos (cartão 6.1); até lá, a lista de alertas volta vazia.
+Os alertas nascem no servidor (`src/lib/alertas.ts`, cartões 6.1 e 5.5): quando a pulseira entrega dias ou uma noite, a mesma regra do normal das telas (`procurarMudancas` em `src/lib/normal.ts`) roda sobre os últimos 40 dias da pessoa, na mesma transação, e grava os alertas novos. A regra única do banco (pessoa, dia e métrica) faz o recálculo nunca duplicar nem desfazer o lido. Ligar a pulseira pelo código também cria os alertas dos dias que já tinham chegado. O texto vem dos modelos de `src/lib/respostas-ia.ts`, que ficam como reserva quando a IA local escrever (cartões 6.2 e 6.3).
 
 ### O banco
 

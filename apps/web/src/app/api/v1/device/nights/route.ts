@@ -1,3 +1,4 @@
+import { criarAlertasNovos } from "@/lib/alertas"
 import { marcarSincronizacao, receberDaPulseira } from "@/lib/dispositivo"
 import { ENVIO_DA_NOITE } from "../esquemas"
 
@@ -32,6 +33,9 @@ export async function POST(requisicao: Request) {
         noite = excluded.noite,
         pessoa_id = coalesce(dias.pessoa_id, excluded.pessoa_id)
     `
+
+    // A noite muda o sono estimado, e o sono também tem normal e alerta.
+    if (pulseira.pessoaId) await criarAlertasNovos(tx, pulseira.pessoaId)
 
     await marcarSincronizacao(tx, pulseira)
     return { accepted: [noite.night_date], rejected: [] }

@@ -45,9 +45,12 @@ info:
 
 
     Quem calcula o alerta: a API. Quando a pulseira entrega dias novos, o
-    backend recalcula o normal da pessoa (regra do card 2.3, hoje em
-    apps/web/src/lib/normal.ts) e cria os alertas. O texto do alerta vem da IA,
-    com o texto de regra como reserva. O site so mostra.
+    backend recalcula o normal da pessoa (regra do card 2.3, em
+    apps/web/src/lib/normal.ts, a mesma das telas) e cria os alertas novos na
+    mesma transacao que grava os dias (apps/web/src/lib/alertas.ts). Ligar a
+    pulseira pelo codigo tambem cria os alertas dos dias que ja tinham chegado.
+    Hoje o texto vem dos modelos de frase de respostas-ia.ts; quando a IA local
+    escrever (cards 6.2 e 6.3), eles ficam como reserva. O site so mostra.
 servers:
   - url: http://localhost:3000/api
     description: local (npm run dev em apps/web)
@@ -340,7 +343,8 @@ paths:
       summary: Alertas de uma pessoa
       description: >
         Do mais recente para o mais antigo. Os alertas sao criados pelo backend
-        quando chegam dias novos (card 6.1); ate la a lista volta vazia.
+        quando a pulseira entrega dias novos (card 6.1), um por pessoa, dia e
+        metrica: recalcular nunca duplica nem desfaz o lido.
       security:
         - SessaoDoApp: []
       parameters:
