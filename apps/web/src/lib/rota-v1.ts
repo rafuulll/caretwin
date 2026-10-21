@@ -17,8 +17,18 @@ export type Contexto<P extends Record<string, string>> = { params: Promise<P> }
 export function erro(status: number, texto: string, codigo?: string, quando?: string) {
   return NextResponse.json(
     { erro: texto, ...(codigo ? { codigo } : {}), ...(quando ? { quando } : {}) },
-    { status }
+    { status, headers: status === 429 && quando ? { "Retry-After": segundosAte(quando) } : undefined }
   )
+}
+
+/**
+ * O cabeçalho padrão do 429: daqui a quantos segundos dá para tentar de novo.
+ * O `quando` no corpo serve para a tela escrever a hora; este serve para
+ * qualquer outro cliente HTTP que respeite o padrão.
+ */
+function segundosAte(quando: string): string {
+  const segundos = Math.ceil((new Date(quando).getTime() - Date.now()) / 1000)
+  return String(Math.max(1, segundos))
 }
 
 type Chamada = { sessao: Sessao & { id: string } } | { recusa: NextResponse }

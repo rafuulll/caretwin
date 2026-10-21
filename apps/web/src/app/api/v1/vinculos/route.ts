@@ -8,9 +8,10 @@ import { erro, quemChama, responder } from "@/lib/rota-v1"
  * (acompanhada) ou de alguém que cuida (cuidador). Pulseira livre: 201, nasce
  * a pessoa. Pulseira com família: 202, vira pedido.
  *
- * Falta limitar tentativas seguidas com códigos errados, como o contrato pede.
- * Numa rota da Vercel, um contador em memória não serve (cada chamada pode cair
- * num servidor diferente); isso vai precisar de uma tabela própria.
+ * Dez códigos inexistentes em 15 minutos: 429 com `quando` (a hora em que libera)
+ * e o cabeçalho Retry-After (cartão 5.10). O contador mora no banco, na tabela
+ * `tentativas_de_codigo`, porque cada chamada na Vercel pode cair num servidor
+ * diferente; a regra está em `digitarCodigo` (`src/lib/familia.ts`).
  */
 
 export const dynamic = "force-dynamic"

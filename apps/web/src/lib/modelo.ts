@@ -113,6 +113,18 @@ export const LIMITES_DA_PULSEIRA = {
   primeiroDia: "2025-01-01",
 } as const
 
+/**
+ * Quantos códigos de pulseira errados uma conta pode digitar numa janela de
+ * tempo (cartão 5.10). O código CT-XXXX tem só 4 caracteres: sem limite, dava
+ * para testar códigos até achar uma pulseira livre. Dez erros cobrem quem
+ * digita errado de verdade (letra trocada, O no lugar de 0) e deixam uma busca
+ * às cegas lenta demais para valer a pena.
+ */
+export const LIMITE_DE_CODIGOS_ERRADOS = {
+  tentativas: 10,
+  minutos: 15,
+} as const
+
 /** Quanto tempo a medição de batimentos pede para a pessoa ficar parada. */
 export const SEGUNDOS_MEDICAO = 12
 

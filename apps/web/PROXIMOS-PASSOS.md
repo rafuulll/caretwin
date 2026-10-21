@@ -4,7 +4,7 @@ O protótipo funciona sozinho: sem servidor, sem banco e sem chave de API. É is
 
 Este arquivo é o mapa do que vem depois. A página Como usar (`/como-usar`) é a versão dele dentro do app, navegável.
 
-Já estão construídos e testados (outubro de 2026): o login com e-mail e senha pelo Supabase Auth, o banco no Supabase e a família (ligar a pulseira pelo código, pedidos, aprovar, sair, encerrar e recuperar). O banco de produção está montado, com as migrações 0001 a 0005, e o site publicado já usa ele (variáveis na Vercel desde 20/10/2026). O login com Google também está escrito, esperando as chaves. O resto é mapa: o que é, por que vale para o CareTwin e onde encaixa.
+Já estão construídos e testados (outubro de 2026): o login com e-mail e senha pelo Supabase Auth, o banco no Supabase e a família (ligar a pulseira pelo código, pedidos, aprovar, sair, encerrar e recuperar). O banco de produção está montado, com as migrações 0001 a 0005 (a 0006, do limite de códigos, ainda falta rodar), e o site publicado já usa ele (variáveis na Vercel desde 20/10/2026). O login com Google também está escrito, esperando as chaves. O resto é mapa: o que é, por que vale para o CareTwin e onde encaixa.
 
 ## A ordem
 
@@ -14,8 +14,8 @@ Já estão construídos e testados (outubro de 2026): o login com e-mail e senha
 - [ ] 4. **Envio de e-mail**: mandar o resumo do dia para quem acompanha
 - [ ] 5. **WhatsApp**: avisar quem acompanha onde a família realmente lê
 - [ ] 6. **n8n**: fazer o e-mail e o WhatsApp acontecerem sozinhos
-- [ ] 7. **Banco no Supabase**: guardar fora do navegador sem esperar a API · *montado em produção (0001 a 0005), falta a `DATABASE_URL` na Vercel*
-- [ ] 8. **Antes de publicar**: rota protegida · *Deployment Protection ligada e variáveis na Vercel feitas; falta o limite de tentativas (cartão 5.10)*
+- [ ] 7. **Banco no Supabase**: guardar fora do navegador sem esperar a API · *montado em produção (0001 a 0005) e ligado ao site publicado; falta rodar a 0006*
+- [ ] 8. **Antes de publicar**: rota protegida · *variáveis na Vercel e limite de tentativas (cartão 5.10) feitos; falta trocar a proteção para Standard Protection, para a pulseira conseguir enviar*
 
 ---
 
@@ -73,7 +73,7 @@ São dois caminhos, e os dois gravam a mesma sessão assinada (`src/lib/sessao-s
 
 ## 7. Banco no Supabase
 
-> **Construído e montado em produção** (migrações 0001 a 0005, rodadas em 15/10/2026). Falta só a `DATABASE_URL` na Vercel.
+> **Construído e montado em produção** (migrações 0001 a 0005, rodadas em 15/10/2026; `DATABASE_URL` na Vercel desde 20/10/2026). Falta rodar a 0006, do limite de códigos errados (cartão 5.10).
 
 **O que fazer.** Crie um projeto no Supabase e ligue a extensão `pg_cron` (Database → Extensions), que a migração 0004 usa. Depois, copie a connection string do "Transaction pooler" (botão Connect, porta 6543) e cole em `DATABASE_URL` no `.env.local`, com `?sslmode=require` no final. As tabelas (usuários, pessoas, pulseiras, vínculos, dias e alertas) estão em `banco/migracoes/`: cole cada arquivo no SQL Editor do Supabase, em ordem, e execute uma vez. Com o banco ligado, quem entra com e-mail e senha vê só a própria família, e liga pulseiras, aprova pedidos, sai e encerra pela tela Família.
 
@@ -90,8 +90,9 @@ São dois caminhos, e os dois gravam a mesma sessão assinada (`src/lib/sessao-s
 1. ~~Variáveis de ambiente na Vercel (Production): `AUTH_SECRET`, `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY` e `DATABASE_URL`, com Redeploy.~~ Feito em 20/10/2026.
 2. ~~No Supabase de produção, em Authentication → URL Configuration: Site URL `https://caretwin-omega.vercel.app` e Redirect URLs `https://caretwin-omega.vercel.app/**`.~~ Feito em 20/10/2026.
 3. Entre com duas contas diferentes e veja que cada uma vê só a própria família. O `/api/health` já responde `"banco": "configurado"`.
-4. Limite as tentativas de código errado ao ligar a pulseira (cartão 5.10) antes de abrir o cadastro para gente de fora do grupo.
-5. Para mostrar a alguém de fora (o professor, por exemplo), gere um link no botão Share do deploy ou desligue a proteção em Settings → Deployment Protection.
+4. ~~Limite as tentativas de código errado ao ligar a pulseira (cartão 5.10).~~ Feito: 10 códigos inexistentes em 15 minutos fazem a conta esperar. Rode a migração 0006 no SQL Editor do Supabase de produção.
+5. Troque a proteção em Settings, Deployment Protection, para Standard Protection: o endereço principal fica aberto (o app já tem login próprio e o limite de códigos), e os links de preview continuam protegidos. É o que deixa a pulseira de verdade enviar dados (cartão 4.8).
+6. Depois do passo 5, quem é de fora (o professor, por exemplo) abre o endereço principal direto. Os links de preview dos pull requests continuam pedindo o login da Vercel; para mostrar um deles, gere um link no botão Share do deploy.
 
 **Por quê.** O código da pulseira tem só quatro caracteres. Sem limite de tentativas, alguém com uma conta poderia testar códigos até achar uma pulseira livre.
 

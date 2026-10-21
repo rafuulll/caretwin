@@ -538,6 +538,8 @@ export const sistema = {
         pulseira_em_encerramento:
           "Esta pulseira está travada porque o acompanhamento foi encerrado. Ela fica livre de novo em {data}.",
         invalido: "Confira o código, no formato CT-0000.",
+        muitas_tentativas:
+          "Foram muitos códigos errados seguidos. Por segurança, dá para tentar de novo a partir das {hora}.",
       },
     },
   },
