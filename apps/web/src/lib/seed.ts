@@ -1,7 +1,7 @@
 import { NOITE } from "./modelo"
 import { paraISO, somarDias, deISO } from "./formato"
 import { fracaoDoDia, procurarMudancas } from "./normal"
-import { TEXTOS_DE_ALERTA, indiceFixo } from "./respostas-ia"
+import { indiceFixo, textosDoAlerta } from "./respostas-ia"
 import type { Alerta, Dados, DataISO, DiaRegistrado, MedicaoBatimentos, Pessoa, Pulseira } from "./types"
 
 /**
@@ -213,7 +213,8 @@ export function recalcularAlertas(dados: Dados, agora: Date = new Date()): Alert
     const antigo = existentes.get(mudanca.id)
     if (antigo) return antigo
     const pessoa = dados.pessoas.find((p) => p.id === mudanca.pessoaId)
-    const escrever = TEXTOS_DE_ALERTA[indiceFixo(mudanca.id, TEXTOS_DE_ALERTA.length)]
+    const textos = textosDoAlerta(mudanca.metrica, mudanca.direcao)
+    const escrever = textos[indiceFixo(mudanca.id, textos.length)]
     return {
       id: mudanca.id,
       pessoaId: mudanca.pessoaId,

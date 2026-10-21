@@ -57,6 +57,8 @@ A do cartão 2.3: média dos 7 dias antes dos 3 recentes, faixa de 20% para cada
 
 - Os passos de hoje são comparados com o normal **até este horário** (uma curva de quanto se anda em cada hora). Comparar com o dia inteiro às 10h diria "abaixo do normal" pra todo mundo, todo dia.
 - O alerta nasce no **primeiro** dia em que a mudança fica clara, e não se repete nos dias seguintes enquanto ela continua. Sem isso, quem cuida leria o mesmo aviso toda noite.
+- **Margem mínima de 1.000 passos** (20/10/2026). A faixa de passos é o normal mais ou menos o maior entre 20% e 1.000 passos. Com os alertas nascendo no servidor, o teste mostrou que, para quem anda uns 2.500 passos por dia, 20% são 500 passos, e a variação comum de um dia para o outro já virava alerta. Mil passos são uns 10 minutos de caminhada. Quem anda 7.000 passos não muda nada (20% já são 1.400). Sono e batimentos ficam só com os 20%.
+- **Passos acima do normal são boa notícia** (20/10/2026). Andar mais é quase sempre um bom sinal, e a família não deveria ler isso como problema. O alerta continua existindo, com título "Mais ativo que o normal", selo verde e frase positiva (`ehBoaNoticia` em `modelo.ts`, `TEXTOS_DE_BOA_NOTICIA` em `respostas-ia.ts`). Só para passos: dormir muito mais ou batimentos acima seguem em tom neutro. No gráfico de 14 dias, a barra acima da faixa fica na cor da série e só abaixo fica âmbar, porque o verde e o âmbar do design system ficam quase iguais para quem tem protanopia (validador da skill dataviz).
 
 ## O site da raiz
 

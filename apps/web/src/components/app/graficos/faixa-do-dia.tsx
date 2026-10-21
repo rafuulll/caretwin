@@ -8,10 +8,12 @@ import { COR } from "./base"
  * Fica escondida do leitor de tela de propósito: a mesma informação já está
  * escrita logo acima dela, no número e na frase do normal.
  */
-export function FaixaDoDia({ valor, faixa }: { valor: number; faixa: Faixa }) {
+export function FaixaDoDia({ valor, faixa, acimaEhBom = false }: { valor: number; faixa: Faixa; acimaEhBom?: boolean }) {
   const teto = Math.max(faixa.alto * 1.35, valor * 1.1, 1)
   const pct = (v: number) => `${Math.min(100, Math.max(0, (v / teto) * 100))}%`
-  const fora = valor < faixa.baixo || valor > faixa.alto
+  // Passos acima do normal são boa notícia: o marcador fica na cor da série, e
+  // só abaixo da faixa ganha o âmbar de atenção.
+  const fora = valor < faixa.baixo || (valor > faixa.alto && !acimaEhBom)
 
   return (
     <div aria-hidden="true" className="relative mt-5 h-4">

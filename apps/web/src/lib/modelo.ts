@@ -48,11 +48,30 @@ export const REGRA_NORMAL = {
   diasRecentes: 3,
   /** Quanto um dia pode variar em torno do normal e continuar dentro dele. */
   variacao: 0.2,
+  /**
+   * A menor margem, em unidades da métrica, para cada lado do normal. Para quem
+   * anda pouco, 20% é pouco: com 2.500 passos por dia, a faixa seria de 500
+   * para cada lado, e a variação comum de um dia para o outro já viraria
+   * alerta. Mil passos são uns 10 minutos de caminhada; abaixo disso, a
+   * diferença cabe num dia comum. Sono e batimentos ficam só com os 20%.
+   */
+  margemMinima: { passos: 1000, sono: 0, batimentos: 0 },
   /** Quantos dos dias recentes precisam fugir na mesma direção para virar alerta. */
   diasParaAlerta: 2,
   /** Com menos dias válidos na base, o app diz que ainda está aprendendo. */
   minimoDiasValidos: 5,
 } as const
+
+/**
+ * Mudanças que são boa notícia. Andar mais que o normal é quase sempre um bom
+ * sinal, e a família não deveria ler isso como problema: o alerta continua
+ * existindo, com tom positivo, cor de sucesso e frase de boa notícia. Só para
+ * passos: dormir muito mais ou batimentos acima do costume seguem em tom neutro
+ * de atenção.
+ */
+export function ehBoaNoticia(metrica: Metrica, direcao: Direcao) {
+  return metrica === "passos" && direcao === "acima"
+}
 
 /** Quantos dias de uso a pessoa precisa para o normal existir: recentes mais o mínimo da base. */
 export const DIAS_PARA_CONHECER_O_NORMAL = REGRA_NORMAL.diasRecentes + REGRA_NORMAL.minimoDiasValidos
