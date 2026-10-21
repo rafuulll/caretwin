@@ -26,7 +26,13 @@ const esquemaCodigo = z
 const esquemaNome = z.string().trim().min(2, textos.nome.erro)
 
 /** Recusas que dizem respeito ao código: a tela volta para ele, com a frase no campo. */
-const ERROS_DO_CODIGO = new Set(["codigo_inexistente", "invalido", "ja_tem_vinculo", "pulseira_em_encerramento"])
+const ERROS_DO_CODIGO = new Set([
+  "codigo_inexistente",
+  "invalido",
+  "ja_tem_vinculo",
+  "pulseira_em_encerramento",
+  "muitas_tentativas",
+])
 
 type Passo = 0 | 1 | 2
 type Fim = { tipo: "ligada"; nome: string; papel: Papel } | { tipo: "pedido"; codigo: string }

@@ -21,7 +21,7 @@ Abra <http://localhost:3000>. Sem nenhuma variável de ambiente, o app roda no *
 
 1. Crie um projeto de teste no [Supabase](https://supabase.com) (o plano gratuito basta).
 2. Em Database, Extensions, ligue a extensão `pg_cron`.
-3. No SQL Editor, rode em ordem os arquivos de `banco/migracoes/` (0001 a 0005), cada um uma vez.
+3. No SQL Editor, rode em ordem os arquivos de `banco/migracoes/` (0001 a 0006), cada um uma vez.
 4. Rode `banco/dev/pulseiras-de-teste.sql`, que cria as pulseiras `CT-TST1`, `CT-TST2` e `CT-TST3`. **Só em banco de teste.**
 5. Copie o `.env.example` para `.env.local` e preencha:
    - `DATABASE_URL`: em Connect, Transaction pooler (porta 6543), com `?sslmode=require` no final.
@@ -121,7 +121,9 @@ As leituras de dias e alertas ficam em `src/lib/historico.ts`, com a mesma regra
 
 Com conta, o `store.ts` lê os dias e os alertas de cada pessoa por estas rotas (cartão 7.3), junto com as pessoas, e publica tudo de uma vez. Ele relê sozinho quando a aba volta a aparecer e de 5 em 5 minutos com a aba à vista, para o dia novo da pulseira aparecer sem recarregar. Marcar um alerta como lido muda a tela na hora e grava pelo `PATCH`; se o servidor recusar, a tela volta ao que o banco diz.
 
-Os alertas nascem no servidor (`src/lib/alertas.ts`, cartões 6.1 e 5.5): quando a pulseira entrega dias ou uma noite, a mesma regra do normal das telas (`procurarMudancas` em `src/lib/normal.ts`) roda sobre os últimos 40 dias da pessoa, na mesma transação, e grava os alertas novos. A regra única do banco (pessoa, dia e métrica) faz o recálculo nunca duplicar nem desfazer o lido. Ligar a pulseira pelo código também cria os alertas dos dias que já tinham chegado. O texto vem dos modelos de `src/lib/respostas-ia.ts`, que ficam como reserva quando a IA local escrever (cartões 6.2 e 6.3).
+Os alertas nascem no servidor (`src/lib/alertas.ts`, cartões 6.1 e 5.5): quando a pulseira entrega dias ou uma noite, a mesma regra do normal das telas (`procurarMudancas` em `src/lib/normal.ts`) roda sobre os últimos 40 dias da pessoa, na mesma transação, e grava os alertas novos. A regra única do banco (pessoa, dia e métrica) faz o recálculo nunca duplicar nem desfazer o lido. Ligar a pulseira pelo código também cria os alertas dos dias que já tinham chegado.
+
+O código da pulseira tem só 4 caracteres, então digitar códigos tem limite (cartão 5.10): cada código que não existe vira uma linha em `tentativas_de_codigo`, e com 10 nos últimos 15 minutos a conta recebe 429 com a hora em que pode tentar de novo (`quando` e o cabeçalho `Retry-After`). Enquanto espera, nem o código certo é consultado. Códigos que existem não contam, e o limite é por conta. Os números estão em `LIMITE_DE_CODIGOS_ERRADOS` (`src/lib/modelo.ts`) e a regra em `digitarCodigo` (`src/lib/familia.ts`). O texto vem dos modelos de `src/lib/respostas-ia.ts`, que ficam como reserva quando a IA local escrever (cartões 6.2 e 6.3).
 
 ### O banco
 
@@ -132,6 +134,7 @@ Os alertas nascem no servidor (`src/lib/alertas.ts`, cartões 6.1 e 5.5): quando
 | `0003_encerramento.sql` | Data e autor do encerramento em `pessoas` |
 | `0004_apagar_encerrados.sql` | Tarefa diária do pg_cron que apaga o que foi encerrado há mais de 30 dias |
 | `0005_tirar_a_ponte.sql` | Apaga a tabela `registros` do protótipo |
+| `0006_tentativas_de_codigo.sql` | Tabela `tentativas_de_codigo` do limite de códigos errados (cartão 5.10) e a limpeza diária dela no pg_cron |
 
 Cada arquivo roda uma vez, em ordem, e nunca é editado depois: mudança nova vira o próximo número.
 

@@ -2,6 +2,7 @@ import type postgres from "postgres"
 import { criarAlertasNovos } from "./alertas"
 import { conexao } from "./banco"
 import { confirmacaoConfere, DIAS_PARA_RECUPERAR } from "./encerramento"
+import { LIMITE_DE_CODIGOS_ERRADOS } from "./modelo"
 
 /**
  * Quem vê qual pessoa: usuários, pessoas, pulseiras e vínculos (cartão 5.9).
@@ -14,6 +15,7 @@ import { confirmacaoConfere, DIAS_PARA_RECUPERAR } from "./encerramento"
  *   - Digitar o código de uma pulseira livre cria a pessoa, e quem digitou
  *     administra a família.
  *   - Digitar o código de uma pulseira que já tem família cria um pedido.
+ *   - Dez códigos inexistentes em 15 minutos fazem a conta esperar (5.10).
  *   - Administram quem cadastrou (pessoas.cadastrada_por) e a própria pessoa
  *     acompanhada, quando aprovada.
  *   - Quando a família fica sem administrador, o cuidador aprovado mais
@@ -295,8 +297,35 @@ function ehViolacaoDeUnico(erro: unknown): boolean {
 export type CodigoDigitado = { codigo: string; papel: Papel; nome?: string }
 
 /**
+ * Até quando a conta espera para digitar outro código (cartão 5.10), ou `null`
+ * se ela pode tentar agora. Conta só os códigos inexistentes da própria conta
+ * nos últimos minutos da janela: o erro de uma conta nunca bloqueia outra.
+ *
+ * A linha da conta é travada antes da contagem, então vários envios ao mesmo
+ * tempo da mesma conta passam um de cada vez e não furam o limite juntos.
+ */
+async function esperaParaTentar(tx: Sql, usuarioId: string): Promise<string | null> {
+  await tx`select 1 from usuarios where id = ${usuarioId} for update`
+  const { tentativas, minutos } = LIMITE_DE_CODIGOS_ERRADOS
+  const [janela] = await tx<{ quantas: number; primeira: Date | null }[]>`
+    select count(*)::int as quantas, min(criado_em) as primeira
+    from tentativas_de_codigo
+    where usuario_id = ${usuarioId} and criado_em > now() - make_interval(mins => ${minutos})
+  `
+  if (janela.quantas < tentativas || !janela.primeira) return null
+  // Libera quando a tentativa mais antiga da janela sai dela.
+  return new Date(janela.primeira.getTime() + minutos * 60 * 1000).toISOString()
+}
+
+/**
  * `POST /v1/vinculos`. A pulseira é travada antes de tudo: duas contas
  * digitando o mesmo código livre ao mesmo tempo não criam duas pessoas.
+ *
+ * Antes de olhar o código, confere o limite de códigos errados. Enquanto a
+ * conta espera, nenhum código é consultado, nem o certo: se o certo passasse,
+ * quem testa códigos às cegas saberia quando acertou e o limite não protegeria
+ * nada. Só o código inexistente conta como erro; um código que existe (livre,
+ * com família ou travado) já é o código de alguém e não grava tentativa.
  */
 export async function digitarCodigo(
   usuarioId: string,
@@ -304,10 +333,19 @@ export async function digitarCodigo(
 ): Promise<Resultado<PessoaComPulseira | Pedido>> {
   try {
     return await banco().begin(async (tx) => {
+      const espera = await esperaParaTentar(tx, usuarioId)
+      if (espera) {
+        return falha(429, "Muitos códigos errados seguidos. Tente de novo mais tarde.", "muitas_tentativas", espera)
+      }
+
       const [pulseira] = await tx<{ id: string; pessoa_id: string | null }[]>`
         select id, pessoa_id from pulseiras where codigo = ${entrada.codigo} for update
       `
-      if (!pulseira) return falha(404, "Não existe pulseira com esse código.", "codigo_inexistente")
+      if (!pulseira) {
+        // A falha não desfaz a transação: a tentativa fica gravada.
+        await tx`insert into tentativas_de_codigo (usuario_id) values (${usuarioId})`
+        return falha(404, "Não existe pulseira com esse código.", "codigo_inexistente")
+      }
 
       // Pulseira livre: nasce a pessoa, e quem digitou administra.
       if (!pulseira.pessoa_id) {

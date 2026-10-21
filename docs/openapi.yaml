@@ -439,8 +439,15 @@ paths:
 
 
         O codigo sozinho nao abre os dados de ninguem: ele so cria a pessoa
-        quando a pulseira ainda nao tem familia. Tentativas repetidas com codigos
-        errados devem ser limitadas pelo backend.
+        quando a pulseira ainda nao tem familia.
+
+
+        Limite de codigos errados (cartao 5.10): cada codigo que nao existe conta
+        como uma tentativa da conta. Com 10 tentativas nos ultimos 15 minutos, a
+        conta recebe 429 e nao consulta codigo nenhum, nem o certo, ate a
+        tentativa mais antiga sair da janela. Codigos que existem (pulseira
+        livre, com familia ou travada) nao contam. Uma conta nunca e bloqueada
+        pelas tentativas de outra.
       security:
         - SessaoDoApp: []
       requestBody:
@@ -496,6 +503,24 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Erro'
+        '429':
+          description: >
+            Muitos codigos errados seguidos (codigo muitas_tentativas). O campo
+            quando traz a hora em que a conta pode tentar de novo, e o cabecalho
+            Retry-After traz os segundos que faltam
+          headers:
+            Retry-After:
+              description: Segundos ate a conta poder tentar de novo
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+              example:
+                erro: Muitos códigos errados seguidos. Tente de novo mais tarde.
+                codigo: muitas_tentativas
+                quando: '2026-10-21T19:45:00.000Z'
   /v1/pessoas/{pessoaId}/vinculo:
     delete:
       tags: [app]

@@ -15,7 +15,8 @@ Projeto academico da disciplina UPX, Engenharia da Computacao, UniFacens.
 | Site de apresentacao e app com dados de exemplo | Funciona, publicado na Vercel |
 | Contas com e-mail e senha (Supabase Auth) | Pronto e testado |
 | Familia: ligar pulseira pelo codigo, pedidos, aprovar, sair, encerrar e recuperar | Pronto e testado (52 verificacoes na API, 22 no navegador e teste manual com tres contas) |
-| Banco de producao no Supabase | Montado (migracoes 0001 a 0005) |
+| Banco de producao no Supabase | Montado (migracoes 0001 a 0005; a 0006 do limite de codigos falta rodar) |
+| Limite de codigos errados ao ligar a pulseira | Pronto e testado: 10 codigos inexistentes em 15 minutos fazem a conta esperar (cartao 5.10) |
 | Site publicado usando o banco | Pronto: variaveis na Vercel e URLs no Supabase configuradas em 20/10/2026 |
 | Rotas que recebem os dados da pulseira (/v1/device) | Prontas e testadas com o simulador; falta apontar o firmware para elas (cartao 4.8) |
 | Alertas criados quando chegam dias novos | Pronto e testado: mesma regra do normal das telas, rodando no servidor (cartoes 6.1 e 5.5) |
