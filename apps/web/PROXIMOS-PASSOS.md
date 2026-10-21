@@ -8,7 +8,7 @@ Já estão construídos e testados (outubro de 2026): o login com e-mail e senha
 
 ## A ordem
 
-- [ ] 1. **API do CareTwin**: trocar os dados de exemplo pelos dados reais da pulseira · *contas, família e as rotas da pulseira (`/v1/device`) prontas; as rotas de leitura (5.6) e as telas com os dias reais (7.3) prontas; faltam os alertas criados no servidor (6.1) e o firmware apontar para a API (4.8)*
+- [ ] 1. **API do CareTwin**: trocar os dados de exemplo pelos dados reais da pulseira · *contas, família e as rotas da pulseira (`/v1/device`) prontas; as rotas de leitura (5.6), as telas com os dias reais (7.3) e os alertas criados no servidor (6.1) prontos; falta o firmware apontar para a API (4.8)*
 - [ ] 2. **Login**: saber quem está usando · *e-mail e senha pronto e testado, falta ligar em produção; Google escrito, falta a chave*
 - [ ] 3. **A IA que escreve os textos**: o resumo do dia e os alertas escritos de verdade
 - [ ] 4. **Envio de e-mail**: mandar o resumo do dia para quem acompanha
@@ -77,7 +77,7 @@ São dois caminhos, e os dois gravam a mesma sessão assinada (`src/lib/sessao-s
 
 **O que fazer.** Crie um projeto no Supabase e ligue a extensão `pg_cron` (Database → Extensions), que a migração 0004 usa. Depois, copie a connection string do "Transaction pooler" (botão Connect, porta 6543) e cole em `DATABASE_URL` no `.env.local`, com `?sslmode=require` no final. As tabelas (usuários, pessoas, pulseiras, vínculos, dias e alertas) estão em `banco/migracoes/`: cole cada arquivo no SQL Editor do Supabase, em ordem, e execute uma vez. Com o banco ligado, quem entra com e-mail e senha vê só a própria família, e liga pulseiras, aprova pedidos, sai e encerra pela tela Família.
 
-**O que já está ligado.** Com conta, Painel, Sono e Alertas mostram os dias que a pulseira mandou, lidos pelas rotas do cartão 5.6 (troca no `store`, cartão 7.3). Sem nenhum dia ainda, as telas dizem que os dados estão a caminho. Os alertas aparecem quando o servidor passar a criá-los (cartão 6.1).
+**O que já está ligado.** Com conta, Painel, Sono e Alertas mostram os dias que a pulseira mandou, lidos pelas rotas do cartão 5.6 (troca no `store`, cartão 7.3). Sem nenhum dia ainda, as telas dizem que os dados estão a caminho. Os alertas nascem no servidor quando a pulseira entrega dias novos (cartão 6.1) e aparecem na tela de Alertas.
 
 ## 8. Antes de publicar
 

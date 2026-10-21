@@ -1,4 +1,5 @@
 import type postgres from "postgres"
+import { criarAlertasNovos } from "./alertas"
 import { conexao } from "./banco"
 import { confirmacaoConfere, DIAS_PARA_RECUPERAR } from "./encerramento"
 
@@ -323,6 +324,8 @@ export async function digitarCodigo(
         `
         // O que a pulseira mandou antes de ter dona ganha a pessoa agora.
         await tx`update dias set pessoa_id = ${pessoa.id} where pulseira_id = ${pulseira.id} and pessoa_id is null`
+        // E os alertas desses dias nascem agora, sem esperar o próximo envio da pulseira.
+        await criarAlertasNovos(tx, pessoa.id)
 
         const [visivel] = await pessoasVisiveis(tx, usuarioId, pessoa.id)
         return certo<PessoaComPulseira | Pedido>(visivel, 201)

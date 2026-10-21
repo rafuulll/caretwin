@@ -58,7 +58,7 @@ export function dataExiste(texto: string) {
   return !Number.isNaN(dia.getTime()) && dia.toISOString().slice(0, 10) === texto
 }
 
-function somarDias(data: DataISO, dias: number): DataISO {
+export function somarDias(data: DataISO, dias: number): DataISO {
   const dia = new Date(`${data}T00:00:00Z`)
   dia.setUTCDate(dia.getUTCDate() + dias)
   return dia.toISOString().slice(0, 10)
@@ -72,7 +72,7 @@ function diasEntre(de: DataISO, ate: DataISO) {
  * Hoje no Brasil. O servidor da Vercel roda em UTC: às 22h de Brasília já é o
  * dia seguinte lá, e "hoje" pelo relógio do servidor pularia um dia.
  */
-function hojeNoBrasil(agora = new Date()): DataISO {
+export function hojeNoBrasil(agora = new Date()): DataISO {
   return new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo" }).format(agora)
 }
 
@@ -110,7 +110,20 @@ export async function lerDias(
 
   const sql = banco()
   if (!(await enxerga(sql, usuarioId, pessoaId))) return NAO_ENCONTRADO
+  return { ok: true, status: 200, corpo: await sql.begin((tx) => buscarDias(tx, pessoaId, de, ate)) }
+}
 
+/**
+ * Os dias de uma pessoa entre duas datas, já no formato das telas. Sem
+ * conferir acesso: quem chama já conferiu (`lerDias`) ou é o próprio servidor
+ * (`alertas.ts`, ao recalcular os alertas).
+ */
+export async function buscarDias(
+  sql: postgres.TransactionSql,
+  pessoaId: string,
+  de: DataISO,
+  ate: DataISO
+): Promise<DiaRegistrado[]> {
   // Uma pessoa que trocou de pulseira pode ter duas linhas no mesmo dia, uma
   // de cada. O distinct on fica com uma só: a que tem mais dado.
   const linhas = await sql<LinhaDia[]>`
@@ -123,19 +136,15 @@ export async function lerDias(
       (d.passos is not null)::int + (d.noite is not null)::int desc,
       d.id
   `
-  return {
-    ok: true,
-    status: 200,
-    corpo: linhas.map((l) => ({
-      id: l.id,
-      pessoaId: l.pessoa_id,
-      data: l.data,
-      passos: l.passos,
-      noite: l.noite,
-      // A pulseira ainda não manda batimentos (no contrato, /heartrate é futuro).
-      batimentos: [],
-    })),
-  }
+  return linhas.map((l) => ({
+    id: l.id,
+    pessoaId: l.pessoa_id,
+    data: l.data,
+    passos: l.passos,
+    noite: l.noite,
+    // A pulseira ainda não manda batimentos (no contrato, /heartrate é futuro).
+    batimentos: [],
+  }))
 }
 
 // --- alertas ------------------------------------------------------------------

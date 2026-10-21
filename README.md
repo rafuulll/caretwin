@@ -18,7 +18,7 @@ Projeto academico da disciplina UPX, Engenharia da Computacao, UniFacens.
 | Banco de producao no Supabase | Montado (migracoes 0001 a 0005) |
 | Site publicado usando o banco | Pronto: variaveis na Vercel e URLs no Supabase configuradas em 20/10/2026 |
 | Rotas que recebem os dados da pulseira (/v1/device) | Prontas e testadas com o simulador; falta apontar o firmware para elas (cartao 4.8) |
-| Alertas criados quando chegam dias novos | Falta (cartao 6.1) |
+| Alertas criados quando chegam dias novos | Pronto e testado: mesma regra do normal das telas, rodando no servidor (cartoes 6.1 e 5.5) |
 | Rotas de leitura de dias e alertas (/v1/pessoas/{id}/dias e /alertas) | Prontas e testadas (cartao 5.6) |
 | Dias e alertas reais nas telas (Painel, Sono, Alertas) | Pronto e testado no navegador nos tres cenarios: aprendendo, dentro e fora do normal (cartao 7.3) |
 | IA escrevendo os textos | Falta (hoje os textos sao modelos preenchidos com os numeros) |

@@ -1,4 +1,5 @@
 import type { z } from "zod"
+import { criarAlertasNovos } from "@/lib/alertas"
 import { marcarSincronizacao, receberDaPulseira } from "@/lib/dispositivo"
 import { BATERIA, DIA, ENVIO_DIARIO, rotuloDoDia } from "../esquemas"
 
@@ -10,8 +11,8 @@ import { BATERIA, DIA, ENVIO_DIARIO, rotuloDoDia } from "../esquemas"
  * da pulseira, os errados vão para `rejected` e nunca são gravados (cartão 5.5).
  * Mandar o mesmo dia de novo atualiza a linha, não cria outra.
  *
- * O alerta ainda não nasce aqui. A regra do normal está em `src/lib/normal.ts`,
- * escrita para as telas; virar um serviço sobre o banco é o cartão 6.1.
+ * Com os dias gravados, a regra do normal roda sobre o banco e cria os alertas
+ * novos na mesma transação (`src/lib/alertas.ts`, cartões 6.1 e 5.5).
  */
 
 export const dynamic = "force-dynamic"
@@ -43,6 +44,10 @@ export async function POST(requisicao: Request) {
           pessoa_id = coalesce(dias.pessoa_id, excluded.pessoa_id)
       `
     }
+
+    // Pulseira ainda sem família: não há de quem ser o alerta. Os dias ganham a
+    // pessoa quando a família digitar o código, e os alertas nascem ali.
+    if (pulseira.pessoaId && validos.size > 0) await criarAlertasNovos(tx, pulseira.pessoaId)
 
     const bateria = BATERIA.safeParse(envio.battery_pct)
     await marcarSincronizacao(tx, pulseira, bateria.success ? bateria.data : undefined)
