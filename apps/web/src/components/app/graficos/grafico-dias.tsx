@@ -24,6 +24,13 @@ type Props = {
    * e "3 h" no eixo mentiria um pouco.
    */
   passoDoEixo?: number
+  /**
+   * Acima do normal é boa notícia neste gráfico (passos, `ehBoaNoticia`): a
+   * barra acima da faixa fica na cor da série e só abaixo ganha o âmbar. O
+   * verde de sucesso não entra aqui: ao lado do âmbar, os dois ficam quase
+   * iguais para quem tem protanopia (validador da skill dataviz, ΔE 5).
+   */
+  acimaEhBom?: boolean
 }
 
 /**
@@ -33,7 +40,7 @@ type Props = {
  * responde: a mudança é de um dia só, ou já são vários seguidos? É por isso
  * que ele existe ao lado do número grande, e não no lugar dele.
  */
-export function GraficoDias({ pontos, rotulo, formatar, formatarEixo, semValorHoje, passoDoEixo }: Props) {
+export function GraficoDias({ pontos, rotulo, formatar, formatarEixo, semValorHoje, passoDoEixo, acimaEhBom = false }: Props) {
   const { ref, largura } = useLargura<HTMLDivElement>()
   const textos = sistema.comum
 
@@ -80,7 +87,7 @@ export function GraficoDias({ pontos, rotulo, formatar, formatarEixo, semValorHo
 
             {pontos.map((ponto, indice) => {
               const centro = esquerda + fatia * indice + fatia / 2
-              const fora = ponto.situacao === "abaixo" || ponto.situacao === "acima"
+              const fora = ponto.situacao === "abaixo" || (ponto.situacao === "acima" && !acimaEhBom)
               return (
                 <g key={ponto.data}>
                   {ponto.faixa && (
@@ -126,7 +133,7 @@ export function GraficoDias({ pontos, rotulo, formatar, formatarEixo, semValorHo
       <Legenda
         itens={[
           { rotulo: textos.faixaDeCostume, marca: "faixa" },
-          { rotulo: textos.foraDoNormal, marca: "fora" },
+          { rotulo: acimaEhBom ? sistema.situacoes.abaixo : textos.foraDoNormal, marca: "fora" },
         ]}
       />
 
@@ -140,7 +147,10 @@ export function GraficoDias({ pontos, rotulo, formatar, formatarEixo, semValorHo
               ? ponto.hoje
                 ? semValorHoje
                 : textos.semDado
-              : `${formatar(ponto.valor)}, ${sistema.situacoes[ponto.situacao].toLowerCase()}`,
+              : `${formatar(ponto.valor)}, ${(acimaEhBom && ponto.situacao === "acima"
+                  ? sistema.maisAtivo
+                  : sistema.situacoes[ponto.situacao]
+                ).toLowerCase()}`,
         }))}
       />
     </figure>

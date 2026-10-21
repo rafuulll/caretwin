@@ -1,7 +1,7 @@
 import type postgres from "postgres"
 import { buscarDias, hojeNoBrasil, somarDias } from "./historico"
 import { procurarMudancas } from "./normal"
-import { indiceFixo, TEXTOS_DE_ALERTA } from "./respostas-ia"
+import { indiceFixo, textosDoAlerta } from "./respostas-ia"
 import type { Dados } from "./types"
 
 /**
@@ -60,7 +60,9 @@ export async function criarAlertasNovos(sql: Sql, pessoaId: string, agora = new 
   for (const mudanca of procurarMudancas(dados, hoje)) {
     // A chave é a mesma do protótipo (pessoa, dia e métrica): o mesmo alerta
     // ganha sempre a mesma frase.
-    const escrever = TEXTOS_DE_ALERTA[indiceFixo(mudanca.id, TEXTOS_DE_ALERTA.length)]
+    // Passos acima do normal ganham as frases de boa notícia (`ehBoaNoticia`).
+    const textos = textosDoAlerta(mudanca.metrica, mudanca.direcao)
+    const escrever = textos[indiceFixo(mudanca.id, textos.length)]
     const texto = escrever({
       nome: pessoa.nome,
       metrica: mudanca.metrica,

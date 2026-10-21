@@ -5,7 +5,8 @@
  * própria pessoa. A regra é a do cartão 2.3, com os números em `modelo.ts`:
  *
  *   1. O NORMAL é a média dos 7 dias que vêm antes dos 3 dias mais recentes.
- *   2. A FAIXA de costume vai de 20% abaixo a 20% acima desse normal.
+ *   2. A FAIXA de costume vai de 20% abaixo a 20% acima desse normal, e nunca
+ *      fica mais estreita que a margem mínima da métrica (1.000 passos).
  *   3. Um ALERTA nasce quando 2 dos 3 dias recentes fogem da faixa para o
  *      mesmo lado.
  *   4. Com menos de 5 dias válidos na base, não existe normal ainda: a tela diz
@@ -71,10 +72,13 @@ export function faixaNormal(
   }
   if (valores.length < REGRA_NORMAL.minimoDiasValidos) return null
   const normal = valores.reduce((a, b) => a + b, 0) / valores.length
+  // O maior entre 20% e a margem mínima da métrica (1.000 passos): quem anda
+  // pouco não recebe alerta pela variação comum de um dia para o outro.
+  const margem = Math.max(normal * REGRA_NORMAL.variacao, REGRA_NORMAL.margemMinima[metrica])
   return {
     normal,
-    baixo: normal * (1 - REGRA_NORMAL.variacao),
-    alto: normal * (1 + REGRA_NORMAL.variacao),
+    baixo: Math.max(0, normal - margem),
+    alto: normal + margem,
     diasValidos: valores.length,
   }
 }

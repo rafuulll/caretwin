@@ -82,6 +82,7 @@ export default function PaginaPainel() {
                     formatar={(v) => `${numero(v)} ${sistema.metricas.passos.unidade}`}
                     formatarEixo={milhar}
                     semValorHoje={textos.grafico.hojeParcial}
+                    acimaEhBom
                   />
                 </CardConteudo>
               </Card>

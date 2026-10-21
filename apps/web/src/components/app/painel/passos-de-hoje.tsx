@@ -29,7 +29,7 @@ export function PassosDeHojeCartao({ dados }: { dados: PassosDeHoje }) {
             {textos.titulo}
           </dt>
           <dd>
-            <SeloSituacao situacao={situacao} />
+            <SeloSituacao situacao={situacao} metrica="passos" />
           </dd>
 
           <dd className="col-span-2 mt-3 font-display text-5xl leading-none text-ink sm:text-6xl">
@@ -43,7 +43,7 @@ export function PassosDeHojeCartao({ dados }: { dados: PassosDeHoje }) {
                 baixo: numero(Math.round(faixaAteAgora.baixo)),
                 alto: numero(Math.round(faixaAteAgora.alto)),
               })}
-              {passos !== null && <FaixaDoDia valor={passos} faixa={faixaAteAgora} />}
+              {passos !== null && <FaixaDoDia valor={passos} faixa={faixaAteAgora} acimaEhBom />}
             </dd>
           )}
           {faixaDoDia && (

@@ -222,6 +222,9 @@ export const sistema = {
     aprendendo: "Aprendendo o normal",
   },
 
+  /** Passos acima do normal são boa notícia (`ehBoaNoticia`): selo verde e este texto. */
+  maisAtivo: "Mais ativo que o normal",
+
   metricas: {
     passos: { nome: "Passos", unidade: "passos", icone: "passos" },
     sono: { nome: "Sono", unidade: "de sono", icone: "sono" },
@@ -435,6 +438,7 @@ export const sistema = {
         batimentos: { abaixo: "Batimentos abaixo do costume", acima: "Batimentos acima do costume" },
       },
       desvio: "{n}% {lado} do normal",
+      boaNoticia: { titulo: "Mais ativo que o normal", desvio: "{n}% a mais que o normal" },
       lado: { abaixo: "abaixo", acima: "acima" },
       escritoPelaIa: "Texto de exemplo escrito pela IA",
       vazio: {

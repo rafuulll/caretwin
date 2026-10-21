@@ -12,7 +12,7 @@
  * conversar com quem cuida.
  */
 
-import type { Direcao, Metrica } from "./modelo"
+import { ehBoaNoticia, type Direcao, type Metrica } from "./modelo"
 import { duracaoFalada, numero } from "./formato"
 
 /** O que a IA sabe de um alerta: só os números que o normal já calculou. */
@@ -56,6 +56,30 @@ export const TEXTOS_DE_ALERTA: ((f: FatosDoAlerta) => string)[] = [
   (f) =>
     `Comparado com a própria semana anterior, ${f.nome} ficou ${lado(f.direcao)} do normal ${NA_METRICA[f.metrica]}. Não é diagnóstico: é só o dia comparado com o próprio jeito de sempre.`,
 ]
+
+/**
+ * As frases de boa notícia: passos acima do normal (`ehBoaNoticia`). Contam o
+ * que mudou com alegria, sem prometer nada sobre saúde. O normal é a média dos
+ * dias ANTES dos 3 recentes, então os dias de agora ainda não entraram nele:
+ * por isso "se continuar, o normal sobe junto", e não "a média já subiu".
+ */
+export const TEXTOS_DE_BOA_NOTICIA: ((f: FatosDoAlerta) => string)[] = [
+  (f) =>
+    `${f.nome} andou mais que o de costume em dois dos últimos três dias: ${valorFalado(f.metrica, f.valor)} no dia mais recente, quando o normal fica perto de ${valorFalado(f.metrica, f.normal)}. Se continuar assim, o normal de ${f.nome} sobe junto.`,
+  (f) =>
+    `Boa notícia: ${f.nome} teve mais movimento nos últimos dias, cerca de ${f.desvio}% acima do próprio normal de passos.`,
+  (f) =>
+    `Os últimos dias de ${f.nome} tiveram mais passos que o de costume. Pode ser um passeio, uma visita ou uma rotina nova, e vale contar a ${f.nome} que isso foi notado.`,
+  (f) =>
+    `Mais movimento: ${valorFalado(f.metrica, f.valor)} no dia mais recente, acima do normal de ${f.nome}, que fica perto de ${valorFalado(f.metrica, f.normal)}. Se o ritmo continuar, o normal acompanha e sobe junto.`,
+  (f) =>
+    `Comparado com a própria semana anterior, ${f.nome} andou cerca de ${f.desvio}% a mais. Um bom sinal de movimento, e o normal sobe junto se o ritmo continuar.`,
+]
+
+/** A lista de frases certa para a mudança: boa notícia ou mudança a observar. */
+export function textosDoAlerta(metrica: Metrica, direcao: Direcao) {
+  return ehBoaNoticia(metrica, direcao) ? TEXTOS_DE_BOA_NOTICIA : TEXTOS_DE_ALERTA
+}
 
 /** O que a IA sabe do dia, pra escrever o resumo de quem cuida. */
 export type FatosDoDia = {

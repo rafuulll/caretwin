@@ -140,11 +140,11 @@ Cada arquivo roda uma vez, em ordem, e nunca é editado depois: mudança nova vi
 A do cartão 2.3. Os números estão em `src/lib/modelo.ts` e a conta em `src/lib/normal.ts`.
 
 1. O normal é a média dos 7 dias que vêm antes dos 3 dias mais recentes.
-2. A faixa do normal vai 20% para baixo e 20% para cima dessa média.
+2. A faixa do normal vai 20% para baixo e 20% para cima dessa média, e nunca fica mais estreita que 1.000 passos para cada lado (para quem anda pouco, 20% é pouco).
 3. Um alerta nasce quando 2 dos 3 dias recentes fogem da faixa para o mesmo lado.
 4. Com menos de 5 dias válidos, o app diz que ainda está aprendendo e não compara.
 
-Os passos de hoje são comparados com o normal até este horário, e não com o dia inteiro.
+Os passos de hoje são comparados com o normal até este horário, e não com o dia inteiro. Passos acima do normal são boa notícia: o alerta sai com o título "Mais ativo que o normal", selo verde e frase positiva (`ehBoaNoticia` em `modelo.ts`). As decisões e os motivos estão no `DECISOES.md`.
 
 ## Publicar na Vercel
 
