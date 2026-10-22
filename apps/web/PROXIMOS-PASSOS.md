@@ -15,7 +15,7 @@ Já estão construídos e testados (outubro de 2026): o login com e-mail e senha
 - [ ] 5. **WhatsApp**: avisar quem acompanha onde a família realmente lê
 - [ ] 6. **n8n**: fazer o e-mail e o WhatsApp acontecerem sozinhos
 - [ ] 7. **Banco no Supabase**: guardar fora do navegador sem esperar a API · *montado em produção (0001 a 0005) e ligado ao site publicado; falta rodar a 0006*
-- [ ] 8. **Antes de publicar**: rota protegida · *variáveis na Vercel e limite de tentativas (cartão 5.10) feitos; falta trocar a proteção para Standard Protection, para a pulseira conseguir enviar*
+- [ ] 8. **Antes de publicar**: rota protegida · *variáveis na Vercel, limite de tentativas (5.10) e preparação para abrir (5.11) feitos; falta trocar a proteção para Standard Protection, para a pulseira conseguir enviar*
 
 ---
 
@@ -91,8 +91,9 @@ São dois caminhos, e os dois gravam a mesma sessão assinada (`src/lib/sessao-s
 2. ~~No Supabase de produção, em Authentication → URL Configuration: Site URL `https://caretwin-omega.vercel.app` e Redirect URLs `https://caretwin-omega.vercel.app/**`.~~ Feito em 20/10/2026.
 3. Entre com duas contas diferentes e veja que cada uma vê só a própria família. O `/api/health` já responde `"banco": "configurado"`.
 4. ~~Limite as tentativas de código errado ao ligar a pulseira (cartão 5.10).~~ Feito: 10 códigos inexistentes em 15 minutos fazem a conta esperar. Rode a migração 0006 no SQL Editor do Supabase de produção.
-5. Troque a proteção em Settings, Deployment Protection, para Standard Protection: o endereço principal fica aberto (o app já tem login próprio e o limite de códigos), e os links de preview continuam protegidos. É o que deixa a pulseira de verdade enviar dados (cartão 4.8).
-6. Depois do passo 5, quem é de fora (o professor, por exemplo) abre o endereço principal direto. Os links de preview dos pull requests continuam pedindo o login da Vercel; para mostrar um deles, gere um link no botão Share do deploy.
+5. Prepare o site para abrir (cartão 5.11): pulseiras de teste fora do banco de produção e cadastro público fechado no Supabase (feitos em 21/10/2026), cabeçalhos de segurança e o botão do Google escondido sem chave. Reabrir o cadastro com segurança fica no cartão 5.12.
+6. Troque a proteção em Settings, Deployment Protection, para Standard Protection: o endereço principal fica aberto (o app já tem login próprio e o limite de códigos), e os links de preview continuam protegidos. É o que deixa a pulseira de verdade enviar dados (cartão 4.8).
+7. Depois do passo 6, quem é de fora (o professor, por exemplo) abre o endereço principal direto. Os links de preview dos pull requests continuam pedindo o login da Vercel; para mostrar um deles, gere um link no botão Share do deploy.
 
 **Por quê.** O código da pulseira tem só quatro caracteres. Sem limite de tentativas, alguém com uma conta poderia testar códigos até achar uma pulseira livre.
 

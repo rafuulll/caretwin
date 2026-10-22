@@ -30,6 +30,11 @@ function textoDoMotivo(motivo: string | undefined): string {
 export type FormularioContaProps = {
   /** Aviso vindo de `?conta=` no endereço, já traduzido pela página. */
   aviso?: string
+  /**
+   * Se o Supabase aceita contas novas. Fechado durante o protótipo (cartão
+   * 5.11): no lugar do link de criar conta, um aviso de como conseguir acesso.
+   */
+  cadastroAberto?: boolean
 }
 
 /**
@@ -41,7 +46,7 @@ export type FormularioContaProps = {
  * A senha continua fora do estado do React, como no formulário simulado: ela é
  * lida do campo só na hora de enviar e vai direto para a rota do servidor.
  */
-export function FormularioConta({ aviso }: FormularioContaProps) {
+export function FormularioConta({ aviso, cadastroAberto = true }: FormularioContaProps) {
   const [modo, setModo] = useState<Modo>("entrar")
   const [nome, setNome] = useState("")
   const [email, setEmail] = useState("")
@@ -241,7 +246,11 @@ export function FormularioConta({ aviso }: FormularioContaProps) {
         {modo === "entrar" ? (
           <>
             <BotaoDeTroca aoClicar={() => trocarModo("recuperar")}>{textos.trocar.esqueci}</BotaoDeTroca>
-            <BotaoDeTroca aoClicar={() => trocarModo("criar")}>{textos.trocar.criar}</BotaoDeTroca>
+            {cadastroAberto ? (
+              <BotaoDeTroca aoClicar={() => trocarModo("criar")}>{textos.trocar.criar}</BotaoDeTroca>
+            ) : (
+              <p className="mt-2 text-sm leading-relaxed text-muted">{textos.trocar.cadastroFechado}</p>
+            )}
           </>
         ) : (
           <BotaoDeTroca aoClicar={() => trocarModo("entrar")}>
