@@ -10,8 +10,8 @@ import { bancoConfigurado } from "@/lib/banco"
  *
  * Ela não pede login de propósito, porque quem checa saúde é uma máquina sem
  * sessão. Por isso a resposta é minúscula e só diz se o banco está configurado,
- * nunca qual é, nem quais outras variáveis existem. Em produção a Vercel
- * Authentication ainda fica na frente de tudo, inclusive desta rota.
+ * nunca qual é, nem quais outras variáveis existem. Com o site aberto ao
+ * público (Standard Protection, cartão 5.11), qualquer pessoa pode chamá-la.
  *
  * Não toca no banco: "configurado" não é "respondendo". Uma checagem que
  * conversasse com o Postgres a cada chamada gastaria conexões e cota à toa.

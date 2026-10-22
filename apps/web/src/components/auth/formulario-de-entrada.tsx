@@ -32,6 +32,15 @@ export type FormularioDeEntradaProps = {
   contaLigada: boolean
   /** Aviso do login por conta, vindo de `?conta=` no endereço. */
   avisoConta?: string
+  /**
+   * Se o botão do Google aparece. Em produção, só com as chaves no ambiente:
+   * sem elas o botão abriria o passo a passo de configuração para qualquer
+   * visitante. No `npm run dev` ele aparece sempre, porque o passo a passo é
+   * para o grupo. Decidido no servidor, em `page.tsx`.
+   */
+  mostrarGoogle?: boolean
+  /** Se o Supabase aceita contas novas (ver `cadastroAberto` em `src/lib/conta.ts`). */
+  cadastroAberto?: boolean
 }
 
 type Erros = { usuario?: string; senha?: string }
@@ -51,6 +60,8 @@ export function FormularioDeEntrada({
   aviso,
   contaLigada,
   avisoConta,
+  mostrarGoogle = true,
+  cadastroAberto = true,
 }: FormularioDeEntradaProps) {
   const router = useRouter()
   const [usuario, setUsuario] = useState("")
@@ -127,50 +138,57 @@ export function FormularioDeEntrada({
               </h1>
               <p className="mt-2.5 text-base leading-relaxed text-muted">{entrada.subtitulo}</p>
 
-              <div className="mt-8">
-                {/* Com as chaves no ambiente, o botão manda pro Google de
-                    verdade, numa navegação de página inteira: o OAuth sai do
-                    app e volta. Sem as chaves, ele abre o passo a passo de
-                    configuração. Ele nunca some e nunca fica apagado. */}
-                <Button
-                  variante="secundaria"
-                  tamanho="lg"
-                  larguraTotal
-                  iconeEsquerda={<IconeGoogle />}
-                  carregando={indoParaOGoogle}
-                  onClick={() => {
-                    if (!googleLigado) {
-                      setModalAberto(true)
-                      return
-                    }
-                    setIndoParaOGoogle(true)
-                    window.location.href = "/api/auth/google"
-                  }}
-                >
-                  {entrada.google.botao}
-                </Button>
-                <p className="mt-2 text-sm leading-relaxed text-muted">
-                  {googleLigado ? entrada.google.ajudaLigado : entrada.google.ajuda}
-                </p>
+              {mostrarGoogle && (
+                <>
+                  <div className="mt-8">
+                    {/* Com as chaves no ambiente, o botão manda pro Google de
+                        verdade, numa navegação de página inteira: o OAuth sai do
+                        app e volta. Sem as chaves, ele abre o passo a passo de
+                        configuração (só no `npm run dev`; em produção sem as
+                        chaves ele nem aparece, ver `mostrarGoogle`). */}
+                    <Button
+                      variante="secundaria"
+                      tamanho="lg"
+                      larguraTotal
+                      iconeEsquerda={<IconeGoogle />}
+                      carregando={indoParaOGoogle}
+                      onClick={() => {
+                        if (!googleLigado) {
+                          setModalAberto(true)
+                          return
+                        }
+                        setIndoParaOGoogle(true)
+                        window.location.href = "/api/auth/google"
+                      }}
+                    >
+                      {entrada.google.botao}
+                    </Button>
+                    <p className="mt-2 text-sm leading-relaxed text-muted">
+                      {googleLigado ? entrada.google.ajudaLigado : entrada.google.ajuda}
+                    </p>
 
-                {aviso && (
-                  <p
-                    role="alert"
-                    className="mt-3 rounded-ds-fine border border-hairline bg-elevated px-3 py-2.5 text-sm leading-relaxed text-ink"
-                  >
-                    {aviso}
-                  </p>
-                )}
-              </div>
+                    {aviso && (
+                      <p
+                        role="alert"
+                        className="mt-3 rounded-ds-fine border border-hairline bg-elevated px-3 py-2.5 text-sm leading-relaxed text-ink"
+                      >
+                        {aviso}
+                      </p>
+                    )}
+                  </div>
 
-              <div className="my-7 flex items-center gap-3" aria-hidden="true">
-                <span className="h-px flex-1 bg-hairline" />
-                <span className="text-xs tracking-[0.16em] text-muted uppercase">{entrada.separador}</span>
-                <span className="h-px flex-1 bg-hairline" />
-              </div>
+                  <div className="my-7 flex items-center gap-3" aria-hidden="true">
+                    <span className="h-px flex-1 bg-hairline" />
+                    <span className="text-xs tracking-[0.16em] text-muted uppercase">{entrada.separador}</span>
+                    <span className="h-px flex-1 bg-hairline" />
+                  </div>
+                </>
+              )}
+              {/* Sem o Google, o formulário sobe para logo abaixo do título. */}
+              {!mostrarGoogle && <div className="mt-8" />}
 
               {contaLigada ? (
-                <FormularioConta aviso={avisoConta} />
+                <FormularioConta aviso={avisoConta} cadastroAberto={cadastroAberto} />
               ) : (
                 <>
                   {/* `noValidate`: a validação é nossa, em português, e some assim que a pessoa corrige. */}

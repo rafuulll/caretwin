@@ -1,6 +1,6 @@
 import { FormularioDeEntrada } from "@/components/auth/formulario-de-entrada"
 import { entrada } from "@/content/site"
-import { contaLigada } from "@/lib/conta"
+import { cadastroAberto, contaLigada } from "@/lib/conta"
 import { googleConfigurado } from "@/lib/google"
 import { sessaoConfigurada } from "@/lib/sessao-servidor"
 
@@ -24,14 +24,20 @@ type Props = { searchParams: Promise<{ google?: string; conta?: string }> }
 export default async function PaginaEntrar({ searchParams }: Props) {
   const { google, conta } = await searchParams
   const avisos = entrada.google.avisos as Record<string, string | undefined>
+  const googleLigado = googleConfigurado() && sessaoConfigurada()
+  const comConta = contaLigada()
 
   return (
     <FormularioDeEntrada
-      googleLigado={googleConfigurado() && sessaoConfigurada()}
+      googleLigado={googleLigado}
+      // Em produção, o Google só aparece com as chaves: sem elas o botão abriria
+      // o passo a passo de configuração para qualquer visitante (cartão 5.11).
+      mostrarGoogle={googleLigado || process.env.NODE_ENV !== "production"}
       // Motivo desconhecido no endereço não vira mensagem: o parâmetro vem da
       // barra do navegador, e qualquer pessoa pode escrever o que quiser nele.
       aviso={google ? avisos[google] : undefined}
-      contaLigada={contaLigada()}
+      contaLigada={comConta}
+      cadastroAberto={comConta ? await cadastroAberto() : true}
       // Mesma regra do aviso do Google: só o valor que o app conhece vira texto.
       avisoConta={conta === "confirmada" ? entrada.conta.avisos.confirmada : undefined}
     />

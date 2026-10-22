@@ -786,6 +786,8 @@ export const entrada = {
     trocar: {
       esqueci: "Esqueci minha senha",
       criar: "Ainda não tenho conta",
+      /** No lugar do "Ainda não tenho conta" quando o cadastro está fechado no Supabase. */
+      cadastroFechado: "Ainda não tem conta? O cadastro está fechado durante o protótipo. Peça um acesso ao grupo.",
       jaTenho: "Já tenho conta",
       voltar: "Voltar para entrar",
     },
@@ -819,6 +821,7 @@ export const entrada = {
       senha_fraca: "Essa senha é fácil de adivinhar. Escolha uma mais longa, misturando letras e números.",
       senha_igual: "A senha nova precisa ser diferente da anterior.",
       ja_existe: "Já existe uma conta com esse e-mail. Entre com ela ou use Esqueci minha senha.",
+      cadastro_fechado: "O cadastro está fechado durante o protótipo. Peça um acesso ao grupo.",
       muitas_tentativas: "Foram muitas tentativas em pouco tempo. Espere alguns minutos e tente de novo.",
       link_expirado: "Esse link expirou ou já foi usado. Peça um novo em Esqueci minha senha.",
       invalido: "Algum campo veio vazio ou num formato que não reconhecemos. Confira e tente de novo.",

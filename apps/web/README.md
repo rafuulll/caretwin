@@ -162,7 +162,12 @@ Para o site publicado usar o banco:
 
 Sem essas variáveis, o site publicado roda no modo protótipo, em que qualquer e-mail e senha entram.
 
-A Deployment Protection está ligada: o site só abre para quem entra com a conta da Vercel do projeto. Para mostrar a alguém de fora, gere um link no botão Share do deploy ou desligue a proteção em Settings, Deployment Protection.
+O site abre ao público pela Standard Protection (Settings, Deployment Protection): o endereço principal fica aberto, para a pulseira conseguir enviar e o professor entrar direto, e os links de preview dos pull requests continuam pedindo o login da Vercel. Antes de abrir (cartão 5.11):
+
+- As pulseiras de teste (`banco/dev/pulseiras-de-teste.sql`) saíram do banco de produção. O repositório é público e os tokens delas estão nele: esse arquivo nunca roda em produção.
+- O cadastro público está fechado no Supabase de produção (Authentication, Sign In / Providers, "Allow new users to sign up" desligado). O e-mail padrão do Supabase só entrega para quem é da equipe do projeto, 2 por hora, e cadastro livre deixaria criar várias contas para contornar o limite de códigos. As contas de quem testa nascem no painel: Authentication, Users, Add user, com Auto Confirm. A tela de entrar lê essa configuração (`cadastroAberto` em `src/lib/conta.ts`) e troca o link de criar conta por um aviso. Os caminhos para reabrir com segurança estão no cartão 5.12.
+- Cabeçalhos de segurança em todas as respostas (`next.config.ts`): ninguém abre o site dentro de um iframe, mais nosniff, Referrer-Policy, Permissions-Policy e HSTS.
+- Em produção, o botão do Google só aparece com as chaves no ambiente; sem elas, ele abriria o passo a passo de configuração para qualquer visitante.
 
 ## Pastas
 

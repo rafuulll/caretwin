@@ -57,6 +57,7 @@ export type MotivoDaConta =
   | "senha_fraca"
   | "senha_igual"
   | "ja_existe"
+  | "cadastro_fechado"
   | "muitas_tentativas"
   | "link_expirado"
   | "invalido"
@@ -144,6 +145,8 @@ function motivoDoErro(status: number, corpo: RespostaDoSupabase, padrao: MotivoD
     case "user_already_exists":
     case "email_exists":
       return "ja_existe"
+    case "signup_disabled":
+      return "cadastro_fechado"
     case "over_request_rate_limit":
     case "over_email_send_rate_limit":
       return "muitas_tentativas"
@@ -220,6 +223,42 @@ export async function criarConta(
   return sessao ? { ok: true, sessao } : { ok: false, motivo: "falhou" }
 }
 
+/** A última resposta de `cadastroAberto`, para não consultar o Supabase a cada visita. */
+let cadastroLido: { aberto: boolean; em: number } | null = null
+const SEGUNDOS_PARA_RELER_O_CADASTRO = 60
+
+/**
+ * Se o Supabase aceita contas novas ("Allow new users to sign up"). Durante o
+ * protótipo o cadastro fica fechado e as contas nascem pelo painel (cartões
+ * 5.11 e 5.12); a tela de entrar troca o link "Criar conta" por um aviso.
+ *
+ * Na dúvida (Supabase fora do ar, resposta estranha), diz que está aberto: o
+ * link aparece, e se o cadastro estiver mesmo fechado a própria tentativa
+ * responde `cadastro_fechado`. Esconder o link por engano seria pior.
+ */
+export async function cadastroAberto(): Promise<boolean> {
+  const config = configuracao()
+  if (!config) return true
+  const agora = Date.now()
+  if (cadastroLido && agora - cadastroLido.em < SEGUNDOS_PARA_RELER_O_CADASTRO * 1000) {
+    return cadastroLido.aberto
+  }
+  try {
+    const resposta = await fetch(`${config.url}/auth/v1/settings`, {
+      headers: { apikey: config.chave },
+      cache: "no-store",
+      signal: AbortSignal.timeout(3000),
+    })
+    if (!resposta.ok) return true
+    const corpo = (await resposta.json()) as { disable_signup?: unknown }
+    const aberto = corpo.disable_signup !== true
+    cadastroLido = { aberto, em: agora }
+    return aberto
+  } catch {
+    return true
+  }
+}
+
 /**
  * Pede o link de nova senha. A resposta é a mesma exista ou não a conta: dizer
  * "esse e-mail não está cadastrado" ensinaria a qualquer um quem usa o app.
@@ -255,6 +294,7 @@ const STATUS: Partial<Record<MotivoDaConta, number>> = {
   link_expirado: 401,
   nao_confirmado: 403,
   ja_existe: 409,
+  cadastro_fechado: 403,
   muitas_tentativas: 429,
   indisponivel: 503,
 }
