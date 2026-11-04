@@ -37,3 +37,9 @@ Crie ou vincule um projeto de prévia com **Root Directory `apps/redesign-v1`** 
 As decisões anteriores estão preservadas em `docs/landing` e `docs/painel`; seus caminhos e relatos de servidor referem-se aos estudos originais. Este README e a configuração da app definem o empacotamento desta primeira versão para revisão.
 
 Assets próprios de estudo gerados com IA, ícones Phosphor, componentes Radix e fonte Fustat com licença OFL preservada em `public/assets/OFL-Fustat.txt`.
+
+## Refinamento da landing · 04/11/2026
+
+Títulos sem marcações decorativas, cenas editoriais de dia/noite e família, histórico em três etapas manuais e fechamento com Ritmo invertido. A biblioteca `/marca` reúne as novas cenas e cinco ícones SVG originais. O dashboard mantém a primeira versão.
+
+Decisões e validação: [REFINAMENTO-R2.md](docs/landing/REFINAMENTO-R2.md). Direção atual: [DESIGN.md](docs/landing/DESIGN.md). Prompts das imagens: [PROMPTS-R2.md](docs/landing/PROMPTS-R2.md).

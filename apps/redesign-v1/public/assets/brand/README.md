@@ -1,4 +1,20 @@
-# Marcações geométricas CareTwin
+# Ícones CareTwin e arquivo de marcações
+
+## Conjunto ativo · refinamento de 04/11/2026
+
+Cinco ícones SVG originais, editáveis, com grade 32 × 32, traço 1,8 e pontas arredondadas. Disponíveis na biblioteca `/marca`:
+
+- `icon-movement.svg`: movimento/passos.
+- `icon-sleep.svg`: sono estimado.
+- `icon-history.svg`: histórico pessoal.
+- `icon-family.svg`: família.
+- `icon-link.svg`: vínculo aprovado.
+
+Azul `#2549D8` com apoio claro. Controles gerais continuam usando Phosphor. Os rótulos HTML comunicam a função; as imagens são decorativas para leitores de tela.
+
+## Arquivo da primeira versão
+
+As marcações abaixo foram preservadas como material histórico. Foram retiradas da landing e da biblioteca ativa após o retorno do proprietário; não são orientação para novos títulos.
 
 Seis SVGs originais para apoiar a linguagem da landing page. São abstrações decorativas, com pequenas assimetrias de traço; não representam personagens, símbolos clínicos ou um novo logotipo.
 

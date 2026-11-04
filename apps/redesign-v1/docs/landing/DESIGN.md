@@ -1,110 +1,51 @@
----
-name: CareTwin — proposta visual v3
-description: Ritmo pessoal, proximidade e espaço em uma landing clara.
-colors:
-  blue: "#2549d8"
-  navy: "#141d52"
-  ink: "#14233d"
-  muted: "#586b87"
-  soft: "#f4f7fc"
-  line: "#dce4f1"
-  white: "#ffffff"
-typography:
-  display:
-    fontFamily: "Fustat, Arial, sans-serif"
-    fontSize: "60px"
-    fontWeight: 500
-    lineHeight: 1.08
-    letterSpacing: "-.04em"
-  headline:
-    fontFamily: "Fustat, Arial, sans-serif"
-    fontSize: "48px"
-    fontWeight: 500
-    lineHeight: 1.12
-    letterSpacing: "-.035em"
-  body:
-    fontFamily: "Fustat, Arial, sans-serif"
-    fontSize: "18px"
-    fontWeight: 400
-    lineHeight: 1.6
-rounded:
-  button: "12px"
-  tabs: "30px"
-  navigation: "40px"
-components:
-  button-primary:
-    backgroundColor: "{colors.blue}"
-    textColor: "{colors.white}"
-    rounded: "{rounded.button}"
-    padding: "14px 23px"
-  button-light:
-    backgroundColor: "{colors.white}"
-    textColor: "{colors.navy}"
-    rounded: "{rounded.button}"
-    padding: "14px 23px"
----
+# CareTwin · direção vigente da landing
 
-# Design System: CareTwin
+Atualização de 04/11/2026. **Redesign v1, refinamento r2, ainda em desenvolvimento.** Este documento substitui a composição orbital e as cadeiras da primeira publicação. O registro das decisões está em [REFINAMENTO-R2.md](REFINAMENTO-R2.md).
 
-## Overview
+## Autoridade visual
 
-**Creative North Star: "No seu próprio ritmo"** — descrição de trabalho da proposta.
+Preservar a hero escolhida pelo proprietário, com Fustat, branco, azul e Ritmo reclinado. AbacatePay orienta acabamento e clareza de produto; o fechamento segue a referência de Figma fornecida pelo proprietário, com Ritmo invertido em fundo azul claro. Não copiar marca ou recursos financeiros das referências.
 
-Proposta vigente para a landing v3, ancorada na hero editada e escolhida pelo proprietário: composição compacta, tipografia menor, branco e Ritmo azul reclinado. Documenta a implementação; a identidade completa ainda não foi validada. AbacatePay orienta acabamento, sem reprodução de marca.
+As alterações foram pedidas sobre screenshots específicos: retirar riscos/ondas sobre títulos, substituir cenas orbitais de dia/noite, esclarecer o histórico, trocar cadeiras por contexto humano, aproximar a nota de vínculo e simplificar o fechamento.
 
-A atmosfera é tranquila, adulta e próxima. Objetos e ondas apoiam informação direta; espaço comunica autonomia e companhia.
+## Tokens
 
-**Key Characteristics:**
+| Papel | Valor |
+| --- | --- |
+| Texto principal | `#14233d` |
+| Texto de apoio | `#586b87` |
+| Ação / seleção | `#2549d8` |
+| Azul profundo de apoio | `#141d52` |
+| Fundo dia/noite | `#f4f7fc` |
+| Fundo família | `#f1f5ff` |
+| Fundo fechamento | `#edf3ff` |
+| Divisórias | `#dce4f1` |
+| Superfície | `#ffffff` |
 
-- Azul e branco; tipografia clara; gestos suaves.
-- Uma cena dominante; sem recortes de dashboard.
-- Profundidade localizada; leitura independente da animação.
+Fustat local, pesos 400–800, licença OFL preservada. Corpo 18 px; descrições de conteúdo 16–17 px; títulos de capítulo em torno de 42–50 px; hero 60 px, chegando a 64 px em telas amplas. No celular, títulos usam escala de 29–41 px conforme função; hero 36–55 px. Tracking mínimo -0,04em.
 
-## Colors
+Contêiner máximo 1120 px. Margens 48 px em desktop, 32 px em larguras intermediárias, 20 px no celular e 16 px abaixo de 360 px. Imagens e diagramas com raio de 16 px, reduzido a 14 px em cenas móveis. Botões de 12 px; abas e navegação em cápsulas. Alvos principais de 44 px ou mais; CTA de 52 px no desktop.
 
-### Primary
+## Composição
 
-**Azul de ritmo** é a ação principal, o estado selecionado e o traço de apoio. **Azul profundo** sustenta o fechamento e a prévia escura dos assets.
+- **Hero:** copy, Ritmo e CTA aprovados; sem círculo ou sublinhado na palavra ritmo.
+- **Dia/noite:** título e abas centralizados; texto e fotografia editorial em duas colunas; cena troca com a aba. No celular, texto precede a cena. Sem ícones flutuantes, órbitas ou etiquetas inclinadas.
+- **Histórico:** título e tese; três etapas horizontais Registrar, Conhecer, Comparar; uma explicação e um diagrama por vez. Ritmo como guia abaixo da explicação. Sem calendário orbital, datas fixas, métricas inventadas ou mudança automática de etapa por scroll.
+- **Família:** fotografia editorial e conteúdo com abas Para quem usa / Para a família. Nota de vínculo próxima ao painel de texto, sem altura mínima excessiva. No celular, imagem antes do conteúdo.
+- **FAQ:** perguntas e divisórias aprovadas, sem onda decorativa.
+- **Fechamento:** azul claro, Ritmo invertido pequeno, título, descrição, CTA e ajuda por âncora. Sem ornamentos nos cantos.
+- **Rodapé:** branco, compacto, com identificação do protótipo e divulgação do uso de imagens geradas por IA.
 
-### Neutral
+## Ícones e assets
 
-**Tinta** organiza títulos; **texto secundário** sustenta explicações. **Branco**, **superfície suave** e **linha** separam capítulos. O frontmatter contém os valores normativos. Cores auxiliares ainda dependem da correção de contraste e verificação final.
+Cinco símbolos SVG próprios em `public/assets/brand/icon-*.svg`: movimento, sono, histórico, família e vínculo. Geometria vetorial de 32 unidades, traço arredondado de 1,8, azul e preenchimento leve. Ícones aparecem com rótulos; os dos controles continuam Phosphor. Os SVGs são acessíveis como elementos decorativos quando o texto já oferece o significado.
 
-## Typography
+Três cenas editoriais sintéticas substituem props abstratos. A pulseira é conceitual e aparece com display sem medições. As legendas esclarecem que as pessoas são ilustrativas. Ritmo mantém anatomia azul, onda clara e peito sem listras. O recorte invertido preserva transparência.
 
-**Display Font / Body Font:** Fustat local; fallback Arial e sans-serif. Peso moderado e títulos com entreletra fechada, sem aparência infantil.
+## Movimento
 
-Títulos de apoio partem de (32px/1.18), labels de (12–15px), explicações de (16–18px). A hero passa a (52px) no intervalo intermediário e `clamp(40px, 9.8vw, 55px)` no móvel; abaixo de (359px), usa (36px).
+Hero responde suavemente ao ponteiro preciso. As fotos de dia/noite usam crossfade de 350 ms e reenquadramento discreto; o diagrama anima apenas a mudança de etapa. O recorte da foto de família abre de 3% para 0% ao entrar na área visível, sem ocultar o conteúdo. Movimento reduzido usa estados estáticos completos. Nenhum conteúdo exige hover, scroll capturado ou animação para ser entendido.
 
-## Layout
+## Escopo técnico
 
-Contêiner de até (1120px), com margens adaptáveis. Texto e cena em duas colunas no desktop; empilhados no móvel. Seções usam (100px), reduzidos a (65px) no móvel. Breakpoints: (1600px), (1100px), (767px), (359px).
-
-O histórico fixa a cena durante parte do scroll no desktop; suas etapas também são abas. No móvel e com movimento reduzido, segue fluxo linear.
-
-## Elevation & Depth
-
-Vidro concentra-se na navegação: fundo claro com alpha, blur (22px), saturação (150%). Sombras suaves ancoram objetos. Inclinação só responde a mouse com ponteiro preciso; parallax e transformações respeitam movimento reduzido. Conteúdo não depende dos efeitos.
-
-## Shapes
-
-Botões têm curvas moderadas; navegação e abas são cápsulas. Ondas, órbitas e contornos recorrem nos seis SVGs transparentes, independentes de fontes. Não carregam informação sozinhos.
-
-## Components
-
-**Buttons:** primário azul, secundário branco com borda, claro no fechamento. Altura mínima principal (52px); hover altera superfície e foco tem contorno de (3px).
-
-**Navigation:** vidro, links compactos e CTA; Sheet Radix móvel com título, descrição, fechamento e retorno de foco.
-
-**Tabs:** seleção branca/azul em trilho tonal. **FAQ:** Accordion com divisórias e indicador de estado. Composições shadcn/Radix adaptadas para CSS próprio e Phosphor.
-
-**Assets:** Ritmo 3D na hero; guia 2D pontual; poltronas como companhia com autonomia. Biblioteca com fundo claro/escuro e downloads.
-
-## Do's and Don'ts
-
-- **Do** preservar a hero escolhida e a anatomia de Ritmo.
-- **Do** manter controles claros com teclado e movimento reduzido.
-- **Do** verificar contraste no fundo e tamanho reais antes de aprovar.
-- **Don't** reintroduzir os quatro recortes de dashboard removidos.
-- **Don't** apresentar imagens como hardware final ou prometer recursos clínicos.
-- **Don't** copiar logos, assets ou composição integral das referências.
+React/Vite multipage; landing e painel têm folhas CSS separadas. Fontes, cenas e ícones são locais. Radix mantém semântica, teclado e estados de Accordion, Tabs e Sheet. A biblioteca em `/marca` expõe personagem, cenas e cinco downloads SVG. Dashboard e aplicativo original não fazem parte deste refinamento.

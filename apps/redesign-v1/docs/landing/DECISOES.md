@@ -43,3 +43,6 @@ O histórico muda com scroll somente no desktop, onde há narrativa sticky. No c
 Revisão independente encerrada com **disposition: ship**: quatro achados `resolved`, nenhum material aberto. Evidências em `REVIEW.md`, `verification.json`, `motion-verification.json` e `screenshots/`. Continua sendo proposta para avaliação do proprietário, sem testes com usuários ou resultado de conversão comprovado. A página está disponível apenas como prévia local; nenhum deploy ocorreu.
 
 Fonte local confirmada como TrueType; extensão e declaração CSS foram ajustadas para `.ttf`, sem alterar os dados. A licença oficial Fustat SIL OFL 1.1 está em `public/assets/OFL-Fustat.txt`. Este registro não transforma a prévia em publicação autorizada.
+
+## Refinamento r2 · 04/11/2026
+A composição orbital e as cadeiras foram substituídas conforme o feedback do proprietário. O registro vigente desta rodada, incluindo os problemas observados, heurísticas e decisões, está em [REFINAMENTO-R2.md](REFINAMENTO-R2.md). A direção atual está em DESIGN.md; notas anteriores descrevem a primeira publicação.

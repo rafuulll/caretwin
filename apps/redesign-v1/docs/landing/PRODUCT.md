@@ -1,5 +1,7 @@
 # CareTwin — estudo de landing, versão 3
 
+> Atualização de escopo em 04/11/2026: o proprietário autorizou implementar todos os refinamentos e publicar a prévia no projeto independente `caretwin-redesign-v1`. O estado visual atual está em `DESIGN.md`; as decisões e verificações desta revisão estão em `REFINAMENTO-R2.md`. Os parágrafos abaixo registram o briefing anterior à publicação e não revogam essa autorização. A versão continua em desenvolvimento, sem alteração do aplicativo original ou das regras do produto.
+
 ## Produto e público
 
 Protótipo acadêmico UPX/UniFacens: pulseira acompanha passos e sono estimado por movimento, comparados ao histórico da própria pessoa. Pessoa idosa e familiar têm igual prioridade. Compartilhamento exige vínculo aprovado. Não oferece diagnóstico, SOS, detecção de queda, push, metas universais ou batimentos integrados. Acesso só com conta existente.
