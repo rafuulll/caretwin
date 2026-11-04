@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 160" fill="none">
+  <title>Dois arcos conectados</title>
+  <path d="M144 52C114 19 50 30 28 67C3 109 43 143 94 134C123 129 143 105 160 80" stroke="#2549D8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M160 80C178 48 218 25 254 44C293 64 302 107 268 129C235 152 186 136 171 108" stroke="#AFC2FF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

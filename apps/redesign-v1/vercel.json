@@ -1,0 +1,52 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "vite",
+  "buildCommand": "npm run build",
+  "installCommand": "npm ci",
+  "outputDirectory": "dist",
+  "rewrites": [
+    {
+      "source": "/painel",
+      "destination": "/painel/index.html"
+    },
+    {
+      "source": "/painel/",
+      "destination": "/painel/index.html"
+    },
+    {
+      "source": "/marca",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/marca/",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/entrar",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/entrar/",
+      "destination": "/index.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        }
+      ]
+    }
+  ]
+}

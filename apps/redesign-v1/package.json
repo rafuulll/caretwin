@@ -1,0 +1,33 @@
+{
+  "name": "caretwin-redesign-v1",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1 --port 4322 --strictPort",
+    "build": "vite build",
+    "preview": "vite preview --host 127.0.0.1 --port 4322 --strictPort"
+  },
+  "dependencies": {
+    "@phosphor-icons/react": "^2.1.10",
+    "@radix-ui/react-accordion": "^1.3.1",
+    "@radix-ui/react-dialog": "^1.3.1",
+    "@radix-ui/react-slot": "^1.5.0",
+    "@radix-ui/react-tabs": "^1.2.1",
+    "@vitejs/plugin-react": "^6.2.1",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "motion": "^14.9.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "tailwind-merge": "^3.7.0",
+    "vite": "^8.3.5"
+  },
+  "devDependencies": {
+    "axe-core": "^4.14.0"
+  },
+  "description": "Primeira versão do redesign CareTwin. Landing e dashboard em desenvolvimento, com dados fictícios.",
+  "engines": {
+    "node": ">=22.12.0"
+  }
+}

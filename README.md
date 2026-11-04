@@ -92,3 +92,9 @@ Simulador: [simulador/README.md](simulador/README.md).
 ## Variaveis de ambiente
 
 Cada app tem um `.env.example` com os NOMES das variaveis e as instrucoes, sem valores. Copie para `.env.local` (que nunca vai para o Git). Em producao, os valores ficam no painel da Vercel.
+
+## Redesign v1: primeira versao em desenvolvimento
+
+A landing e o dashboard do redesign estao em [apps/redesign-v1](apps/redesign-v1/README.md). Esta e a **primeira versao, nada finalizado**, para avaliar direcao visual e navegacao com dados ficticios. Landing, painel, copy e interacoes ainda precisam de refinamento e integracao.
+
+A previa e independente do app oficial em `apps/web`: nao altera autenticacao, API, banco, firmware ou regras de negocio. O deploy do redesign usa um projeto proprio na Vercel, com Root Directory `apps/redesign-v1`.

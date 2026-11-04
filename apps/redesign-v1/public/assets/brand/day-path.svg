@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 160" fill="none">
+  <title>Percurso ondulado com três pontos</title>
+  <path d="M16 110C69 110 79 42 144 42S214 119 288 119S366 47 464 47" stroke="#2549D8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="48" cy="100" r="7" fill="#2549D8"/>
+  <circle cx="240" cy="103" r="7" fill="#2549D8"/>
+  <circle cx="417" cy="55" r="7" fill="#AFC2FF" stroke="#2549D8" stroke-width="3"/>
+</svg>
