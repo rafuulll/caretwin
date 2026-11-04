@@ -87,6 +87,7 @@ Simulador: [simulador/README.md](simulador/README.md).
 | [apps/web/PROXIMOS-PASSOS.md](apps/web/PROXIMOS-PASSOS.md) | O que falta e em que ordem |
 | [apps/web/AGENTS.md](apps/web/AGENTS.md) | As regras do codigo do site (textos, cores, acessibilidade) |
 | [docs/openapi.yaml](docs/openapi.yaml) | O contrato da API (v0.2) |
+| [docs/seguranca-e-privacidade.md](docs/seguranca-e-privacidade.md) | O checklist de seguranca e privacidade dos dados (cartao 8.3) |
 | [docs/decisoes](docs/decisoes) | As decisoes de arquitetura |
 
 ## Variaveis de ambiente
