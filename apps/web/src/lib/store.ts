@@ -34,6 +34,8 @@ const CHAVE_SESSAO = "caretwin-prototipo:sessao:v1"
 const CHAVE_EXEMPLOS = "caretwin-prototipo:exemplos:v1"
 /** Qual das pessoas acompanhadas está na tela agora. */
 const CHAVE_PESSOA = "caretwin-prototipo:pessoa:v1"
+/** A última leitura da conta que deu certo, para abrir sem internet (cartão 7.7). */
+const CHAVE_COPIA = "caretwin:conta-sem-internet:v1"
 
 const VAZIO: Dados = { pessoas: [], pulseiras: [], dias: [], alertas: [] }
 
@@ -156,6 +158,13 @@ function descobrirModo() {
     if (eu.ok && (await carregarConta(eu.corpo))) {
       modo = "conta"
       acompanharConta()
+      return
+    }
+    // Sem internet e com uma conta lembrada: abre com a última leitura dela, ou
+    // com o "não deu para carregar", nunca com os exemplos.
+    const lembrada = lerSessao()
+    if (!eu.ok && eu.status === 0 && lembrada?.id) {
+      abrirSemRede({ ...lembrada, id: lembrada.id })
       return
     }
     // O navegador lembra de uma conta (a sessão local tem id) e o servidor não
@@ -459,6 +468,7 @@ async function carregarConta(euJaLido?: Eu): Promise<boolean> {
   if (!eu) {
     const resposta = await v1.eu()
     if (!resposta.ok) {
+      if (resposta.status === 0) avisarSemRede(true)
       conferirRecusa(resposta)
       return false
     }
@@ -466,6 +476,11 @@ async function carregarConta(euJaLido?: Eu): Promise<boolean> {
   }
 
   const pessoas = await v1.pessoas()
+  // Caiu a internet no meio: a tela fica com o que já mostrava, avisando.
+  if (!pessoas.ok && pessoas.status === 0 && modo === "conta") {
+    avisarSemRede(true)
+    return true
+  }
   if (!pessoas.ok) {
     conferirRecusa(pessoas)
     if (leitura !== ultimaLeitura) return true
@@ -485,7 +500,80 @@ async function carregarConta(euJaLido?: Eu): Promise<boolean> {
     falhou: false,
   }
   publicar({ pessoas: pessoas.corpo.map(pessoaDaApi), pulseiras: pulseirasDaApi(pessoas.corpo), dias, alertas })
+  guardarCopia({ guardadaEm: new Date().toISOString(), eu, pessoas: pessoas.corpo, dias, alertas })
+  avisarSemRede(false)
   return true
+}
+
+// --- sem internet (cartão 7.7) -------------------------------------------
+
+/**
+ * A cópia da última leitura que deu certo. Fica no localStorage com o id da
+ * conta e só abre para essa mesma conta. Sair e a sessão vencida apagam ela
+ * (ver `sair`), porque é dado de saúde guardado no aparelho.
+ */
+type Copia = {
+  guardadaEm: string
+  eu: Eu
+  pessoas: PessoaComPulseira[]
+  dias: DiaRegistrado[]
+  alertas: Alerta[]
+}
+
+function guardarCopia(copia: Copia) {
+  gravarTexto(CHAVE_COPIA, JSON.stringify(copia))
+}
+
+function lerCopia(usuarioId: string): Copia | null {
+  try {
+    const copia = JSON.parse(lerTexto(CHAVE_COPIA) ?? "null") as Copia | null
+    return copia?.eu?.id === usuarioId && Array.isArray(copia.pessoas) ? copia : null
+  } catch {
+    return null
+  }
+}
+
+/** De quando são os dados na tela, enquanto não há internet. `null` com internet. */
+let semRedeDesde: string | null = null
+const ouvintesDaRede = new Set<Ouvinte>()
+
+function avisarSemRede(semRede: boolean) {
+  const proximo = semRede ? (lerCopia(instantaneoConta?.eu.id ?? "")?.guardadaEm ?? semRedeDesde ?? "") : null
+  if (proximo === semRedeDesde) return
+  semRedeDesde = proximo
+  for (const o of ouvintesDaRede) o()
+}
+
+/** A primeira carga sem internet: a cópia da conta, ou o aviso de que não deu. */
+function abrirSemRede(lembrada: Sessao & { id: string }) {
+  modo = "conta"
+  const copia = lerCopia(lembrada.id)
+  const eu: Eu = copia?.eu ?? { ...lembrada, pedidosPendentes: [], encerradas: [] }
+  const pessoas = copia?.pessoas ?? []
+  instantaneoConta = {
+    eu,
+    vinculos: Object.fromEntries(pessoas.map((p) => [p.id, { papel: p.papel, administra: p.administra }])),
+    falhou: !copia,
+  }
+  publicar(
+    copia
+      ? { pessoas: pessoas.map(pessoaDaApi), pulseiras: pulseirasDaApi(pessoas), dias: copia.dias, alertas: copia.alertas }
+      : VAZIO
+  )
+  avisarSemRede(true)
+  acompanharConta()
+}
+
+/** Para a faixa de "sem internet" no topo das telas. */
+export function useSemRedeDesde(): string | null {
+  return useSyncExternalStore(
+    (o) => {
+      ouvintesDaRede.add(o)
+      return () => ouvintesDaRede.delete(o)
+    },
+    () => semRedeDesde,
+    () => null
+  )
 }
 
 /**
@@ -497,6 +585,7 @@ async function carregarConta(euJaLido?: Eu): Promise<boolean> {
 function marcarNaConta(ids: string[], lido: boolean) {
   if (ids.length === 0) return
   const escolhidos = new Set(ids)
+  const antes = instantaneo.dados.alertas
   publicar({
     ...instantaneo.dados,
     alertas: instantaneo.dados.alertas.map((a) => (escolhidos.has(a.id) ? { ...a, lido } : a)),
@@ -504,6 +593,12 @@ function marcarNaConta(ids: string[], lido: boolean) {
   void Promise.all(ids.map((id) => v1.marcarAlerta(id, lido))).then((respostas) => {
     const recusa = respostas.find((r) => !r.ok)
     if (!recusa) return
+    // Sem internet não dá para reler: a tela volta ao que era, avisando.
+    if (recusa.status === 0) {
+      publicar({ ...instantaneo.dados, alertas: antes })
+      avisarSemRede(true)
+      return
+    }
     conferirRecusa(recusa)
     void carregarConta()
   })
@@ -525,6 +620,7 @@ function acompanharConta() {
   if (relogioDaConta !== null) return
   relogioDaConta = window.setInterval(aoVoltarParaAba, MINUTOS_PARA_RELER_A_CONTA * 60_000)
   document.addEventListener("visibilitychange", aoVoltarParaAba)
+  window.addEventListener("online", aoVoltarParaAba)
 }
 
 function pararDeAcompanhar() {
@@ -532,6 +628,7 @@ function pararDeAcompanhar() {
   window.clearInterval(relogioDaConta)
   relogioDaConta = null
   document.removeEventListener("visibilitychange", aoVoltarParaAba)
+  window.removeEventListener("online", aoVoltarParaAba)
 }
 
 /** Relê a conta depois de qualquer mudança na família, para todas as telas verem a mesma coisa. */
@@ -735,6 +832,12 @@ export function sair() {
   descoberta = null
   pararDeAcompanhar()
   instantaneoConta = null
+  // O que o aparelho guardava da família sai junto: a cópia para abrir sem
+  // internet e a pessoa escolhida no seletor (cartões 7.7 e 8.3).
+  gravarTexto(CHAVE_COPIA, null)
+  gravarTexto(CHAVE_PESSOA, null)
+  pessoaCrua = null
+  avisarSemRede(false)
   publicar(VAZIO, true)
   // O cookie do servidor precisa cair junto: sem isso, a próxima carga
   // perguntaria ao servidor, ele responderia a sessão antiga, e a pessoa

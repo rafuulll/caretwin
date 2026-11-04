@@ -79,7 +79,8 @@ export default function PaginaAlertas() {
                       iconeEsquerda={<Icone nome="lido" />}
                       onClick={() => {
                         marcarTodosComoLidos(pessoa.id)
-                        setAviso(textos.lista.todosAviso)
+                        // Sem internet a marcação não chega ao servidor, e a tela volta atrás (cartão 7.7).
+                        setAviso(navigator.onLine ? textos.lista.todosAviso : sistema.erros.semRede)
                       }}
                     >
                       {textos.lista.marcarTodos}
@@ -107,7 +108,8 @@ export default function PaginaAlertas() {
                                 alerta={alerta}
                                 aoMarcar={(lido) => {
                                   marcarAlerta(alerta.id, lido)
-                                  setAviso(lido ? textos.lista.lidoAviso : textos.lista.novoAviso)
+                                  if (!navigator.onLine) setAviso(sistema.erros.semRede)
+                                  else setAviso(lido ? textos.lista.lidoAviso : textos.lista.novoAviso)
                                 }}
                               />
                             </li>

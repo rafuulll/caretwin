@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import localFont from "next/font/local"
 import config from "../../design-system.json"
 import { designSystem, toCssVars } from "@/lib/design-system"
+import { RegistrarSw } from "@/components/registrar-sw"
 import { marca } from "@/content/site"
 import "./globals.css"
 import "./redesign.css"
@@ -20,6 +21,8 @@ const fustat = localFont({
 export const metadata: Metadata = {
   title: `${marca.nome} · ${marca.tagline}`,
   description: marca.descricaoCurta,
+  // O ícone da tela inicial do iPhone, que não lê os ícones do manifest.
+  icons: { apple: "/icones/apple-touch-icon.png" },
 }
 
 /**
@@ -55,7 +58,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       data-ds={designSystem.id}
       data-mode={designSystem.mode}
     >
-      <body className="min-h-full">{children}</body>
+      <body className="min-h-full">
+        {children}
+        <RegistrarSw />
+      </body>
     </html>
   )
 }

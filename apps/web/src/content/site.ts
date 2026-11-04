@@ -206,6 +206,18 @@ export const sistema = {
     alertasNovos: ["novo", "novos"] as const,
   },
 
+  /**
+   * A faixa que aparece no topo quando o app abre ou fica sem internet (cartão
+   * 7.7). Os dados continuam na tela, com o aviso de que podem estar velhos.
+   */
+  semRede: {
+    comCopia: "Sem internet agora. Estes dados são de {quando} e podem estar desatualizados.",
+    semCopia: "Sem internet agora. Os dados aparecem assim que a conexão voltar.",
+    hoje: "hoje às {hora}",
+    ontem: "ontem às {hora}",
+    outroDia: "{data} às {hora}",
+  },
+
   /** Os cadastros, com o artigo junto, pras frases automáticas saírem certas. */
   cadastros: {
     pessoa: { singular: "pessoa", plural: "pessoas", artigo: "a" },

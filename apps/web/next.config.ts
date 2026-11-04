@@ -37,6 +37,15 @@ const CABECALHOS_DE_SEGURANCA = [
  */
 const CABECALHOS_DA_API = [{ key: "Cache-Control", value: "private, no-store" }]
 
+/**
+ * O service worker (cartão 7.7) nunca fica em cache, para uma versão nova
+ * chegar no próximo acesso, e só roda código do próprio site.
+ */
+const CABECALHOS_DO_SW = [
+  { key: "Cache-Control", value: "no-cache, no-store, must-revalidate" },
+  { key: "Content-Security-Policy", value: "default-src 'self'; script-src 'self'" },
+]
+
 const nextConfig: NextConfig = {
   // Só o Dockerfile liga isto. O `standalone` gera uma pasta `.next/standalone`
   // com o servidor e só o que ele precisa, o que deixa a imagem do Docker
@@ -48,6 +57,7 @@ const nextConfig: NextConfig = {
     return [
       { source: "/:path*", headers: CABECALHOS_DE_SEGURANCA },
       { source: "/api/:path*", headers: CABECALHOS_DA_API },
+      { source: "/sw.js", headers: CABECALHOS_DO_SW },
     ]
   },
 }

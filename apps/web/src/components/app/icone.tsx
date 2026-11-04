@@ -40,6 +40,7 @@ import {
   User,
   Users,
   Watch,
+  WifiOff,
   X,
   type LucideIcon,
   type LucideProps,
@@ -98,6 +99,7 @@ const ICONES = {
   restaurar: RotateCcw,
   mostrar: Eye,
   esconder: EyeOff,
+  "sem-rede": WifiOff,
 } satisfies Record<string, LucideIcon>
 
 export type NomeIcone = keyof typeof ICONES

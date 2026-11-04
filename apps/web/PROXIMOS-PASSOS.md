@@ -95,6 +95,7 @@ São dois caminhos, e os dois gravam a mesma sessão assinada (`src/lib/sessao-s
 6. Troque a proteção em Settings, Deployment Protection, para Standard Protection: o endereço principal fica aberto (o app já tem login próprio e o limite de códigos), e os links de preview continuam protegidos. É o que deixa a pulseira de verdade enviar dados (cartão 4.8).
 7. Depois do passo 6, quem é de fora (o professor, por exemplo) abre o endereço principal direto. Os links de preview dos pull requests continuam pedindo o login da Vercel; para mostrar um deles, gere um link no botão Share do deploy.
 8. Revisão de segurança e privacidade (cartão 8.3): o checklist está em [docs/seguranca-e-privacidade.md](../../docs/seguranca-e-privacidade.md). Falta rodar a consulta do RLS no Supabase de produção e o Fabrício revisar.
+9. App instalável e funcionando sem internet (cartão 7.7): depois do deploy, abra o site no celular com internet, instale na tela inicial, ligue o modo avião e abra de novo. Os dados aparecem com a faixa de "Sem internet agora".
 
 **Por quê.** O código da pulseira tem só quatro caracteres. Sem limite de tentativas, alguém com uma conta poderia testar códigos até achar uma pulseira livre.
 
