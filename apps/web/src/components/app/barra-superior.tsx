@@ -1,32 +1,21 @@
-"use client"
-
-import type { RefObject } from "react"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Select } from "@/components/ui/select"
-import { sistema } from "@/content/site"
-import { escolherPessoa, useDados, usePessoaNaTela } from "@/lib/store"
-import type { Sessao } from "@/lib/types"
-import { Icone } from "./icone"
-import { Logo } from "./logo"
+"use client";
+import type { RefObject } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { sistema, redesign } from "@/content/site";
+import type { Sessao } from "@/lib/types";
+import { useConta } from "@/lib/store";
+import { Icone } from "./icone";
+import { Logo } from "./logo";
 
 type PropsBarraSuperior = {
-  sessao: Sessao
-  menuAberto: boolean
-  aoAbrirMenu: () => void
-  aoSair: () => void
-  refBotaoMenu: RefObject<HTMLButtonElement | null>
-}
-
-/** Avatar sem imagem hospedada: duas letras do nome bastam e nunca quebram. */
-function iniciaisDe(nome: string) {
-  const partes = nome.trim().split(/\s+/).filter(Boolean)
-  if (partes.length === 0) return "?"
-  const primeira = partes[0].charAt(0)
-  const ultima = partes.length > 1 ? partes[partes.length - 1].charAt(0) : ""
-  return (primeira + ultima).toUpperCase()
-}
-
+  sessao: Sessao;
+  menuAberto: boolean;
+  aoAbrirMenu: () => void;
+  aoSair: () => void;
+  refBotaoMenu: RefObject<HTMLButtonElement | null>;
+};
 export function BarraSuperior({
   sessao,
   menuAberto,
@@ -34,13 +23,17 @@ export function BarraSuperior({
   aoSair,
   refBotaoMenu,
 }: PropsBarraSuperior) {
-  const { dados } = useDados()
-  const pessoa = usePessoaNaTela()
-
+  const pathname = usePathname();
+  const conta = useConta();
+  const initials = sessao.nome
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((p) => p[0])
+    .join("")
+    .toUpperCase();
   return (
-    // O fio de baixo é a borda de 1px e mais nada: sem sombra por fora, o
-    // relevo do CareTwin é feito de borda, gradiente curto e luz por dentro.
-    <header className="sticky top-0 z-30 flex h-16 items-center gap-2 border-b border-hairline bg-canvas/80 px-4 backdrop-blur-md sm:gap-3 sm:px-6 lg:px-8">
+    <header className="ct-topbar">
       <Button
         ref={refBotaoMenu}
         variante="fantasma"
@@ -51,77 +44,55 @@ export function BarraSuperior({
         iconeEsquerda={<Icone nome="menu" />}
         className="shrink-0 lg:hidden"
       />
-
-      {/* A marca some junto com a coluna fixa no celular, e volta aqui. */}
-      <Link href="/app/painel" className="flex min-w-0 items-center rounded-ds transition-opacity hover:opacity-80 pointer-coarse:min-h-11 max-sm:hidden lg:hidden">
+      <Link href="/app/painel" className="lg:hidden">
         <Logo />
       </Link>
-
-      {/* Quem cuida acompanha de 1 a 3 pessoas, e todas as telas mostram uma de
-          cada vez. A troca mora no topo porque vale pra todas as telas. */}
-      {pessoa && (
-        <div className="flex min-w-0 items-center gap-1.5 lg:ml-0">
-          <Select
-            rotulo={sistema.casca.pessoaNaTela}
-            ocultarRotulo
-            placeholder={null}
-            opcoes={dados.pessoas.map((p) => ({ valor: p.id, rotulo: p.nome }))}
-            value={pessoa.id}
-            onChange={(evento) => escolherPessoa(evento.target.value)}
-            classeCampo="min-w-0 w-36 sm:w-48"
-            className="h-10 text-sm font-medium pointer-coarse:h-11"
-          />
-          <Link
-            href="/app/primeiro-uso"
-            aria-label={sistema.casca.conectarOutra}
-            title={sistema.casca.conectarOutra}
-            className="grid size-10 shrink-0 place-items-center rounded-ds text-muted transition-colors hover:bg-elevated hover:text-ink pointer-coarse:size-11"
-          >
-            <Icone nome="mais" className="size-4" />
-          </Link>
-        </div>
-      )}
-
-      <div
-        // O tour de boas-vindas aponta pra este bloco: o perfil e o botão de
-        // sair, juntos, que é o que a parada dele explica. Ver src/content/tour.ts.
-        data-tour="perfil"
-        className="ml-auto flex min-w-0 items-center gap-2 sm:gap-3"
-      >
+      <nav className="ct-top-links" aria-label={sistema.casca.navegacao}>
         <Link
-          href="/app/configuracoes"
-          className="flex min-w-0 items-center gap-2.5 rounded-ds pointer-coarse:min-h-11 pointer-coarse:min-w-11"
+          href="/app/painel"
+          aria-current={
+            !pathname.startsWith("/app/familia") ? "page" : undefined
+          }
         >
-          <span
-            aria-hidden="true"
-            // `.realce-interno` é a luz de cima e o peso de baixo em sombra
-            // interna, que acompanha a curva do disco. A cor continua sendo a
-            // primária sólida, então o par `primary-ink`/`primary` validado nos
-            // 71 temas segue valendo atrás da letra.
-            className="realce-interno grid size-8 shrink-0 place-items-center rounded-full bg-primary text-[11px] font-semibold text-primary-ink"
+          {redesign.following}
+        </Link>
+        {conta && (
+          <Link
+            href="/app/familia"
+            aria-current={
+              pathname.startsWith("/app/familia") ? "page" : undefined
+            }
           >
-            {iniciaisDe(sessao.nome)}
+            {redesign.family}
+          </Link>
+        )}
+      </nav>
+      <div className="ct-topbar-end" data-tour="perfil">
+        <Link
+          className="ct-round-link"
+          href="/app/alertas"
+          aria-label={redesign.viewChanges}
+        >
+          <Icone nome="alertas" />
+        </Link>
+        <Link href="/app/configuracoes" className="ct-account" aria-label={`${sessao.nome}, ${redesign.account}`}>
+          <span className="ct-avatar" aria-hidden="true">
+            {initials}
           </span>
-          {/* Escondido só visualmente no celular: quem usa leitor de tela
-              continua sabendo em qual conta está. */}
-          <span className="flex min-w-0 flex-col leading-tight max-sm:sr-only">
-            <span className="truncate text-sm text-ink">{sessao.nome}</span>
-            <span className="truncate text-xs text-muted">{sessao.email}</span>
+          <span className="ct-account-copy">
+            <span>{sessao.nome}</span>
+            <small>{redesign.account}</small>
           </span>
         </Link>
-
-        <span aria-hidden="true" className="hidden h-6 w-px bg-hairline sm:block" />
-
         <Button
-          variante="secundaria"
+          variante="fantasma"
           onClick={aoSair}
           aria-label={sistema.casca.sair}
           iconeEsquerda={<Icone nome="sair" />}
-          className="shrink-0 max-sm:w-10 max-sm:px-0"
         >
-          <span className="hidden sm:inline">{sistema.casca.sair}</span>
+          <span>{sistema.casca.sair}</span>
         </Button>
       </div>
     </header>
-  )
+  );
 }

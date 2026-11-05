@@ -1,0 +1,107 @@
+{
+  "base": "http://127.0.0.1:4322",
+  "errors": [],
+  "badResponses": [],
+  "checks": [
+    {
+      "name": "Headings are free of scribbles and orbits",
+      "pass": true
+    },
+    {
+      "name": "Night tab changes explanation and image",
+      "pass": true
+    },
+    {
+      "name": "Day tab restores day scene",
+      "pass": true
+    },
+    {
+      "name": "History stages work",
+      "pass": true
+    },
+    {
+      "name": "Scroll preserves selected history stage",
+      "pass": true
+    },
+    {
+      "name": "Family switches perspective",
+      "pass": true
+    },
+    {
+      "name": "Permission note is close to description",
+      "pass": true
+    },
+    {
+      "name": "Closing uses upside-down Ritmo on light surface",
+      "pass": true
+    },
+    {
+      "name": "FAQ expands",
+      "pass": true
+    },
+    {
+      "name": "Desktop has no document overflow",
+      "pass": true
+    },
+    {
+      "name": "No document overflow at 900",
+      "pass": true
+    },
+    {
+      "name": "No document overflow at 390",
+      "pass": true
+    },
+    {
+      "name": "Mobile night image switches",
+      "pass": true
+    },
+    {
+      "name": "No document overflow at 320",
+      "pass": true
+    },
+    {
+      "name": "Mobile menu supports Escape and focus return",
+      "pass": true
+    },
+    {
+      "name": "History supports keyboard",
+      "pass": true
+    },
+    {
+      "name": "Reduced motion disables image transitions",
+      "pass": true
+    },
+    {
+      "name": "Library contains 5 downloadable vector icons",
+      "pass": true
+    },
+    {
+      "name": "Library images load",
+      "pass": true
+    },
+    {
+      "name": "Landing CTA opens dashboard",
+      "pass": true
+    },
+    {
+      "name": "Dashboard returns to landing",
+      "pass": true
+    },
+    {
+      "name": "No runtime errors",
+      "pass": true
+    },
+    {
+      "name": "No failed asset responses",
+      "pass": true
+    }
+  ],
+  "axe": {
+    "desktop": [],
+    "mobile": []
+  },
+  "familyScrollConfirmation": {
+    "pass": true,
+    "reducedMotionStatic": true
+  }
+}

@@ -31,4 +31,37 @@ Aplicável aos materiais MIT descritos acima, com os respectivos avisos de copyr
 
 [AbacatePay](https://www.abacatepay.com/) e [seu design](https://www.abacatepay.com/design), [Nubank](https://nubank.com.br/) e [NatDesigner](https://minicurso.natdesigner.com/) foram consultados como referências. Não foram incorporados logos, imagens, CSS ou fontes dessas marcas. A consulta ao [Tilted Card do React Bits](https://reactbits.dev/components/tilted-card) não resultou em importação do componente.
 
-Os três PNGs foram gerados por IA para este estudo, usando as referências de Ritmo fornecidas pelo proprietário quando indicadas. `PROMPTS.json` registra os pedidos exatos. Os WebPs derivam desses PNGs. Os seis SVGs em `public/assets/brand/` são desenhos geométricos originais produzidos para a landing. Essas imagens são conceituais, sem validação como desenho industrial ou identidade final.
+Os três PNGs da primeira versão foram gerados por IA para este estudo, usando as referências de Ritmo fornecidas pelo proprietário quando indicadas. `PROMPTS.json` registra os pedidos exatos. Os WebPs derivam desses PNGs. Os seis SVGs em `public/assets/brand/` são desenhos geométricos originais produzidos para a landing. Essas imagens são conceituais, sem validação como desenho industrial ou identidade final.
+
+Atualização r2 (04/11/2026): três cenas editoriais e um recorte de Ritmo foram produzidos com a ferramenta nativa image_gen. Os cinco ícones icon-*.svg são geometria vetorial própria. Os materiais e prompts vigentes estão em REFINAMENTO-R2.md e PROMPTS-R2.md. Pessoas e wearable nas cenas são conceituais, sem depoimentos ou usuários reais.
+
+## Refinamento r3
+
+Novo asset vinculo-autonomia-r3.webp gerado com image_gen nativo a partir da referência de materiais da arte anterior; prompt integral em PROMPTS-R3.md. Transparência preservada na conversão para WebP. Sol/lua são geometria SVG original animada com a biblioteca Motion existente. Nenhuma dependência adicionada.
+
+## Refinamento r4
+
+Cena pulseira-iphone-r4.webp editada com image_gen nativo a partir da cena aprovada; prompt em PROMPTS-R4.md. Fonte Fustat preservada. Motion existente usado para seleção compartilhada das abas; animação de máscara das palavras adaptada da referência do site da Julia indicado pelo proprietário. Nenhuma dependência nova.
+# Adendo r6 — iPhone frontal com painel
+
+`pulseira-iphone-painel-r6.webp` editado com image_gen nativo a partir de `pulseira-iphone-r4.webp` e captura real da prévia do painel. Prompt e caminho do original em [PROMPTS-R6.md](PROMPTS-R6.md). Conversão WebP preserva alpha; 1536 × 1024. A tela é uma reprodução ilustrativa gerada a partir da captura. A versão r4 permanece arquivada. Movimento usa Motion existente e a API SVG nativa, sem código importado de biblioteca adicional.
+
+
+## R7 — iPhone individual
+
+Asset iphone-painel-r7.webp editado com image_gen nativo a partir do mockup r6 e da captura real do painel. 1122 × 1402, alpha preservado em WebP. Prompt e arquivo original em PROMPTS-R7.md. Imagem conceitual, sem integração com um dispositivo. Nenhuma dependência acrescentada para o menu: CSS nativo com fallback.
+
+
+## R10 — rolagem suave
+
+[Lenis](https://github.com/darkroomengineering/lenis), versão 1.3.27 fixada no manifesto e lockfile, licença MIT. Usado somente na landing para rolagem com mouse/trackpad de precisão; touch e movimento reduzido permanecem nativos. A licença é distribuída pelo pacote npm. Nenhum asset das referências pesquisadas nesta etapa foi incorporado. Planejamento visual em PLANO-AMBIENTE-R10.md.
+
+
+## R11 — ambiente do iPhone
+
+`cenario-ritmo-r11.webp` gerado com image_gen nativo a partir da referência de materiais da composição r7. Prompt e original em [PROMPTS-R11.json](PROMPTS-R11.json). A curva pertence ao cenário, sem imagens ou modelos de terceiros. A moldura de telefone usa CSS próprio; as telas são capturas atuais do painel local, exportadas em WebP lossless a partir de 390×844 em escala 3. Nenhum asset de ls.graphics, Shapefest, Mercury, Oura, illo ou AbacatePay foi incorporado. Fontes, licenças e dependências existentes preservadas; nenhuma nova dependência.
+
+
+## R12 — material e atmosfera
+
+`cenario-ritmo-r12.webp` editado com image_gen nativo a partir do asset r11. Enquadramento, base e onda preservados; iluminação neutralizada para permitir integração com a atmosfera azul suave aplicada em CSS. Original e prompt em PROMPTS-R12.json. O circulado da hero é geometria SVG decorativa própria. Nenhuma dependência, fonte ou imagem de terceiros acrescentada.

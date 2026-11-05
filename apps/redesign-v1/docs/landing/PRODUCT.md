@@ -1,5 +1,7 @@
 # CareTwin — estudo de landing, versão 3
 
+> Atualização de escopo em 04/11/2026: o proprietário autorizou implementar todos os refinamentos e publicar a prévia no projeto independente `caretwin-redesign-v1`. O estado visual atual está em `DESIGN.md`; as decisões e verificações desta revisão estão em `REFINAMENTO-R2.md`. Os parágrafos abaixo registram o briefing anterior à publicação e não revogam essa autorização. A versão continua em desenvolvimento, sem alteração do aplicativo original ou das regras do produto.
+
 ## Produto e público
 
 Protótipo acadêmico UPX/UniFacens: pulseira acompanha passos e sono estimado por movimento, comparados ao histórico da própria pessoa. Pessoa idosa e familiar têm igual prioridade. Compartilhamento exige vínculo aprovado. Não oferece diagnóstico, SOS, detecção de queda, push, metas universais ou batimentos integrados. Acesso só com conta existente.
@@ -17,3 +19,9 @@ Nova landing navegável local, com seções completas, assets de marca, interaç
 ## Experiência
 
 Modo Persuade. Primeira dobra mantém frase aprovada e apresenta o mecanismo. Conteúdo essencial está legível sem movimento; motion reduzido desliga parallax/3D. Estudo tem library.html/rota de assets para inspeção e downloads locais. Personagem 3D só na cena reclinada da hero, 2D pontual no conteúdo. Aparência industrial e imagens são conceituais.
+
+Atualização posterior no mesmo dia: o proprietário pediu avaliação somente local e rejeitou as fotografias. A autoridade visual atual é DESIGN.md, refinamento r3; não publicar nem fazer novo push sem solicitação.
+
+Refinamento atual r4 no mesmo dia: preservar direção aprovada e aplicar ajustes pontuais de animação/arte/rodapé. Ver DESIGN.md e REFINAMENTO-R4.md. Continua exclusivamente local.
+
+Refinamento atual r5: o proprietário pediu remover contorno de clique e saltos em todas as abas, fazer a coluna do FAQ acompanhar a rolagem e retirar a nota da hero. Solicitou ajuda com logo; estudos comparativos separados, sem aplicar nova marca. Ver DESIGN.md e REFINAMENTO-R5.md. Somente local.

@@ -55,7 +55,7 @@ export default function LayoutSistema({ children }: { children: React.ReactNode 
   if (!hidratado || !sessao || carregando) return <EsqueletoSistema />
 
   return (
-    <div className="min-h-dvh bg-canvas">
+    <div className="ct-app min-h-dvh bg-canvas">
       <a
         href="#conteudo"
         className="sr-only focus-visible:not-sr-only focus-visible:fixed focus-visible:top-4 focus-visible:left-4 focus-visible:z-[60] focus-visible:rounded-ds focus-visible:bg-primary focus-visible:px-3 focus-visible:py-2 focus-visible:text-sm focus-visible:text-primary-ink"
@@ -80,7 +80,7 @@ export default function LayoutSistema({ children }: { children: React.ReactNode 
           // O tour de boas-vindas aponta pra este bloco. Ver src/content/tour.ts.
           data-tour="conteudo"
           tabIndex={-1}
-          className="mx-auto w-full max-w-[1200px] px-4 py-6 focus:outline-none sm:px-6 lg:px-8 lg:py-8"
+          className="ct-app-content"
         >
           {children}
         </main>

@@ -1,0 +1,22 @@
+[
+  {
+    "width": 1440,
+    "before": 50.7938,
+    "startedHidden": true,
+    "firstAnimationOffset": 50.7938,
+    "finished": true,
+    "noVisibleThenHidden": true,
+    "frameCount": 70,
+    "reducedVisible": true
+  },
+  {
+    "width": 390,
+    "before": 43.5375,
+    "startedHidden": true,
+    "firstAnimationOffset": 43.5375,
+    "finished": true,
+    "noVisibleThenHidden": true,
+    "frameCount": 71,
+    "reducedVisible": true
+  }
+]

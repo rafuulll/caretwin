@@ -42,3 +42,23 @@ A aprovação se limita à prévia local e aos cenários exercitados. Não certi
 Todos os valores, vínculos e dispositivos são fictícios. A prévia usa estado React em memória; recarregar a página reinicia a sessão. Não há autenticação, persistência, integração com pulseira, envio de convite, notificação real ou alteração de permissão. O período inicial de aprendizado exibido é um exemplo, não uma regra clínica validada.
 
 O escopo não inclui diagnóstico, SOS, detecção de queda, push, meta universal, streak, batimentos integrados ou novo cadastro. O estudo serve para revisar uma direção de interface, sem publicar ou modificar o produto em produção.
+
+
+## Refinamento r2 — 04/11/2026
+
+Visão geral revisada a pedido do proprietário: registros antes do guia, colunas alinhadas, tipografia CareTwin sem símbolo, gráfico com legendas e seleção mais claras, controles deslizantes e centralização do dia após resize. Corrigido índice de hover ao alternar estados. Problemas, heurísticas, decisões e limites em [REFINAMENTO-R2.md](REFINAMENTO-R2.md). Sem novo commit, push ou deploy.
+
+
+## Refinamento r3 — 04/11/2026
+
+Passos, Sono, Mudanças, Família e Preferências refinados para reduzir decisões e facilitar a leitura. Métrica fixa nas telas dedicadas, linguagem de noites encerradas, lista de participantes e preferências agrupadas. Navegação nativa com links e Voltar/Avançar, estados e acessibilidade revisados. Reinício restaura texto ampliado, tabela e demais escolhas. Tabela completa de problema/heurística/decisão em [REFINAMENTO-R3.md](REFINAMENTO-R3.md); 25 verificações funcionais aprovadas, evidência em VERIFICACAO-R3.json. Sem backend ou publicação.
+
+
+## Refinamento final — 04/11/2026
+
+Removida a moldura externa para aproveitar a janela; navegação disponível durante a leitura; controles de teste em divulgação progressiva. Gráfico com marcador compartilhado, setas visíveis e atalhos de teclado; privacidade imediata no celular; feedback e fechamento de ajudas coerentes. Relação problema/heurística/decisão e evidências em [REFINAMENTO-FINAL.md](../REFINAMENTO-FINAL.md). Prévia local, sem publicação.
+
+
+## R7 — detalhes de leitura
+
+Retirado o retângulo de hover, agrupados números e rótulos, refinadas barras de rolagem e o menu nativo de pessoas. Contexto e 16 verificações em [REFINAMENTO-R7.md](../REFINAMENTO-R7.md). Sem publicação.

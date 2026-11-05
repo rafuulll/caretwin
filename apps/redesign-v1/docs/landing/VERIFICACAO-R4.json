@@ -1,0 +1,132 @@
+{
+  "checks": [
+    {
+      "name": "Hero strip removed",
+      "pass": true
+    },
+    {
+      "name": "Divider arrow is centered at boundary",
+      "pass": true
+    },
+    {
+      "name": "Boundary arrow scrolls to how it works",
+      "pass": true
+    },
+    {
+      "name": "Day/night pill slides between buttons",
+      "pass": true
+    },
+    {
+      "name": "Night scene is preserved",
+      "pass": true
+    },
+    {
+      "name": "Chapter title uses masked words",
+      "pass": true
+    },
+    {
+      "name": "Compare uses lower connector without cramped arrow",
+      "pass": true
+    },
+    {
+      "name": "Connector hidden in other stages",
+      "pass": true
+    },
+    {
+      "name": "Family pill slides between buttons",
+      "pass": true
+    },
+    {
+      "name": "iPhone artwork loads",
+      "pass": true
+    },
+    {
+      "name": "FAQ word animation runs on entry",
+      "pass": true
+    },
+    {
+      "name": "FAQ still expands",
+      "pass": true
+    },
+    {
+      "name": "Requested footer text and asset link removed",
+      "pass": true
+    },
+    {
+      "name": "No horizontal overflow at 900",
+      "pass": true
+    },
+    {
+      "name": "No horizontal overflow at 390",
+      "pass": true
+    },
+    {
+      "name": "Mobile segmented control switches scene",
+      "pass": true
+    },
+    {
+      "name": "No horizontal overflow at 320",
+      "pass": true
+    },
+    {
+      "name": "Segmented tabs support keyboard",
+      "pass": true
+    },
+    {
+      "name": "Reduced motion keeps headings static and visible",
+      "pass": true
+    },
+    {
+      "name": "No runtime errors",
+      "pass": true
+    },
+    {
+      "name": "No failed assets",
+      "pass": true
+    }
+  ],
+  "errors": [],
+  "badResponses": [],
+  "axe": {
+    "desktop": [],
+    "mobile": []
+  },
+  "pillMotion": {
+    ".day-tabs": {
+      "start": {
+        "x": 549.265625,
+        "width": 162.28125,
+        "transform": "none"
+      },
+      "mid": {
+        "x": 675.9156494140625,
+        "width": 172.09954833984375,
+        "transform": "matrix(0.982461, 0, 0, 1, -41.1674, 0)"
+      },
+      "end": {
+        "x": 715.546875,
+        "width": 175.171875,
+        "transform": "none"
+      },
+      "target": 715.546875
+    },
+    ".family-tabs": {
+      "start": {
+        "x": 782.140625,
+        "width": 151.734375,
+        "transform": "none"
+      },
+      "mid": {
+        "x": 901.4778442382812,
+        "width": 144.20318603515625,
+        "transform": "matrix(1.01619, 0, 0, 1, -35.2487, 0)"
+      },
+      "end": {
+        "x": 937.875,
+        "width": 141.90625,
+        "transform": "none"
+      },
+      "target": 937.875
+    }
+  }
+}

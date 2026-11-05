@@ -1,5 +1,5 @@
 import { Card } from "@/components/ui"
-import { sistema } from "@/content/site"
+import { sistema, redesign } from "@/content/site"
 import type { PassosDeHoje } from "@/lib/consultas"
 import { numero, preencher } from "@/lib/formato"
 import { FaixaDoDia } from "../graficos/faixa-do-dia"
@@ -14,10 +14,10 @@ const textos = sistema.painel.passos
  * pra todo mundo, todo dia, e o app perderia a confiança de quem usa.
  */
 export function PassosDeHojeCartao({ dados }: { dados: PassosDeHoje }) {
-  const { passos, faixaAteAgora, faixaDoDia, situacao } = dados
+  const { passos, faixaAteAgora, situacao } = dados
 
   return (
-    <Card className="p-5 sm:p-6">
+    <Card className="ct-steps">
       {/* Um grupo só: o termo é "Passos até agora", e tudo embaixo dele (o
           número, a situação, o normal) é a definição desse termo. */}
       <dl>
@@ -26,19 +26,19 @@ export function PassosDeHojeCartao({ dados }: { dados: PassosDeHoje }) {
         <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-x-3">
           <dt className="flex items-center gap-2 text-base text-ink">
             <Icone nome="passos" className="size-5 text-[var(--ds-primary-accent)]" />
-            {textos.titulo}
+            {redesign.stepsTitle}
           </dt>
           <dd>
             <SeloSituacao situacao={situacao} metrica="passos" />
           </dd>
 
-          <dd className="col-span-2 mt-3 font-display text-5xl leading-none text-ink sm:text-6xl">
-            {passos === null ? "0" : numero(passos)}
+          <dd className={passos===null?"col-span-2 mt-5 mb-5 text-xl text-muted":"ct-steps-number col-span-2 mt-5 mb-5 font-display text-ink"}>
+            {passos === null ? sistema.comum.semDado : numero(passos)}
           </dd>
           {passos === null && <dd className="col-span-2 mt-2 text-sm text-muted">{textos.semPassos}</dd>}
 
           {faixaAteAgora && (
-            <dd className="col-span-2 mt-3 text-base text-ink">
+            <dd className="col-span-2 mt-3 text-sm text-ink">
               {preencher(textos.normalAteAgora, {
                 baixo: numero(Math.round(faixaAteAgora.baixo)),
                 alto: numero(Math.round(faixaAteAgora.alto)),
@@ -46,14 +46,7 @@ export function PassosDeHojeCartao({ dados }: { dados: PassosDeHoje }) {
               {passos !== null && <FaixaDoDia valor={passos} faixa={faixaAteAgora} acimaEhBom />}
             </dd>
           )}
-          {faixaDoDia && (
-            <dd className="col-span-2 mt-4 text-sm text-muted">
-              {preencher(textos.normalDoDia, {
-                baixo: numero(Math.round(faixaDoDia.baixo)),
-                alto: numero(Math.round(faixaDoDia.alto)),
-              })}
-            </dd>
-          )}
+
         </div>
       </dl>
     </Card>

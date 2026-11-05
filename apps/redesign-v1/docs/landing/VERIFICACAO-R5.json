@@ -1,0 +1,513 @@
+{
+  "checks": [
+    {
+      "name": "No click scroll .day-tabs 1 at 1440",
+      "pass": true
+    },
+    {
+      "name": "No click scroll .day-tabs 0 at 1440",
+      "pass": true
+    },
+    {
+      "name": "No click scroll .history-flow 1 at 1440",
+      "pass": true
+    },
+    {
+      "name": "No click scroll .history-flow 2 at 1440",
+      "pass": true
+    },
+    {
+      "name": "No click scroll .history-flow 0 at 1440",
+      "pass": true
+    },
+    {
+      "name": "No click scroll .family-tabs 1 at 1440",
+      "pass": true
+    },
+    {
+      "name": "No click scroll .family-tabs 0 at 1440",
+      "pass": true
+    },
+    {
+      "name": "No overflow at 1440",
+      "pass": true
+    },
+    {
+      "name": "No click scroll .day-tabs 1 at 900",
+      "pass": true
+    },
+    {
+      "name": "No click scroll .day-tabs 0 at 900",
+      "pass": true
+    },
+    {
+      "name": "No click scroll .history-flow 1 at 900",
+      "pass": true
+    },
+    {
+      "name": "No click scroll .history-flow 2 at 900",
+      "pass": true
+    },
+    {
+      "name": "No click scroll .history-flow 0 at 900",
+      "pass": true
+    },
+    {
+      "name": "No click scroll .family-tabs 1 at 900",
+      "pass": true
+    },
+    {
+      "name": "No click scroll .family-tabs 0 at 900",
+      "pass": true
+    },
+    {
+      "name": "No overflow at 900",
+      "pass": true
+    },
+    {
+      "name": "No click scroll .day-tabs 1 at 390",
+      "pass": true
+    },
+    {
+      "name": "No click scroll .day-tabs 0 at 390",
+      "pass": true
+    },
+    {
+      "name": "No click scroll .history-flow 1 at 390",
+      "pass": true
+    },
+    {
+      "name": "No click scroll .history-flow 2 at 390",
+      "pass": true
+    },
+    {
+      "name": "No click scroll .history-flow 0 at 390",
+      "pass": true
+    },
+    {
+      "name": "No click scroll .family-tabs 1 at 390",
+      "pass": true
+    },
+    {
+      "name": "No click scroll .family-tabs 0 at 390",
+      "pass": true
+    },
+    {
+      "name": "No overflow at 390",
+      "pass": true
+    },
+    {
+      "name": "Hero draft note removed",
+      "pass": true
+    },
+    {
+      "name": "Pointer click has no focus ring",
+      "pass": true
+    },
+    {
+      "name": "Keyboard focus stays visible",
+      "pass": true
+    },
+    {
+      "name": "FAQ heading follows scroll in its column",
+      "pass": true
+    },
+    {
+      "name": "Mobile FAQ stays in document flow",
+      "pass": true
+    },
+    {
+      "name": "Logo study renders three options",
+      "pass": true
+    },
+    {
+      "name": "Logo study has no mobile overflow",
+      "pass": true
+    },
+    {
+      "name": "No runtime errors",
+      "pass": true
+    }
+  ],
+  "scrollCases": [
+    {
+      "group": ".day-tabs",
+      "index": 1,
+      "position": 20,
+      "width": 1440,
+      "before": {
+        "y": 1012,
+        "hash": ""
+      },
+      "after": {
+        "y": 1012,
+        "hash": ""
+      },
+      "heightBefore": 479.609375,
+      "heightAfter": 479.609375,
+      "active": 1
+    },
+    {
+      "group": ".day-tabs",
+      "index": 0,
+      "position": 20,
+      "width": 1440,
+      "before": {
+        "y": 1012,
+        "hash": ""
+      },
+      "after": {
+        "y": 1012,
+        "hash": ""
+      },
+      "heightBefore": 479.609375,
+      "heightAfter": 479.609375,
+      "active": 0
+    },
+    {
+      "group": ".history-flow",
+      "index": 1,
+      "position": 20,
+      "width": 1440,
+      "before": {
+        "y": 1957,
+        "hash": ""
+      },
+      "after": {
+        "y": 1957,
+        "hash": ""
+      },
+      "heightBefore": 534.796875,
+      "heightAfter": 534.796875,
+      "active": 1
+    },
+    {
+      "group": ".history-flow",
+      "index": 2,
+      "position": 20,
+      "width": 1440,
+      "before": {
+        "y": 1957,
+        "hash": ""
+      },
+      "after": {
+        "y": 1957,
+        "hash": ""
+      },
+      "heightBefore": 534.796875,
+      "heightAfter": 534.796875,
+      "active": 2
+    },
+    {
+      "group": ".history-flow",
+      "index": 0,
+      "position": 20,
+      "width": 1440,
+      "before": {
+        "y": 1957,
+        "hash": ""
+      },
+      "after": {
+        "y": 1957,
+        "hash": ""
+      },
+      "heightBefore": 534.796875,
+      "heightAfter": 534.796875,
+      "active": 0
+    },
+    {
+      "group": ".family-tabs",
+      "index": 1,
+      "position": 20,
+      "width": 1440,
+      "before": {
+        "y": 2885,
+        "hash": ""
+      },
+      "after": {
+        "y": 2885,
+        "hash": ""
+      },
+      "heightBefore": 169.1875,
+      "heightAfter": 169.1875,
+      "active": 1
+    },
+    {
+      "group": ".family-tabs",
+      "index": 0,
+      "position": 20,
+      "width": 1440,
+      "before": {
+        "y": 2885,
+        "hash": ""
+      },
+      "after": {
+        "y": 2885,
+        "hash": ""
+      },
+      "heightBefore": 169.1875,
+      "heightAfter": 169.1875,
+      "active": 0
+    },
+    {
+      "group": ".day-tabs",
+      "index": 1,
+      "position": 20,
+      "width": 900,
+      "before": {
+        "y": 977,
+        "hash": ""
+      },
+      "after": {
+        "y": 977,
+        "hash": ""
+      },
+      "heightBefore": 390,
+      "heightAfter": 390,
+      "active": 1
+    },
+    {
+      "group": ".day-tabs",
+      "index": 0,
+      "position": 20,
+      "width": 900,
+      "before": {
+        "y": 977,
+        "hash": ""
+      },
+      "after": {
+        "y": 977,
+        "hash": ""
+      },
+      "heightBefore": 390,
+      "heightAfter": 390,
+      "active": 0
+    },
+    {
+      "group": ".history-flow",
+      "index": 1,
+      "position": 20,
+      "width": 900,
+      "before": {
+        "y": 1832,
+        "hash": ""
+      },
+      "after": {
+        "y": 1832,
+        "hash": ""
+      },
+      "heightBefore": 459,
+      "heightAfter": 459,
+      "active": 1
+    },
+    {
+      "group": ".history-flow",
+      "index": 2,
+      "position": 20,
+      "width": 900,
+      "before": {
+        "y": 1832,
+        "hash": ""
+      },
+      "after": {
+        "y": 1832,
+        "hash": ""
+      },
+      "heightBefore": 459,
+      "heightAfter": 459,
+      "active": 2
+    },
+    {
+      "group": ".history-flow",
+      "index": 0,
+      "position": 20,
+      "width": 900,
+      "before": {
+        "y": 1832,
+        "hash": ""
+      },
+      "after": {
+        "y": 1832,
+        "hash": ""
+      },
+      "heightBefore": 459,
+      "heightAfter": 459,
+      "active": 0
+    },
+    {
+      "group": ".family-tabs",
+      "index": 1,
+      "position": 20,
+      "width": 900,
+      "before": {
+        "y": 2655,
+        "hash": ""
+      },
+      "after": {
+        "y": 2655,
+        "hash": ""
+      },
+      "heightBefore": 166.6875,
+      "heightAfter": 166.6875,
+      "active": 1
+    },
+    {
+      "group": ".family-tabs",
+      "index": 0,
+      "position": 20,
+      "width": 900,
+      "before": {
+        "y": 2655,
+        "hash": ""
+      },
+      "after": {
+        "y": 2655,
+        "hash": ""
+      },
+      "heightBefore": 166.6875,
+      "heightAfter": 166.6875,
+      "active": 0
+    },
+    {
+      "group": ".day-tabs",
+      "index": 1,
+      "position": 120,
+      "width": 390,
+      "before": {
+        "y": 960,
+        "hash": ""
+      },
+      "after": {
+        "y": 960,
+        "hash": ""
+      },
+      "heightBefore": 583.390625,
+      "heightAfter": 583.390625,
+      "active": 1
+    },
+    {
+      "group": ".day-tabs",
+      "index": 0,
+      "position": 120,
+      "width": 390,
+      "before": {
+        "y": 960,
+        "hash": ""
+      },
+      "after": {
+        "y": 960,
+        "hash": ""
+      },
+      "heightBefore": 583.390625,
+      "heightAfter": 583.390625,
+      "active": 0
+    },
+    {
+      "group": ".history-flow",
+      "index": 1,
+      "position": 120,
+      "width": 390,
+      "before": {
+        "y": 1986,
+        "hash": ""
+      },
+      "after": {
+        "y": 1986,
+        "hash": ""
+      },
+      "heightBefore": 671.734375,
+      "heightAfter": 671.734375,
+      "active": 1
+    },
+    {
+      "group": ".history-flow",
+      "index": 2,
+      "position": 120,
+      "width": 390,
+      "before": {
+        "y": 1986,
+        "hash": ""
+      },
+      "after": {
+        "y": 1986,
+        "hash": ""
+      },
+      "heightBefore": 671.734375,
+      "heightAfter": 692.734375,
+      "active": 2
+    },
+    {
+      "group": ".history-flow",
+      "index": 0,
+      "position": 120,
+      "width": 390,
+      "before": {
+        "y": 1986,
+        "hash": ""
+      },
+      "after": {
+        "y": 1986,
+        "hash": ""
+      },
+      "heightBefore": 692.734375,
+      "heightAfter": 671.734375,
+      "active": 0
+    },
+    {
+      "group": ".family-tabs",
+      "index": 1,
+      "position": 120,
+      "width": 390,
+      "before": {
+        "y": 3303,
+        "hash": ""
+      },
+      "after": {
+        "y": 3303,
+        "hash": ""
+      },
+      "heightBefore": 165.9375,
+      "heightAfter": 220.28125,
+      "active": 1
+    },
+    {
+      "group": ".family-tabs",
+      "index": 0,
+      "position": 120,
+      "width": 390,
+      "before": {
+        "y": 3303,
+        "hash": ""
+      },
+      "after": {
+        "y": 3303,
+        "hash": ""
+      },
+      "heightBefore": 220.28125,
+      "heightAfter": 165.9375,
+      "active": 0
+    },
+    {
+      "group": ".family-tabs",
+      "index": 1,
+      "position": 150,
+      "width": 1440,
+      "before": {
+        "y": 2755,
+        "hash": ""
+      },
+      "after": {
+        "y": 2755,
+        "hash": ""
+      },
+      "heightBefore": 169.1875,
+      "heightAfter": 169.1875,
+      "active": 1
+    }
+  ],
+  "errors": [],
+  "axe": {
+    "mobile": [],
+    "desktop": []
+  }
+}

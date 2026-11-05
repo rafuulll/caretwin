@@ -43,6 +43,7 @@ export const designSystem = config as DesignSystem
 /** Converte os tokens nas custom properties que o `globals.css` consome. */
 export function toCssVars(ds: DesignSystem): Record<string, string> {
   return {
+    ...Object.fromEntries(Object.entries(config.artwork).map(([key, value]) => [`--ds-${key}`, value])),
     "--ds-canvas": ds.tokens.canvas,
     "--ds-surface": ds.tokens.surface,
     "--ds-surface-elevated": ds.tokens.surfaceElevated,

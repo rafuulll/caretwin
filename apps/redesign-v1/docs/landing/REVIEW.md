@@ -24,3 +24,11 @@ Nenhum achado material permanece aberto no escopo desta revisão.
 ## keep
 
 Preservar hero branca, navegação compacta, Ritmo azul reclinado com olhos fechados, círculo fino, guia 2D pontual e metáfora das duas poltronas.
+
+## Refinamento posterior · 04/11/2026
+
+A revisão atual está em REFINAMENTO-R2.md, com estado visual em DESIGN.md e resultado em VERIFICACAO-R2.json. As avaliações anteriores deste arquivo registram a primeira versão.
+
+Refinamento r3 posterior: nova direção de cenas e animações documentada em REFINAMENTO-R3.md. Validação local em VERIFICACAO-R3.json. Sem novo push ou deploy.
+
+Refinamento r4: revisão local dos pedidos de animação, arte, curva da hero e limpeza do fechamento documentada em REFINAMENTO-R4.md. Evidências em VERIFICACAO-R4.json.

@@ -1,4 +1,20 @@
-# Marcações geométricas CareTwin
+# Ícones CareTwin e arquivo de marcações
+
+## Conjunto ativo · refinamento de 04/11/2026
+
+Cinco ícones SVG originais, editáveis, com grade 32 × 32, traço 1,8 e pontas arredondadas. Disponíveis na biblioteca `/marca`:
+
+- `icon-movement.svg`: movimento/passos.
+- `icon-sleep.svg`: sono estimado.
+- `icon-history.svg`: histórico pessoal.
+- `icon-family.svg`: família.
+- `icon-link.svg`: vínculo aprovado.
+
+Azul `#2549D8` com apoio claro. Controles gerais continuam usando Phosphor. Os rótulos HTML comunicam a função; as imagens são decorativas para leitores de tela.
+
+## Arquivo da primeira versão
+
+As marcações abaixo foram preservadas como material histórico. Foram retiradas da landing e da biblioteca ativa após o retorno do proprietário; não são orientação para novos títulos.
 
 Seis SVGs originais para apoiar a linguagem da landing page. São abstrações decorativas, com pequenas assimetrias de traço; não representam personagens, símbolos clínicos ou um novo logotipo.
 
@@ -24,3 +40,7 @@ Preservar a proporção do `viewBox`; evitar esticar os desenhos em apenas um ei
 O azul `#2549D8` é a cor principal de traço sobre branco. O azul claro `#AFC2FF` é um acento decorativo de menor contraste, presente em `day-path.svg` e `twin-orbit.svg`; não deve carregar sozinho estados, instruções ou informação necessária.
 
 Este conjunto não certifica conformidade AA. Conferir contraste no tamanho e fundo reais de uso, especialmente se as cores, opacidade ou espessura forem alteradas. Textos e controles precisam de verificação própria; as marcações não substituem seus rótulos.
+
+## Estudos de logo · r5
+
+SVGs originais logo-cadencia.svg e logo-ct.svg na subpasta estudos. Comparação com a alternativa tipográfica em /estudos/logo-caretwin.html. Materiais para escolha e refinamento; não substituem a marca vigente.

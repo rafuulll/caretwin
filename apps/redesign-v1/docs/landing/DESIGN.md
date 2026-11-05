@@ -1,110 +1,74 @@
----
-name: CareTwin — proposta visual v3
-description: Ritmo pessoal, proximidade e espaço em uma landing clara.
-colors:
-  blue: "#2549d8"
-  navy: "#141d52"
-  ink: "#14233d"
-  muted: "#586b87"
-  soft: "#f4f7fc"
-  line: "#dce4f1"
-  white: "#ffffff"
-typography:
-  display:
-    fontFamily: "Fustat, Arial, sans-serif"
-    fontSize: "60px"
-    fontWeight: 500
-    lineHeight: 1.08
-    letterSpacing: "-.04em"
-  headline:
-    fontFamily: "Fustat, Arial, sans-serif"
-    fontSize: "48px"
-    fontWeight: 500
-    lineHeight: 1.12
-    letterSpacing: "-.035em"
-  body:
-    fontFamily: "Fustat, Arial, sans-serif"
-    fontSize: "18px"
-    fontWeight: 400
-    lineHeight: 1.6
-rounded:
-  button: "12px"
-  tabs: "30px"
-  navigation: "40px"
-components:
-  button-primary:
-    backgroundColor: "{colors.blue}"
-    textColor: "{colors.white}"
-    rounded: "{rounded.button}"
-    padding: "14px 23px"
-  button-light:
-    backgroundColor: "{colors.white}"
-    textColor: "{colors.navy}"
-    rounded: "{rounded.button}"
-    padding: "14px 23px"
----
+# CareTwin · direção vigente da landing
 
-# Design System: CareTwin
+Atualização de 04/11/2026. **Redesign v1, refinamento r12, ainda em desenvolvimento.** A direção visual aprovada está preservada. Ajustes atuais: abas sem deslocamento de página, foco visível reservado ao teclado, coluna do FAQ acompanhando o scroll e retirada da nota da hero. Registro atual: [REFINAMENTO-R12.md](../REFINAMENTO-R12.md); [REFINAMENTO-R6.md](REFINAMENTO-R6.md) registra a etapa anterior; [REFINAMENTO-FINAL.md](../REFINAMENTO-FINAL.md) registra o acabamento geral; [REFINAMENTO-R5.md](REFINAMENTO-R5.md) registra a etapa anterior; r2/r3/r4 registram as decisões anteriores. Destino desta revisão: prévia local; sem novo push ou deploy.
 
-## Overview
+## Autoridade visual
 
-**Creative North Star: "No seu próprio ritmo"** — descrição de trabalho da proposta.
+Preservar a hero escolhida pelo proprietário, com Fustat, branco, azul e Ritmo reclinado. AbacatePay orienta acabamento e clareza de produto; o fechamento segue a referência de Figma fornecida pelo proprietário, com Ritmo invertido em fundo azul claro. Não copiar marca ou recursos financeiros das referências.
 
-Proposta vigente para a landing v3, ancorada na hero editada e escolhida pelo proprietário: composição compacta, tipografia menor, branco e Ritmo azul reclinado. Documenta a implementação; a identidade completa ainda não foi validada. AbacatePay orienta acabamento, sem reprodução de marca.
+Preservar os títulos aprovados, com o circulado fino solicitado em “ritmo.” na hero; manter o histórico em três abas, a nota de vínculo próxima ao conteúdo e o fechamento aprovado. As fotografias de r2 foram rejeitadas pelo proprietário. Dia/noite mantém o conceito de sol e lua em uma composição nova, com menos elementos. Família usa uma cena 3D inédita do produto, com os materiais e as cores da composição anterior.
 
-A atmosfera é tranquila, adulta e próxima. Objetos e ondas apoiam informação direta; espaço comunica autonomia e companhia.
+## Tokens
 
-**Key Characteristics:**
+| Papel | Valor |
+| --- | --- |
+| Texto principal | `#14233d` |
+| Texto de apoio | `#586b87` |
+| Ação / seleção | `#2549d8` |
+| Azul profundo de apoio | `#141d52` |
+| Fundo dia/noite | `#f4f7fc` |
+| Fundo família | `#f1f5ff` |
+| Fundo fechamento | `#edf3ff` |
+| Divisórias | `#dce4f1` |
+| Superfície | `#ffffff` |
 
-- Azul e branco; tipografia clara; gestos suaves.
-- Uma cena dominante; sem recortes de dashboard.
-- Profundidade localizada; leitura independente da animação.
+Fustat local, pesos 400–800, licença OFL preservada. Corpo 18 px; descrições de conteúdo 16–17 px; títulos de capítulo em torno de 42–50 px; hero 60 px, chegando a 64 px em telas amplas. No celular, títulos usam escala de 29–41 px conforme função; hero 36–55 px. Tracking mínimo -0,04em.
 
-## Colors
+Contêiner máximo 1120 px. Margens 48 px em desktop, 32 px em larguras intermediárias, 20 px no celular e 16 px abaixo de 360 px. Imagens e diagramas com raio de 16 px, reduzido a 14 px em cenas móveis. Botões de 12 px; abas e navegação em cápsulas. Alvos principais de 44 px ou mais; CTA de 52 px no desktop.
 
-### Primary
+## Composição
 
-**Azul de ritmo** é a ação principal, o estado selecionado e o traço de apoio. **Azul profundo** sustenta o fechamento e a prévia escura dos assets.
+- **Hero:** copy, Ritmo e CTA aprovados; circulado fino azul na palavra “ritmo.” conforme pedido mais recente, com desenho único e alternativa estática em movimento reduzido. Proporções e respiro desktop refinados para dar mais presença ao Ritmo. Sem faixa de texto no fim; seta central em curva branca contínua com a seção seguinte.
+- **Dia/noite:** título e abas centralizados; texto e composição geométrica em duas colunas. Um volume claro com sol alterna para azul profundo com lua; base única, sem ícones repetidos, órbitas ou etiquetas inclinadas. No celular, texto precede a cena.
+- **Histórico:** três etapas horizontais Registrar, Conhecer, Comparar. Cada peça representa um dia e recebe rótulo Dia 1–5 / Hoje. O diagrama permanece montado durante as transições: os dias se conectam e hoje é comparado ao histórico. A quantidade é ilustrativa e não define prazo de aprendizado. Removidos os dois ícones/legendas superiores e a nota de representação. Ritmo como guia. Sem mudança automática de etapa por scroll.
+- **Família:** um único iPhone frontal em uma cena de estúdio com onda material em baixo-relevo. A moldura nativa em CSS mantém a tela independente do cenário. Capturas atuais do próprio painel em 3× mostram Antônio ou Maria conforme a perspectiva escolhida, com transição de 240 ms e estado imediato em movimento reduzido. A base permanece compacta; nenhuma curva toca textos ou controles.
+- **FAQ:** perguntas e divisórias aprovadas, sem onda decorativa. Título e apoio na coluna esquerda acompanham a rolagem com sticky a 110 px, limitados à seção. Fluxo normal em telas até 900 px ou altura até 550 px.
+- **Fechamento:** azul claro, Ritmo invertido pequeno, título, descrição, CTA e ajuda por âncora. Sem ornamentos nos cantos.
+- **Rodapé:** branco, compacto, com identificação acadêmica e navegação simples. Sem link da biblioteca, frase de IA ou aviso de primeira versão no fechamento, conforme pedido do proprietário. Proveniência dos assets mantida na documentação e biblioteca.
 
-### Neutral
+## Ícones e assets
 
-**Tinta** organiza títulos; **texto secundário** sustenta explicações. **Branco**, **superfície suave** e **linha** separam capítulos. O frontmatter contém os valores normativos. Cores auxiliares ainda dependem da correção de contraste e verificação final.
+Cinco símbolos SVG próprios em `public/assets/brand/icon-*.svg`: movimento, sono, histórico, família e vínculo. Geometria vetorial de 32 unidades, traço arredondado de 1,8, azul e preenchimento leve. Ícones aparecem com rótulos; os dos controles continuam Phosphor. Os SVGs são acessíveis como elementos decorativos quando o texto já oferece o significado.
 
-## Typography
+A composição vigente usa `cenario-ritmo-r12.webp` como fundo de estúdio e `painel-antonio-r11.webp` / `painel-maria-r11.webp` como capturas atuais. A moldura do aparelho é geometria nativa de interface em CSS. O cenário é uma imagem gerada, convertida para WebP; telas são capturas em 1170 × 2532 com exportação lossless. A cena r7 e os demais estudos anteriores permanecem arquivados. Ritmo e a hero mantêm seus assets aprovados. Proveniência em `PROMPTS-R11.json`.
 
-**Display Font / Body Font:** Fustat local; fallback Arial e sans-serif. Peso moderado e títulos com entreletra fechada, sem aparência infantil.
+## Movimento
 
-Títulos de apoio partem de (32px/1.18), labels de (12–15px), explicações de (16–18px). A hero passa a (52px) no intervalo intermediário e `clamp(40px, 9.8vw, 55px)` no móvel; abaixo de (359px), usa (36px).
+Momento principal: continuidade dos dias no histórico. Traçado conecta os dias; o registro de hoje se destaca e recebe ligação inferior na etapa Comparar, em 520 ms com desaceleração. Sol/lua alternam em 480 ms. Cápsula branca de seleção desliza entre as abas de dia/noite e família em 360 ms. Títulos de capítulo e FAQ revelam as palavras por máscara vertical em 850 ms, com intervalo de 45 ms, uma vez por entrada inicial. A seta de CTA desliza para fora e sua sucessora entra, em 320 ms, sem alterar o texto ou a área de clique. Menu oculta após 28 px de deslocamento descendente, fora do topo; retorna após 10 px ascendentes. Navegação aberta e foco por teclado mantêm o menu disponível. Movimento reduzido usa estados estáticos completos e troca instantânea. Nenhum conteúdo exige hover ou scroll capturado para ser entendido.
 
-## Layout
+## Escopo técnico
 
-Contêiner de até (1120px), com margens adaptáveis. Texto e cena em duas colunas no desktop; empilhados no móvel. Seções usam (100px), reduzidos a (65px) no móvel. Breakpoints: (1600px), (1100px), (767px), (359px).
+React/Vite multipage; landing e painel têm folhas CSS separadas. Fontes, arte e ícones são locais. Radix mantém semântica, teclado e estados de Accordion, Tabs e Sheet. A biblioteca em `/marca` expõe personagem, vínculo 3D e cinco downloads SVG. Dashboard e aplicativo original não fazem parte deste refinamento.
 
-O histórico fixa a cena durante parte do scroll no desktop; suas etapas também são abas. No móvel e com movimento reduzido, segue fluxo linear.
+As abas compartilhadas usam foco de ponteiro com `preventScroll`; teclado mantém o comportamento de navegação e indicador visível. Os painéis ocultos de dia/noite e histórico preservam o espaço em grid, com leitura/foco desativados. Não há navegação por âncora na seleção das abas. Estudos de logo separados em `/estudos/logo-caretwin.html`; nenhuma opção foi aplicada à marca ativa.
 
-## Elevation & Depth
 
-Vidro concentra-se na navegação: fundo claro com alpha, blur (22px), saturação (150%). Sombras suaves ancoram objetos. Inclinação só responde a mouse com ponteiro preciso; parallax e transformações respeitam movimento reduzido. Conteúdo não depende dos efeitos.
+Adendo de movimento — 04/11/2026: o deslocamento inicial das palavras está na regra-base para impedir piscada antes de useInView ativar a revelação. Movimento reduzido remove animação e transformação. A assinatura permanece apenas tipográfica, com o ponto azul ajustado em .32em; estudos de logo foram deixados de lado pelo proprietário.
 
-## Shapes
 
-Botões têm curvas moderadas; navegação e abas são cápsulas. Ondas, órbitas e contornos recorrem nos seis SVGs transparentes, independentes de fontes. Não carregam informação sozinhos.
+## Refinamento de movimento e leitura — 04/11/2026
 
-## Components
+Mantida a composição aprovada. Noite revelada por máscara de 680 ms, histórico com indicador compartilhado de 320 ms e traço finito de 950 ms ligando referência e hoje. Abas preservam o espaço do texto; estado entra em 300 ms. FAQ usa +/− e expansão existente. Menu indica a seção atual. Seleção sempre manual, sem scroll capturado, sem pacote novo e com estados instantâneos em movimento reduzido. Os textos e a finalidade dos dados foram preservados. Evidência em ../REFINAMENTO-FINAL.md.
 
-**Buttons:** primário azul, secundário branco com borda, claro no fechamento. Altura mínima principal (52px); hover altera superfície e foco tem contorno de (3px).
 
-**Navigation:** vidro, links compactos e CTA; Sheet Radix móvel com título, descrição, fechamento e retorno de foco.
+Adendo r6: volta ao dia por clareamento da camada azul, sem retração visível de máscara; lua sai em 150 ms, sol retorna após 180 ms sem giro. Na aba Comparar, o ponto acompanha a geometria SVG exata das duas linhas e das curvas. iPhone da composição agora frontal, com reprodução da captura real do painel. Prompt, evidências e limites em REFINAMENTO-R6.md.
 
-**Tabs:** seleção branca/azul em trilho tonal. **FAQ:** Accordion com divisórias e indicador de estado. Composições shadcn/Radix adaptadas para CSS próprio e Phosphor.
 
-**Assets:** Ritmo 3D na hero; guia 2D pontual; poltronas como companhia com autonomia. Biblioteca com fundo claro/escuro e downloads.
+## Detalhes atuais r7
 
-## Do's and Don'ts
+Arte ativa: somente iPhone quase frontal com painel, sobre base pequena; sem pulseira na composição desta seção. Volta ao dia novamente circular: sol oculto até a máscara azul deixar a região do símbolo. Preferência de movimento é acompanhada ao vivo. As decisões r6 de clareamento por opacidade foram substituídas conforme retorno do proprietário. Ver ../REFINAMENTO-R7.md.
 
-- **Do** preservar a hero escolhida e a anatomia de Ritmo.
-- **Do** manter controles claros com teclado e movimento reduzido.
-- **Do** verificar contraste no fundo e tamanho reais antes de aprovar.
-- **Don't** reintroduzir os quatro recortes de dashboard removidos.
-- **Don't** apresentar imagens como hardware final ou prometer recursos clínicos.
-- **Don't** copiar logos, assets ou composição integral das referências.
+
+## R12 — integração suave
+
+O cenário do iPhone mantém a atmosfera azul com menor contraste. Material neutro e campo radial azul discreto são camadas separadas; sem máscara de borda esfumaçada. A hero recupera o circulado em “ritmo.” e usa colunas mais equilibradas com menor altura desktop. Proveniência e critérios em REFINAMENTO-R12.md e PROMPTS-R12.json.

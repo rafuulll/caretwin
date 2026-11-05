@@ -1,0 +1,135 @@
+{
+  "checks": [
+    {
+      "label": "Landing com a direção aprovada",
+      "pass": true
+    },
+    {
+      "label": "Tokens das ilustrações disponíveis",
+      "pass": true
+    },
+    {
+      "label": "Transição para noite",
+      "pass": true
+    },
+    {
+      "label": "Transição de volta ao dia",
+      "pass": true
+    },
+    {
+      "label": "Validação de campos sem envio",
+      "pass": true
+    },
+    {
+      "label": "Login local chega ao painel",
+      "pass": true
+    },
+    {
+      "label": "Filtro de sono selecionado",
+      "pass": true
+    },
+    {
+      "label": "Seletor de pessoa com semântica de menu",
+      "pass": true
+    },
+    {
+      "label": "Seletor fecha após escolher",
+      "pass": true
+    },
+    {
+      "label": "Sem overflow do painel a 375",
+      "pass": true
+    },
+    {
+      "label": "Filtro mantém título na mesma linha a 375",
+      "pass": true
+    },
+    {
+      "label": "Login sem overflow a 375",
+      "pass": true
+    },
+    {
+      "label": "Animação antes do texto no mobile a 375",
+      "pass": true
+    },
+    {
+      "label": "Landing sem overflow a 375",
+      "pass": true
+    },
+    {
+      "label": "Sem overflow do painel a 320",
+      "pass": true
+    },
+    {
+      "label": "Filtro mantém título na mesma linha a 320",
+      "pass": true
+    },
+    {
+      "label": "Login sem overflow a 320",
+      "pass": true
+    },
+    {
+      "label": "Animação antes do texto no mobile a 320",
+      "pass": true
+    },
+    {
+      "label": "Landing sem overflow a 320",
+      "pass": true
+    },
+    {
+      "label": "Rota preservada /app/sono",
+      "pass": true
+    },
+    {
+      "label": "Rota preservada /app/batimentos",
+      "pass": true
+    },
+    {
+      "label": "Rota preservada /app/alertas",
+      "pass": true
+    },
+    {
+      "label": "Rota preservada /app/primeiro-uso",
+      "pass": true
+    },
+    {
+      "label": "Rota preservada /app/configuracoes",
+      "pass": true
+    },
+    {
+      "label": "Rota preservada /como-usar",
+      "pass": true
+    },
+    {
+      "label": "Rota protegida redireciona visitante sem sessão",
+      "pass": true
+    }
+  ],
+  "errors": [],
+  "accessibility": [
+    {
+      "label": "landing-desktop",
+      "violations": []
+    },
+    {
+      "label": "login-desktop",
+      "violations": []
+    },
+    {
+      "label": "painel-desktop",
+      "violations": []
+    },
+    {
+      "label": "painel-mobile",
+      "violations": []
+    }
+  ],
+  "responses": [
+    {
+      "url": "http://127.0.0.1:3002/api/v1/me",
+      "status": 503
+    }
+  ],
+  "note": "Verificação local em modo navegador. GET /api/v1/me retorna 503 sem configuração de banco, resposta existente que ativa o modo local. Nenhum dado real ou autenticação externa foi utilizado.",
+  "confirmation": "Confirmação após ajustes de contraste dos selos e nomes acessíveis da marca e do perfil."
+}

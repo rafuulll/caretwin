@@ -191,3 +191,8 @@ n8n/                automações para quando o n8n for ligado
 - O navegador nunca fala com o banco: tudo passa pelas rotas de `src/app/api`.
 
 As regras completas estão em `AGENTS.md`, as decisões de produto e de design em `DECISOES.md`, e o que falta em `PROXIMOS-PASSOS.md`. O jeito de trabalhar do grupo (branches, commits, pull requests) está no `CONTRIBUTING.md` da raiz do repositório.
+
+
+## Redesign integrado, novembro de 2026
+
+A direção visual aprovada agora está neste app: landing em /, entrada em /entrar e painel protegido em /app/painel. Consulte [o registro da integração](docs/redesign/INTEGRACAO.md) para escopo, verificações e limites de homologação. A versão independente aprovada está preservada em ../redesign-v1. Não há necessidade de rodar o Vite para usar as telas integradas.

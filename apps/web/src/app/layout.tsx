@@ -1,16 +1,20 @@
 import type { Metadata } from "next"
-import { Inter } from "next/font/google"
+import localFont from "next/font/local"
 import config from "../../design-system.json"
 import { designSystem, toCssVars } from "@/lib/design-system"
 import { marca } from "@/content/site"
 import "./globals.css"
+import "./redesign.css"
 
-// A fonte do CareTwin. O design-system.json aponta para --font-inter; se um dia
-// a família mudar lá, o navegador cai na pilha de reserva sem quebrar o layout.
-const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin"],
-  display: "swap",
+// Arquivos locais mantêm o lettering aprovado sem depender de uma chamada ao Google.
+const fustat = localFont({
+  src: [
+    {path: "../../public/brand/fustat-0.ttf", weight:"400", style:"normal"},
+    {path: "../../public/brand/fustat-1.ttf", weight:"500", style:"normal"},
+    {path: "../../public/brand/fustat-2.ttf", weight:"600", style:"normal"},
+    {path: "../../public/brand/fustat-3.ttf", weight:"700", style:"normal"},
+  ],
+  variable: "--font-fustat", display: "swap",
 })
 
 export const metadata: Metadata = {
@@ -46,7 +50,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html
       lang="pt-BR"
-      className={`${inter.variable} h-full`}
+      className={`${fustat.variable} h-full`}
       style={vars}
       data-ds={designSystem.id}
       data-mode={designSystem.mode}
