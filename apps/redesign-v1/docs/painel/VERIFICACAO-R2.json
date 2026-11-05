@@ -1,0 +1,89 @@
+{
+  "errors": [],
+  "checks": [
+    {
+      "name": "14 days chart",
+      "pass": true
+    },
+    {
+      "name": "Sleep metric",
+      "pass": true
+    },
+    {
+      "name": "Equivalent history table",
+      "pass": true
+    },
+    {
+      "name": "Person changes context and values",
+      "pass": true
+    },
+    {
+      "name": "Shared read and undo",
+      "pass": true
+    },
+    {
+      "name": "Privacy hides chart and table numbers",
+      "pass": true
+    },
+    {
+      "name": "Learning omits personal range and changes",
+      "pass": true
+    },
+    {
+      "name": "Learning details withhold range",
+      "pass": true
+    },
+    {
+      "name": "Empty is not zero",
+      "pass": true
+    },
+    {
+      "name": "Preferences and family remain available without records",
+      "pass": true
+    },
+    {
+      "name": "Error retry state",
+      "pass": true
+    },
+    {
+      "name": "Mobile selected day stays visible in 14-day history",
+      "pass": true
+    },
+    {
+      "name": "Mobile menu opens, Escape closes",
+      "pass": true
+    },
+    {
+      "name": "Text-size preference",
+      "pass": true
+    }
+  ],
+  "desktop": {
+    "width": 1440,
+    "scroll": 1440,
+    "offenders": []
+  },
+  "axeDesktop": [],
+  "mobile": {
+    "width": 390,
+    "scroll": 390,
+    "offenders": []
+  },
+  "axeMobile": [],
+  "largeMobile": {
+    "width": 390,
+    "scroll": 390,
+    "offenders": []
+  },
+  "smallMobile": {
+    "width": 320,
+    "scroll": 320,
+    "offenders": []
+  },
+  "reducedMotion": true,
+  "tablet": {
+    "width": 900,
+    "scroll": 900,
+    "offenders": []
+  }
+}

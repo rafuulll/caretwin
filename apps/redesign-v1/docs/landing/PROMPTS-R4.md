@@ -1,0 +1,9 @@
+# Edição da cena de família · r4
+
+04/11/2026. Ferramenta nativa `image_gen`, edição com referência da imagem aprovada `public/assets/pulseira-familia-r3.webp`. Solicitação: trocar apenas o celular por um iPhone, preservando a pulseira, base, enquadramento e acabamento.
+
+Arquivo final: `public/assets/pulseira-iphone-r4.webp`, 1200 × 800, 84.066 bytes, canal alfa preservado. Original PNG em `C:/Users/WIN11/Documents/Playground/caretwin-r4-artwork-sources/pulseira-iphone-r4.png`. Conversão de formato/tamanho com Sharp. Dispositivos representados como composição conceitual; o desenho industrial da pulseira não está finalizado. Sem CLI alternativa.
+
+## Prompt integral
+
+Use case: precise-object-edit. Edit the attached CareTwin product composition. Change ONLY the smartphone into a recognizable silver / warm-white iPhone Pro viewed from the back: precision flat metal rails, softly rounded corners, a correct rounded-square raised rear camera island with three large lenses in the recognizable triangular Pro arrangement, small flash and LiDAR, and a subtle centered Apple logo. Remove the small blue wave embossed on the old phone. Keep the replacement phone in exactly the same place, rear-facing three-quarter orientation, overall size and tilt. Preserve the blue wristband EXACTLY, including silhouette, navy screen, pale blue sine-wave mark, blue strap, buckle and holes; preserve the pale periwinkle low base, composition, camera angle, material polish, light direction and contact shadows. Do not add text, numbers, app UI, cables, objects, effects or labels. Do not change the blue wearable, do not redesign the scene. Maintain the clean mature premium 3D product-render style. Preserve genuine alpha transparency around the entire composition, no white/black/checkerboard rectangle baked in. Output a refined faithful edit, not a new composition.

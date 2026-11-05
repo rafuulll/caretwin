@@ -1,0 +1,16 @@
+{
+  "date": "2026-11-04",
+  "type": "product-mockup background plate",
+  "prompt": "Use case: product-mockup, background plate for CareTwin premium digital-health landing page. Create one square 1:1 high-resolution photorealistic product studio BACKGROUND ONLY, NO PHONE OR DEVICE. Reference image supplies the existing palette and the small pale-blue low circular plinth's material, NOT its screen content. A quiet off-white / very pale periwinkle cyclorama with a sculptural, gently curving backdrop. One wide low-relief wave, a single elegant elongated sine-like sweep, formed from the SAME matte ceramic material as the backdrop, not a drawn squiggle. It is a subtle allusion to personal rhythm; only one crest and one trough. At the bottom center put a small low circular pale-blue satin pedestal, seen very slightly from above, its horizontal top around 87% down the image, spanning roughly 48% of canvas width. Leave the center vertical area above that pedestal completely EMPTY, a clean space for a tall smartphone to be composited later. Backdrop curve begins at lower left and rises behind the empty central area, sweeping toward upper right; it must never be a busy ribbon or a ring encircling the phone. High-end industrial product photography, precise edge highlights, soft daylight from upper left, natural contact shadows, adult premium fintech sensibility. Color palette white #f1f5ff, restrained ivory #f3f0e9, muted blue #dbe3f4, deep blue only as a small edge reflection. Soft white-to-pale-blue seamless full-bleed edges suitable for integration into the light-blue section. Camera straight-on, no extreme perspective. NO text, NO letters, NO icons, NO dashboards, NO phone, NO watch, NO plants, NO furniture, NO mascot, NO floating objects, NO neon, NO sparkles, NO glass orb. Keep restrained, polished, minimal, material and architectural. Image must be square, not a presentation board.",
+  "reference": "public/assets/iphone-painel-r7.webp",
+  "generatedOriginal": "C:/Users/WIN11/.codex/generated_images/01a19e63-8187-7890-9313-13224941e8af/exec-c184c63e-e690-4865-952a-bc8455a7f7ef.png",
+  "output": "public/assets/cenario-ritmo-r11.webp",
+  "screens": {
+    "source": "Capturas do painel local em 390×844 CSS px, deviceScaleFactor 3; PNGs exportados como WebP lossless.",
+    "files": [
+      "public/assets/painel-antonio-r11.webp",
+      "public/assets/painel-maria-r11.webp"
+    ]
+  },
+  "composition": "Moldura geométrica em CSS; imagens de tela separadas do fundo; sem texto de interface gerado."
+}

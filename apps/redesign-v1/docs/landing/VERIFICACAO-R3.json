@@ -1,0 +1,125 @@
+{
+  "date": "2026-11-04",
+  "localUrl": "http://127.0.0.1:4322/",
+  "interactionConfirmation": {
+    "checks": [
+      {
+        "name": "Sun scene replaces photography",
+        "pass": true
+      },
+      {
+        "name": "Night scene switches to moon",
+        "pass": true
+      },
+      {
+        "name": "History removes unwanted legend and disclosure",
+        "pass": true
+      },
+      {
+        "name": "Each record is identified by day",
+        "pass": true
+      },
+      {
+        "name": "History diagram keeps DOM continuity",
+        "pass": true
+      },
+      {
+        "name": "History group appears in second stage",
+        "pass": true
+      },
+      {
+        "name": "Compare raises today record",
+        "pass": true
+      },
+      {
+        "name": "Rapid tab interruption ends in chosen stage",
+        "pass": true
+      },
+      {
+        "name": "Family uses restored conceptual artwork",
+        "pass": true
+      },
+      {
+        "name": "Family permissions stay explicit",
+        "pass": true
+      },
+      {
+        "name": "Header hides after scrolling down",
+        "pass": true
+      },
+      {
+        "name": "Header fully returns with small upward scroll",
+        "pass": true
+      },
+      {
+        "name": "Keyboard focus brings hidden header back",
+        "pass": true
+      },
+      {
+        "name": "CTA arrow slides to replacement on hover",
+        "pass": true
+      },
+      {
+        "name": "No horizontal overflow at 900",
+        "pass": true
+      },
+      {
+        "name": "No horizontal overflow at 390",
+        "pass": true
+      },
+      {
+        "name": "No horizontal overflow at 320",
+        "pass": true
+      },
+      {
+        "name": "Mobile menu closes with focus restored",
+        "pass": true
+      },
+      {
+        "name": "History supports arrow-key navigation",
+        "pass": true
+      },
+      {
+        "name": "Reduced-motion moon remains complete",
+        "pass": true
+      },
+      {
+        "name": "Reduced-motion disables arrow travel",
+        "pass": true
+      },
+      {
+        "name": "No runtime errors",
+        "pass": true
+      },
+      {
+        "name": "No failed resources",
+        "pass": true
+      }
+    ],
+    "errors": [],
+    "badResponses": [],
+    "axe": {
+      "desktop": [],
+      "mobile": []
+    }
+  },
+  "finalDeviceAssetConfirmation": [
+    {
+      "width": 1440,
+      "assetLoaded": true,
+      "noChairsOrPhotos": true,
+      "noOverflow": true
+    },
+    {
+      "width": 390,
+      "assetLoaded": true,
+      "noChairsOrPhotos": true,
+      "noOverflow": true
+    },
+    {
+      "libraryAsset": true,
+      "icons": true
+    }
+  ],
+  "note": "Grouped interaction confirmation preceded the final artwork choice. The final wearable/phone image was separately verified at 1440 and 390 px."
+}

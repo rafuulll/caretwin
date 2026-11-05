@@ -1,0 +1,335 @@
+{
+  "date": "2026-11-04",
+  "errors": [],
+  "screens": [
+    {
+      "device": "desktop",
+      "view": "overview",
+      "axe": [],
+      "overflow": false,
+      "frame": {
+        "left": 0,
+        "right": 1440
+      },
+      "smallTargets": []
+    },
+    {
+      "device": "desktop",
+      "view": "steps",
+      "axe": [],
+      "overflow": false,
+      "frame": {
+        "left": 0,
+        "right": 1440
+      },
+      "smallTargets": []
+    },
+    {
+      "device": "desktop",
+      "view": "sleep",
+      "axe": [],
+      "overflow": false,
+      "frame": {
+        "left": 0,
+        "right": 1440
+      },
+      "smallTargets": []
+    },
+    {
+      "device": "desktop",
+      "view": "alerts",
+      "axe": [],
+      "overflow": false,
+      "frame": {
+        "left": 0,
+        "right": 1440
+      },
+      "smallTargets": []
+    },
+    {
+      "device": "desktop",
+      "view": "family",
+      "axe": [],
+      "overflow": false,
+      "frame": {
+        "left": 0,
+        "right": 1440
+      },
+      "smallTargets": []
+    },
+    {
+      "device": "desktop",
+      "view": "settings",
+      "axe": [],
+      "overflow": false,
+      "frame": {
+        "left": 0,
+        "right": 1440
+      },
+      "smallTargets": []
+    },
+    {
+      "device": "desktop",
+      "view": "landing",
+      "axe": [],
+      "overflow": false
+    },
+    {
+      "device": "mobile",
+      "view": "overview",
+      "axe": [],
+      "overflow": false,
+      "frame": {
+        "left": 0,
+        "right": 375
+      },
+      "smallTargets": []
+    },
+    {
+      "device": "mobile",
+      "view": "steps",
+      "axe": [],
+      "overflow": false,
+      "frame": {
+        "left": 0,
+        "right": 375
+      },
+      "smallTargets": []
+    },
+    {
+      "device": "mobile",
+      "view": "sleep",
+      "axe": [],
+      "overflow": false,
+      "frame": {
+        "left": 0,
+        "right": 375
+      },
+      "smallTargets": []
+    },
+    {
+      "device": "mobile",
+      "view": "alerts",
+      "axe": [],
+      "overflow": false,
+      "frame": {
+        "left": 0,
+        "right": 375
+      },
+      "smallTargets": []
+    },
+    {
+      "device": "mobile",
+      "view": "family",
+      "axe": [],
+      "overflow": false,
+      "frame": {
+        "left": 0,
+        "right": 375
+      },
+      "smallTargets": []
+    },
+    {
+      "device": "mobile",
+      "view": "settings",
+      "axe": [],
+      "overflow": false,
+      "frame": {
+        "left": 0,
+        "right": 375
+      },
+      "smallTargets": []
+    },
+    {
+      "device": "mobile",
+      "view": "landing",
+      "axe": [],
+      "overflow": false
+    }
+  ],
+  "checks": [
+    {
+      "name": "Full-window shell has no exterior frame or top demo strip",
+      "pass": true
+    },
+    {
+      "name": "Navigation stays available while scrolling",
+      "pass": true
+    },
+    {
+      "name": "Preview states remain available through progressive disclosure",
+      "pass": true
+    },
+    {
+      "name": "Empty is distinct from zero; family remains accessible",
+      "pass": true
+    },
+    {
+      "name": "One chart tab stop, arrows and Home/End select exact days",
+      "pass": true
+    },
+    {
+      "name": "Previous/next controls select dates and respect endpoints",
+      "pass": true
+    },
+    {
+      "name": "14-day data table and selection reset remain consistent",
+      "pass": true
+    },
+    {
+      "name": "Mobile and desktop privacy is immediate, including table",
+      "pass": true
+    },
+    {
+      "name": "Shared reading, confirmation and undo work",
+      "pass": true
+    },
+    {
+      "name": "Animated drawer closes with Escape and restores focus",
+      "pass": true
+    },
+    {
+      "name": "Family deep links and browser history preserve person",
+      "pass": true
+    },
+    {
+      "name": "Sleep retains estimated source and correct current duration",
+      "pass": true
+    },
+    {
+      "name": "Retry announces progress and keeps previous readings visible",
+      "pass": true
+    },
+    {
+      "name": "Privacy shortcut visible on mobile",
+      "pass": true
+    },
+    {
+      "name": "Mobile menu still opens preferences and closes",
+      "pass": true
+    },
+    {
+      "name": "Enlarged text reflows at 320, tablet and landscape",
+      "pass": true
+    },
+    {
+      "name": "Day/night masks settle with no page scroll or scene height change",
+      "pass": true
+    },
+    {
+      "name": "History indicator, grouped days and trace settle after rapid switching",
+      "pass": true
+    },
+    {
+      "name": "Family text change has fixed height and scroll position",
+      "pass": true
+    },
+    {
+      "name": "FAQ expands, keyboard collapses and heading follows reading",
+      "pass": true
+    },
+    {
+      "name": "Landing section navigation exposes current location",
+      "pass": true
+    },
+    {
+      "name": "Reduced motion uses complete instant landing states",
+      "pass": true
+    },
+    {
+      "name": "Reduced motion keeps chart navigation usable",
+      "pass": true
+    },
+    {
+      "name": "Reference trace actually travels once and stops",
+      "pass": true
+    },
+    {
+      "name": "Day/night transition is interruptible and returns to day",
+      "pass": true
+    },
+    {
+      "name": "desktop landing reveals all headings and loads all artwork",
+      "pass": true
+    },
+    {
+      "name": "mobile landing reveals all headings and loads all artwork",
+      "pass": true
+    },
+    {
+      "name": "Day controls keep page position; range description aligns with reading",
+      "pass": true
+    },
+    {
+      "name": "Full-window shell at 1200px",
+      "pass": true
+    },
+    {
+      "name": "Full-window shell at 900px",
+      "pass": true
+    },
+    {
+      "name": "Full-window shell at 375px",
+      "pass": true
+    },
+    {
+      "name": "Full-window shell at 320px",
+      "pass": true
+    },
+    {
+      "name": "New trace is absent with reduced motion",
+      "pass": true
+    }
+  ],
+  "traceSamples": [
+    {
+      "cx": 55,
+      "opacity": 0
+    },
+    {
+      "cx": 55,
+      "opacity": 0
+    },
+    {
+      "cx": 92.30285714285714,
+      "opacity": 0.296
+    },
+    {
+      "cx": 150.5885714285714,
+      "opacity": 0.676571
+    },
+    {
+      "cx": 208.34,
+      "opacity": 1
+    },
+    {
+      "cx": 276.34000000000003,
+      "opacity": 1
+    },
+    {
+      "cx": 344.34000000000003,
+      "opacity": 1
+    },
+    {
+      "cx": 390.69666666666666,
+      "opacity": 1
+    },
+    {
+      "cx": 420,
+      "opacity": 0.643556
+    },
+    {
+      "cx": 420,
+      "opacity": 0
+    },
+    {
+      "cx": 420,
+      "opacity": 0
+    }
+  ],
+  "confirmation": {
+    "build": true,
+    "detector": [],
+    "newDependencies": 0
+  }
+}

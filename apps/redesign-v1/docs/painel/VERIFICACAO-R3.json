@@ -1,0 +1,329 @@
+{
+  "errors": [],
+  "screens": [
+    {
+      "device": "desktop",
+      "view": "overview",
+      "width": 1440,
+      "scroll": 1440,
+      "overflow": false,
+      "axe": [],
+      "smallTargets": []
+    },
+    {
+      "device": "desktop",
+      "view": "steps",
+      "width": 1440,
+      "scroll": 1440,
+      "overflow": false,
+      "axe": [],
+      "smallTargets": []
+    },
+    {
+      "device": "desktop",
+      "view": "sleep",
+      "width": 1440,
+      "scroll": 1440,
+      "overflow": false,
+      "axe": [],
+      "smallTargets": []
+    },
+    {
+      "device": "desktop",
+      "view": "alerts",
+      "width": 1440,
+      "scroll": 1440,
+      "overflow": false,
+      "axe": [],
+      "smallTargets": []
+    },
+    {
+      "device": "desktop",
+      "view": "family",
+      "width": 1440,
+      "scroll": 1440,
+      "overflow": false,
+      "axe": [],
+      "smallTargets": []
+    },
+    {
+      "device": "desktop",
+      "view": "settings",
+      "width": 1440,
+      "scroll": 1440,
+      "overflow": false,
+      "axe": [],
+      "smallTargets": []
+    },
+    {
+      "device": "mobile",
+      "view": "overview",
+      "width": 375,
+      "scroll": 375,
+      "overflow": false,
+      "axe": [],
+      "smallTargets": []
+    },
+    {
+      "device": "mobile",
+      "view": "steps",
+      "width": 375,
+      "scroll": 375,
+      "overflow": false,
+      "axe": [],
+      "smallTargets": []
+    },
+    {
+      "device": "mobile",
+      "view": "sleep",
+      "width": 375,
+      "scroll": 375,
+      "overflow": false,
+      "axe": [],
+      "smallTargets": []
+    },
+    {
+      "device": "mobile",
+      "view": "alerts",
+      "width": 375,
+      "scroll": 375,
+      "overflow": false,
+      "axe": [],
+      "smallTargets": []
+    },
+    {
+      "device": "mobile",
+      "view": "family",
+      "width": 375,
+      "scroll": 375,
+      "overflow": false,
+      "axe": [],
+      "smallTargets": []
+    },
+    {
+      "device": "mobile",
+      "view": "settings",
+      "width": 375,
+      "scroll": 375,
+      "overflow": false,
+      "axe": [],
+      "smallTargets": []
+    }
+  ],
+  "checks": [
+    {
+      "name": "Native navigation updates URL and heading focus",
+      "pass": true
+    },
+    {
+      "name": "Dedicated steps has one metric and 14-day history",
+      "pass": true
+    },
+    {
+      "name": "Chart has equivalent data table",
+      "pass": true
+    },
+    {
+      "name": "Period selection keeps page scroll position",
+      "pass": true
+    },
+    {
+      "name": "Chart bars expose data and keyboard selection",
+      "pass": true
+    },
+    {
+      "name": "Sleep origin, duration and completed-night history",
+      "pass": true
+    },
+    {
+      "name": "Person switch preserves screen and updates URL/data",
+      "pass": true
+    },
+    {
+      "name": "Shared reading and undo",
+      "pass": true
+    },
+    {
+      "name": "Dialog Escape returns focus to its opener",
+      "pass": true
+    },
+    {
+      "name": "Family has two participants and approved links",
+      "pass": true
+    },
+    {
+      "name": "Family opens correct person through a real link",
+      "pass": true
+    },
+    {
+      "name": "Browser back and forward restore view and person",
+      "pass": true
+    },
+    {
+      "name": "Direct URL reload preserves the selected view and person",
+      "pass": true
+    },
+    {
+      "name": "Preferences switches have distinct names and keyboard support",
+      "pass": true
+    },
+    {
+      "name": "Privacy preference survives in-app navigation and hides tables",
+      "pass": true
+    },
+    {
+      "name": "Learning has no comparison and safe hover state",
+      "pass": true
+    },
+    {
+      "name": "Empty does not render zero readings",
+      "pass": true
+    },
+    {
+      "name": "Family and preferences stay available without records",
+      "pass": true
+    },
+    {
+      "name": "Retry shows progress and retains last data",
+      "pass": true
+    },
+    {
+      "name": "Mobile menu includes family/preferences and closes on navigation",
+      "pass": true
+    },
+    {
+      "name": "Reset is disclosed and returns to default demo",
+      "pass": true
+    },
+    {
+      "name": "Learning copy explicitly withholds comparison",
+      "pass": true
+    },
+    {
+      "name": "Sleep table identifies completed nights",
+      "pass": true
+    },
+    {
+      "name": "Keyboard chart focus remains above mobile navigation",
+      "pass": true
+    },
+    {
+      "name": "Enlarged preference keeps the focused switch visible",
+      "pass": true
+    }
+  ],
+  "reflow": [
+    {
+      "name": "320-large",
+      "view": "steps",
+      "width": 320,
+      "scroll": 320,
+      "overflow": false
+    },
+    {
+      "name": "320-large",
+      "view": "sleep",
+      "width": 320,
+      "scroll": 320,
+      "overflow": false
+    },
+    {
+      "name": "320-large",
+      "view": "alerts",
+      "width": 320,
+      "scroll": 320,
+      "overflow": false
+    },
+    {
+      "name": "320-large",
+      "view": "family",
+      "width": 320,
+      "scroll": 320,
+      "overflow": false
+    },
+    {
+      "name": "320-large",
+      "view": "settings",
+      "width": 320,
+      "scroll": 320,
+      "overflow": false
+    },
+    {
+      "name": "tablet-large",
+      "view": "steps",
+      "width": 900,
+      "scroll": 900,
+      "overflow": false
+    },
+    {
+      "name": "tablet-large",
+      "view": "sleep",
+      "width": 900,
+      "scroll": 900,
+      "overflow": false
+    },
+    {
+      "name": "tablet-large",
+      "view": "alerts",
+      "width": 900,
+      "scroll": 900,
+      "overflow": false
+    },
+    {
+      "name": "tablet-large",
+      "view": "family",
+      "width": 900,
+      "scroll": 900,
+      "overflow": false
+    },
+    {
+      "name": "tablet-large",
+      "view": "settings",
+      "width": 900,
+      "scroll": 900,
+      "overflow": false
+    },
+    {
+      "name": "landscape-large",
+      "view": "steps",
+      "width": 812,
+      "scroll": 812,
+      "overflow": false
+    },
+    {
+      "name": "landscape-large",
+      "view": "sleep",
+      "width": 812,
+      "scroll": 812,
+      "overflow": false
+    },
+    {
+      "name": "landscape-large",
+      "view": "alerts",
+      "width": 812,
+      "scroll": 812,
+      "overflow": false
+    },
+    {
+      "name": "landscape-large",
+      "view": "family",
+      "width": 812,
+      "scroll": 812,
+      "overflow": false
+    },
+    {
+      "name": "landscape-large",
+      "view": "settings",
+      "width": 812,
+      "scroll": 812,
+      "overflow": false
+    }
+  ],
+  "reducedMotion": true,
+  "axeSleepTable": [],
+  "confirmation": {
+    "round": 2,
+    "resetFixed": true,
+    "consoleErrors": 0
+  }
+}

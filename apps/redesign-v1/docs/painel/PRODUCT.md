@@ -6,7 +6,7 @@ Painel de acompanhamento da rotina: passos e sono estimado por movimento, compar
 
 ## Pedido vigente
 
-Em 03/11/2026, o proprietário pediu um painel interativo em HTML/React com acabamento fintech, usando sua referência Fingoals (imagem 4) e a identidade da landing v3. A landing está cerca de 70% pronta segundo ele e será corrigida em outra etapa: não alterá-la agora.
+Em 03/11/2026, o proprietário pediu um painel interativo em HTML/React com acabamento fintech, usando sua referência Fingoals (imagem 4) e a identidade da landing v3. Esse pedido inicial foi retomado em 04/11/2026 para refinar primeiro a visão geral. A landing recebe somente a correção pontual de piscada na animação dos títulos; sua direção aprovada é preservada.
 
 ## Autoridade visual
 
@@ -23,3 +23,8 @@ Modo Operate. Estudo local independente para explorar visão geral, passos, sono
 ## Critérios
 
 Legibilidade, contexto de pessoa / período / origem / atualidade, foco visível, controles de 44 px, mobile, redução de movimento, gráfico com tabela equivalente. Faixa pessoal não é meta nem selo clínico. Estados sem dados não mostram zero como leitura. Toda a demonstração está identificada como sintética.
+
+
+## Pedido vigente — etapas 2, 3 e 4 (04/11/2026)
+
+Refinar Passos, Sono, Mudanças, Família e Preferências, priorizando simplicidade, clareza e o acabamento fintech já aprovado. Revisar celular, acessibilidade e estados. Implementado como continuação do protótipo local, sem backend/publicação. Tela e pessoa podem ser abertas por URL; demais escolhas seguem em memória. Detalhes em REFINAMENTO-R3.md.

@@ -1,0 +1,10 @@
+{
+  "date": "2026-11-04",
+  "type": "precise-object-edit",
+  "prompt": "Use case: precise-object-edit, refine an existing CareTwin product-studio BACKGROUND PLATE. Edit the attached image; preserve the exact square framing, the single material wave, and the low pale-blue pedestal at bottom center, with its top at about 86% of image height. There must be NO smartphone or added object. Main correction: REMOVE the strong hazy blue ambient shading / smoky patch effect. Make the studio background and floor neutral PURE WHITE (#ffffff), evenly lit and clean, with all four corners and the outer image border the SAME pure white. The broad sculpted wave should remain visible as an extremely subtle white ceramic relief, defined by a narrow soft blue-gray contact shadow along the wave edge rather than a big cloudy blue gradient. Retain the quiet pale-blue satin pedestal and its compact natural contact shadow directly underneath; reduce the broad side shadows. Crisp and clean material edges, gentle diffuse daylight, restrained high-end product photography, minimal. No fog, haze, bloom, vignette, blurred borders, cloudy gradients, floating dots, ornaments, text or UI. The result will be multiplied over a light-blue website surface; neutral white outer areas must therefore remain white, while the small wave-edge shadow and pedestal carry the depth. Do not move or reshape the pedestal, do not change its scale, and do not fill the empty center where the phone will be composited.",
+  "reference": "public/assets/cenario-ritmo-r11.webp",
+  "generatedOriginal": "C:/Users/WIN11/.codex/generated_images/01a19e63-8187-7890-9313-13224941e8af/exec-c371d013-de26-4dbf-b9df-a9118e70eddf.png",
+  "output": "public/assets/cenario-ritmo-r12.webp",
+  "integration": "Material neutro multiplicado sobre #f1f5ff; atmosfera azul suave em radial-gradient de baixa opacidade, separada da imagem para controlar intensidade. Sem máscara de borda.",
+  "ownerCorrection": "Manter o esfumaçado azul, porém mais suave; devolver circulado na palavra ritmo."
+}

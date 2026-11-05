@@ -1,0 +1,169 @@
+{
+  "checks": [
+    {
+      "name": "1440px: phone fits its scene and no page overflow",
+      "pass": true
+    },
+    {
+      "name": "1440px: screen assets are sharp 3x captures",
+      "pass": true
+    },
+    {
+      "name": "1440px: perspective changes screen, accessible label and text without layout jump",
+      "pass": true
+    },
+    {
+      "name": "1024px: phone fits its scene and no page overflow",
+      "pass": true
+    },
+    {
+      "name": "1024px: screen assets are sharp 3x captures",
+      "pass": true
+    },
+    {
+      "name": "1024px: perspective changes screen, accessible label and text without layout jump",
+      "pass": true
+    },
+    {
+      "name": "375px: phone fits its scene and no page overflow",
+      "pass": true
+    },
+    {
+      "name": "375px: screen assets are sharp 3x captures",
+      "pass": true
+    },
+    {
+      "name": "375px: perspective changes screen, accessible label and text without layout jump",
+      "pass": true
+    },
+    {
+      "name": "320px: phone fits its scene and no page overflow",
+      "pass": true
+    },
+    {
+      "name": "320px: screen assets are sharp 3x captures",
+      "pass": true
+    },
+    {
+      "name": "320px: perspective changes screen, accessible label and text without layout jump",
+      "pass": true
+    },
+    {
+      "name": "Keyboard perspective selection updates screen",
+      "pass": true
+    },
+    {
+      "name": "Reduced motion switches screen without interpolation",
+      "pass": true
+    },
+    {
+      "name": "Brand library exposes the three current scene assets",
+      "pass": true
+    }
+  ],
+  "errors": [],
+  "axe": [
+    {
+      "width": 1440,
+      "issues": []
+    },
+    {
+      "width": 1024,
+      "issues": []
+    },
+    {
+      "width": 375,
+      "issues": []
+    },
+    {
+      "width": 320,
+      "issues": []
+    }
+  ],
+  "assets": [
+    {
+      "width": 1440,
+      "figure": {
+        "x": 160,
+        "y": 243.5,
+        "w": 561.515625,
+        "h": 623.90625
+      },
+      "phone": {
+        "x": 322.8359375,
+        "y": 277.921875,
+        "w": 235.828125,
+        "h": 502.140625
+      },
+      "copy": {
+        "x": 769.515625,
+        "y": 346.796875
+      },
+      "screenRatio": 0.4624388598414572,
+      "overflow": false
+    },
+    {
+      "width": 1024,
+      "figure": {
+        "x": 48,
+        "y": 220.109375,
+        "w": 473.515625,
+        "h": 570.5
+      },
+      "phone": {
+        "x": 177.03125,
+        "y": 252.03125,
+        "w": 215.4375,
+        "h": 458.71875
+      },
+      "copy": {
+        "x": 545.515625,
+        "y": 305.21875
+      },
+      "screenRatio": 0.46347217102838184,
+      "overflow": false
+    },
+    {
+      "width": 375,
+      "figure": {
+        "x": 30,
+        "y": 26.03125,
+        "w": 315,
+        "h": 321.421875
+      },
+      "phone": {
+        "x": 124.5,
+        "y": 34.1875,
+        "w": 126,
+        "h": 268.28125
+      },
+      "copy": {
+        "x": 30,
+        "y": 363.453125
+      },
+      "screenRatio": 0.4617912900575185,
+      "overflow": false
+    },
+    {
+      "width": 320,
+      "figure": {
+        "x": 26,
+        "y": 16.140625,
+        "w": 268,
+        "h": 273.46875
+      },
+      "phone": {
+        "x": 106.40625,
+        "y": 23.109375,
+        "w": 107.1875,
+        "h": 228.21875
+      },
+      "copy": {
+        "x": 26,
+        "y": 305.609375
+      },
+      "screenRatio": 0.46176711005424687,
+      "overflow": false
+    }
+  ]
+}

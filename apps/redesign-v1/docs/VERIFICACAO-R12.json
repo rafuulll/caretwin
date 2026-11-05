@@ -1,0 +1,266 @@
+{
+  "checks": [
+    {
+      "name": "Studio edges are near-white and neutral instead of hazy blue",
+      "pass": true
+    },
+    {
+      "name": "1440px: hero and circled word fit without overflow",
+      "pass": true
+    },
+    {
+      "name": "1440px: signature surrounds the requested word",
+      "pass": true
+    },
+    {
+      "name": "1440px: hero keeps copy and scene apart with a shorter first section",
+      "pass": true
+    },
+    {
+      "name": "1440px: phone backdrop has no feather mask",
+      "pass": true
+    },
+    {
+      "name": "1440px: perspective switch remains stable",
+      "pass": true
+    },
+    {
+      "name": "1920px: hero and circled word fit without overflow",
+      "pass": true
+    },
+    {
+      "name": "1920px: signature surrounds the requested word",
+      "pass": true
+    },
+    {
+      "name": "1920px: hero keeps copy and scene apart with a shorter first section",
+      "pass": true
+    },
+    {
+      "name": "1920px: phone backdrop has no feather mask",
+      "pass": true
+    },
+    {
+      "name": "1920px: perspective switch remains stable",
+      "pass": true
+    },
+    {
+      "name": "1024px: hero and circled word fit without overflow",
+      "pass": true
+    },
+    {
+      "name": "1024px: signature surrounds the requested word",
+      "pass": true
+    },
+    {
+      "name": "1024px: hero keeps copy and scene apart with a shorter first section",
+      "pass": true
+    },
+    {
+      "name": "1024px: phone backdrop has no feather mask",
+      "pass": true
+    },
+    {
+      "name": "1024px: perspective switch remains stable",
+      "pass": true
+    },
+    {
+      "name": "375px: hero and circled word fit without overflow",
+      "pass": true
+    },
+    {
+      "name": "375px: signature surrounds the requested word",
+      "pass": true
+    },
+    {
+      "name": "375px: phone backdrop has no feather mask",
+      "pass": true
+    },
+    {
+      "name": "375px: perspective switch remains stable",
+      "pass": true
+    },
+    {
+      "name": "320px: hero and circled word fit without overflow",
+      "pass": true
+    },
+    {
+      "name": "320px: signature surrounds the requested word",
+      "pass": true
+    },
+    {
+      "name": "320px: phone backdrop has no feather mask",
+      "pass": true
+    },
+    {
+      "name": "320px: perspective switch remains stable",
+      "pass": true
+    },
+    {
+      "name": "Reduced motion leaves the circle visible without drawing animation",
+      "pass": true
+    }
+  ],
+  "errors": [],
+  "axe": [
+    {
+      "width": 1440,
+      "issues": []
+    },
+    {
+      "width": 375,
+      "issues": []
+    },
+    {
+      "width": 320,
+      "issues": []
+    }
+  ],
+  "sizes": [
+    {
+      "width": 1440,
+      "hero": {
+        "h": 648,
+        "bottom": 648
+      },
+      "copy": {
+        "left": 160,
+        "right": 695.6875
+      },
+      "art": {
+        "left": 723.6875,
+        "right": 1280,
+        "top": 147.875,
+        "w": 556.3125
+      },
+      "circle": {
+        "left": 441.625,
+        "right": 610.125,
+        "top": 263.828125,
+        "bottom": 342.875
+      },
+      "word": {
+        "top": 270.296875,
+        "bottom": 335.09375
+      },
+      "overflow": false
+    },
+    {
+      "width": 1920,
+      "hero": {
+        "h": 680,
+        "bottom": 680
+      },
+      "copy": {
+        "left": 400,
+        "right": 935.6875
+      },
+      "art": {
+        "left": 963.6875,
+        "right": 1520,
+        "top": 163.875,
+        "w": 556.3125
+      },
+      "circle": {
+        "left": 700.390625,
+        "right": 880.125,
+        "top": 279.390625,
+        "bottom": 363.703125
+      },
+      "word": {
+        "top": 286.296875,
+        "bottom": 355.40625
+      },
+      "overflow": false
+    },
+    {
+      "width": 1024,
+      "hero": {
+        "h": 570,
+        "bottom": 570
+      },
+      "copy": {
+        "left": 32,
+        "right": 491.15625
+      },
+      "art": {
+        "left": 515.15625,
+        "right": 992,
+        "top": 139.1875,
+        "w": 476.84375
+      },
+      "circle": {
+        "left": 276.078125,
+        "right": 422.125,
+        "top": 227.109375,
+        "bottom": 295.609375
+      },
+      "word": {
+        "top": 232.71875,
+        "bottom": 288.875
+      },
+      "overflow": false
+    },
+    {
+      "width": 375,
+      "hero": {
+        "h": 797,
+        "bottom": 797
+      },
+      "copy": {
+        "left": 20,
+        "right": 355
+      },
+      "art": {
+        "left": 20,
+        "right": 355,
+        "top": 470.75,
+        "w": 335
+      },
+      "circle": {
+        "left": 207.765625,
+        "right": 320.09375,
+        "top": 165.234375,
+        "bottom": 218.40625
+      },
+      "word": {
+        "top": 169.59375,
+        "bottom": 213.1875
+      },
+      "overflow": false
+    },
+    {
+      "width": 320,
+      "hero": {
+        "h": 780.21875,
+        "bottom": 780.21875
+      },
+      "copy": {
+        "left": 16,
+        "right": 304
+      },
+      "art": {
+        "left": 16,
+        "right": 304,
+        "top": 489.21875,
+        "w": 288
+      },
+      "circle": {
+        "left": 184.984375,
+        "right": 286.078125,
+        "top": 161.3125,
+        "bottom": 209.171875
+      },
+      "word": {
+        "top": 165.234375,
+        "bottom": 204.46875
+      },
+      "overflow": false
+    }
+  ],
+  "topEdge": [
+    251.60917853935985,
+    252.11528086200713,
+    253.10293376983128
+  ]
+}

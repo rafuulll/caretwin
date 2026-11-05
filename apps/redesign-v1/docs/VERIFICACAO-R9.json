@@ -1,0 +1,378 @@
+{
+  "checks": [
+    {
+      "name": "1440x900: sidebar has no independent overflow",
+      "pass": true
+    },
+    {
+      "name": "1440x900: sidebar retains every action and 44px targets",
+      "pass": true
+    },
+    {
+      "name": "1440x900: all sidebar actions fit in viewport",
+      "pass": true
+    },
+    {
+      "name": "1366x700: sidebar has no independent overflow",
+      "pass": true
+    },
+    {
+      "name": "1366x700: sidebar retains every action and 44px targets",
+      "pass": true
+    },
+    {
+      "name": "1366x700: all sidebar actions fit in viewport",
+      "pass": true
+    },
+    {
+      "name": "1024x650: sidebar has no independent overflow",
+      "pass": true
+    },
+    {
+      "name": "1024x650: sidebar retains every action and 44px targets",
+      "pass": true
+    },
+    {
+      "name": "390px: period remains in its row when switching to sleep",
+      "pass": true
+    },
+    {
+      "name": "390px: 14-day filter works",
+      "pass": true
+    },
+    {
+      "name": "375px: period remains in its row when switching to sleep",
+      "pass": true
+    },
+    {
+      "name": "375px: 14-day filter works",
+      "pass": true
+    },
+    {
+      "name": "Drawer uses compact proportional numeric punctuation",
+      "pass": true
+    },
+    {
+      "name": "320px: period remains in its row when switching to sleep",
+      "pass": true
+    },
+    {
+      "name": "320px: 14-day filter works",
+      "pass": true
+    },
+    {
+      "name": "overview: no test-data labels",
+      "pass": true
+    },
+    {
+      "name": "steps: no test-data labels",
+      "pass": true
+    },
+    {
+      "name": "sleep: no test-data labels",
+      "pass": true
+    },
+    {
+      "name": "alerts: no test-data labels",
+      "pass": true
+    },
+    {
+      "name": "family: no test-data labels",
+      "pass": true
+    },
+    {
+      "name": "settings: no test-data labels",
+      "pass": true
+    },
+    {
+      "name": "Drawer description omits fictitious scenario",
+      "pass": true
+    },
+    {
+      "name": "Landing omits test-version labels",
+      "pass": true
+    },
+    {
+      "name": "Return begins at sphere edge, without oversized mask hold",
+      "pass": true
+    },
+    {
+      "name": "Symbol follows mask for the entire return instead of ending early",
+      "pass": true
+    },
+    {
+      "name": "Rapid toggle resolves to day",
+      "pass": true
+    },
+    {
+      "name": "Reduced motion resolves immediately",
+      "pass": true
+    }
+  ],
+  "errors": [],
+  "axe": [
+    {
+      "label": "desktop panel",
+      "issues": []
+    },
+    {
+      "label": "mobile panel",
+      "issues": []
+    },
+    {
+      "label": "mobile steps drawer",
+      "issues": []
+    },
+    {
+      "label": "landing",
+      "issues": []
+    }
+  ],
+  "frames": [
+    {
+      "t": 14.599999997764826,
+      "r": 204.01000500484503,
+      "transform": "scale(0.99401) rotate(0.499182deg)"
+    },
+    {
+      "t": 31.699999999254942,
+      "r": 189.09140923051552,
+      "transform": "scale(0.97251) rotate(2.29085deg)"
+    },
+    {
+      "t": 48,
+      "r": 167.12960275162956,
+      "transform": "scale(0.940859) rotate(4.92838deg)"
+    },
+    {
+      "t": 64.80000000074506,
+      "r": 147.81653941784066,
+      "transform": "scale(0.913026) rotate(7.2478deg)"
+    },
+    {
+      "t": 81.5,
+      "r": 128.8790382774936,
+      "transform": "scale(0.885735) rotate(9.52212deg)"
+    },
+    {
+      "t": 98.09999999776483,
+      "r": 111.66754473742266,
+      "transform": "scale(0.86093) rotate(11.5892deg)"
+    },
+    {
+      "t": 114.69999999925494,
+      "r": 97.07976599559251,
+      "transform": "scale(0.839907) rotate(13.3411deg)"
+    },
+    {
+      "t": 131.5,
+      "r": 83.2718591363783,
+      "transform": "scale(0.820008) rotate(14.9994deg)"
+    },
+    {
+      "t": 148.30000000074506,
+      "r": 71.13446047646485,
+      "transform": "scale(0.802516) rotate(16.457deg)"
+    },
+    {
+      "t": 164.69999999925494,
+      "r": 60.55434816450443,
+      "transform": "scale(0.787268) rotate(17.7277deg)"
+    },
+    {
+      "t": 181.5,
+      "r": 51.89555744133153,
+      "transform": "scale(0.774789) rotate(18.7675deg)"
+    },
+    {
+      "t": 198.09999999776483,
+      "r": 43.93377603888476,
+      "transform": "scale(0.763315) rotate(19.7237deg)"
+    },
+    {
+      "t": 214.89999999850988,
+      "r": 37.474300636889495,
+      "transform": "scale(0.754006) rotate(20.4995deg)"
+    },
+    {
+      "t": 231.19999999925494,
+      "r": 31.2546577963098,
+      "transform": "scale(0.745043) rotate(21.2464deg)"
+    },
+    {
+      "t": 247.69999999925494,
+      "r": 26.535616282228432,
+      "transform": "scale(0.738242) rotate(21.8132deg)"
+    },
+    {
+      "t": 264.5999999977648,
+      "r": 22.475652093794167,
+      "transform": "scale(0.732391) rotate(22.3008deg)"
+    },
+    {
+      "t": 281,
+      "r": 18.786548462467096,
+      "transform": "scale(0.727074) rotate(22.7438deg)"
+    },
+    {
+      "t": 297.80000000074506,
+      "r": 15.821843000894603,
+      "transform": "scale(0.722802) rotate(23.0999deg)"
+    },
+    {
+      "t": 314.8999999985099,
+      "r": 13.135208273152358,
+      "transform": "scale(0.71893) rotate(23.4225deg)"
+    },
+    {
+      "t": 331.3999999985099,
+      "r": 10.858729395750316,
+      "transform": "scale(0.715649) rotate(23.6959deg)"
+    },
+    {
+      "t": 347.80000000074506,
+      "r": 8.933462586234612,
+      "transform": "scale(0.712874) rotate(23.9271deg)"
+    },
+    {
+      "t": 364.3999999985099,
+      "r": 7.3969877846408,
+      "transform": "scale(0.71066) rotate(24.1117deg)"
+    },
+    {
+      "t": 381.0999999977648,
+      "r": 6.015969353338306,
+      "transform": "scale(0.70867) rotate(24.2775deg)"
+    },
+    {
+      "t": 397.80000000074506,
+      "r": 4.920130603434956,
+      "transform": "scale(0.707091) rotate(24.4091deg)"
+    },
+    {
+      "t": 414.30000000074506,
+      "r": 3.941909169095993,
+      "transform": "scale(0.705681) rotate(24.5266deg)"
+    },
+    {
+      "t": 431,
+      "r": 3.128314498019108,
+      "transform": "scale(0.704508) rotate(24.6243deg)"
+    },
+    {
+      "t": 447.5999999977648,
+      "r": 2.4915548087251977,
+      "transform": "scale(0.703591) rotate(24.7008deg)"
+    },
+    {
+      "t": 464.30000000074506,
+      "r": 1.9323819142283014,
+      "transform": "scale(0.702785) rotate(24.7679deg)"
+    },
+    {
+      "t": 481,
+      "r": 1.4766172514279674,
+      "transform": "scale(0.702128) rotate(24.8227deg)"
+    },
+    {
+      "t": 497.5999999977648,
+      "r": 1.128197745196502,
+      "transform": "scale(0.701626) rotate(24.8645deg)"
+    },
+    {
+      "t": 514.3000000007451,
+      "r": 0.8307032145044388,
+      "transform": "scale(0.701197) rotate(24.9002deg)"
+    },
+    {
+      "t": 531,
+      "r": 0.596559200054287,
+      "transform": "scale(0.70086) rotate(24.9284deg)"
+    },
+    {
+      "t": 547.5,
+      "r": 0.4248236222146886,
+      "transform": "scale(0.700612) rotate(24.949deg)"
+    },
+    {
+      "t": 564.3000000007451,
+      "r": 0.28544441512693197,
+      "transform": "scale(0.700411) rotate(24.9657deg)"
+    },
+    {
+      "t": 580.8999999985099,
+      "r": 0.18270668799004852,
+      "transform": "scale(0.700263) rotate(24.9781deg)"
+    },
+    {
+      "t": 597.5999999977648,
+      "r": 0.11325169933164148,
+      "transform": "scale(0.700163) rotate(24.9864deg)"
+    },
+    {
+      "t": 614.1999999992549,
+      "r": 0.06257288601474897,
+      "transform": "scale(0.70009) rotate(24.9925deg)"
+    },
+    {
+      "t": 630.8999999985099,
+      "r": 0.030424611306926863,
+      "transform": "scale(0.700044) rotate(24.9963deg)"
+    },
+    {
+      "t": 647.5999999977648,
+      "r": 0.012826059070079054,
+      "transform": "scale(0.700018) rotate(24.9985deg)"
+    },
+    {
+      "t": 664.1999999992549,
+      "r": 0.003570873550785336,
+      "transform": "scale(0.700005) rotate(24.9996deg)"
+    },
+    {
+      "t": 680.8000000007451,
+      "r": 0.0004739343994231149,
+      "transform": "scale(0.700001) rotate(24.9999deg)"
+    },
+    {
+      "t": 697.5999999977648,
+      "r": 0,
+      "transform": "scale(0.7) rotate(25deg)"
+    },
+    {
+      "t": 714.1999999992549,
+      "r": 0,
+      "transform": "scale(0.7) rotate(25deg)"
+    },
+    {
+      "t": 730.8000000007451,
+      "r": 0,
+      "transform": "scale(0.7) rotate(25deg)"
+    },
+    {
+      "t": 747.6999999992549,
+      "r": 0,
+      "transform": "scale(0.7) rotate(25deg)"
+    },
+    {
+      "t": 764.1999999992549,
+      "r": 0,
+      "transform": "scale(0.7) rotate(25deg)"
+    },
+    {
+      "t": 780.8999999985099,
+      "r": 0,
+      "transform": "scale(0.7) rotate(25deg)"
+    },
+    {
+      "t": 797.5999999977648,
+      "r": 0,
+      "transform": "scale(0.7) rotate(25deg)"
+    },
+    {
+      "t": 814.1999999992549,
+      "r": 0,
+      "transform": "scale(0.7) rotate(25deg)"
+    }
+  ]
+}

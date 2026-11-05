@@ -40,3 +40,7 @@ Preservar a proporção do `viewBox`; evitar esticar os desenhos em apenas um ei
 O azul `#2549D8` é a cor principal de traço sobre branco. O azul claro `#AFC2FF` é um acento decorativo de menor contraste, presente em `day-path.svg` e `twin-orbit.svg`; não deve carregar sozinho estados, instruções ou informação necessária.
 
 Este conjunto não certifica conformidade AA. Conferir contraste no tamanho e fundo reais de uso, especialmente se as cores, opacidade ou espessura forem alteradas. Textos e controles precisam de verificação própria; as marcações não substituem seus rótulos.
+
+## Estudos de logo · r5
+
+SVGs originais logo-cadencia.svg e logo-ct.svg na subpasta estudos. Comparação com a alternativa tipográfica em /estudos/logo-caretwin.html. Materiais para escolha e refinamento; não substituem a marca vigente.
