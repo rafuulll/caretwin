@@ -1,4 +1,5 @@
 "use client"
+import Image from "next/image"
 
 import Link from "next/link"
 import { useRouter } from "next/navigation"
@@ -9,7 +10,7 @@ import { FormularioConta } from "@/components/auth/formulario-conta"
 import { IconeGoogle } from "@/components/auth/icone-google"
 import { ModalGoogle } from "@/components/auth/modal-google"
 import { Button, Input } from "@/components/ui"
-import { entrada, landing, marca } from "@/content/site"
+import { entrada, redesign } from "@/content/site"
 import { entrar } from "@/lib/store"
 
 /** Só pra separar quem digitou um e-mail de quem digitou o nome. Não julga se o endereço existe. */
@@ -114,8 +115,8 @@ export function FormularioDeEntrada({
 
   return (
     <>
-      <div className="grid min-h-dvh lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)]">
-        <div className="flex min-w-0 flex-col px-5 py-6 sm:px-8 lg:px-12 xl:px-20">
+      <div className="ct-login">
+        <div className="ct-login-form-side">
           <header className="flex items-center justify-between gap-4">
             <Logo />
 
@@ -128,15 +129,15 @@ export function FormularioDeEntrada({
             </Link>
           </header>
 
-          <main className="mx-auto flex w-full max-w-[440px] flex-1 flex-col justify-center py-12 sm:py-16">
+          <main className="ct-login-form">
             {/* O formulário vira um painel apoiado na página: `.superficie-elevada`
                 dá o gradiente e o fio de 1px por dentro, `.fio-luz` acende a aresta
                 de cima. O `overflow-hidden` é o que segura esse fio dentro do raio. */}
-            <div className="superficie-elevada fio-luz overflow-hidden rounded-ds-surface border border-hairline p-6 sm:p-8">
+            <div className="ct-login-fields">
               <h1 className="font-display text-2xl text-ink sm:text-[28px] sm:leading-tight">
-                {entrada.titulo}
+                {redesign.loginTitle}
               </h1>
-              <p className="mt-2.5 text-base leading-relaxed text-muted">{entrada.subtitulo}</p>
+              <p className="mt-2.5 text-base leading-relaxed text-muted">{redesign.loginIntro}</p>
 
               {mostrarGoogle && (
                 <>
@@ -266,35 +267,8 @@ export function FormularioDeEntrada({
  * O conteúdo é o mesmo do site, de propósito: a coluna acompanha qualquer
  * mudança de texto sem virar cópia divergente.
  */
-function PainelDaMarca() {
-  return (
-    <aside className="aura-secao hidden overflow-hidden border-l border-hairline bg-surface lg:block">
-      <div className="relative flex h-full flex-col justify-center gap-12 px-12 py-16 xl:px-20">
-        <div>
-          <p className="flex items-center gap-2 text-sm font-medium tracking-wide text-ink uppercase">
-            <span aria-hidden="true" className="size-1.5 rounded-full bg-primary" />
-            {landing.hero.eyebrow}
-          </p>
-          <h2 className="mt-3 max-w-[18ch] font-display text-[32px] leading-[1.15] text-ink xl:text-[38px]">
-            {marca.tagline}
-          </h2>
-          <p className="mt-4 max-w-[46ch] text-base leading-relaxed text-muted">{marca.descricaoCurta}</p>
-        </div>
-
-        <ul className="flex max-w-[46ch] flex-col gap-6">
-          {landing.beneficios.itens.map((item) => (
-            <li key={item.titulo} className="flex gap-3.5">
-              <span className="superficie-elevada mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-ds border border-hairline text-[var(--ds-primary-accent)]">
-                <Icone nome={item.icone} className="size-[18px]" />
-              </span>
-              <div>
-                <p className="text-base font-medium text-ink">{item.titulo}</p>
-                <p className="mt-1 text-sm leading-relaxed text-muted">{item.texto}</p>
-              </div>
-            </li>
-          ))}
-        </ul>
-      </div>
-    </aside>
-  )
-}
+function PainelDaMarca(){return <aside className="ct-login-brand">
+ <div><h2>{redesign.loginBrandTitle}</h2><p>{redesign.loginBrandBody}</p></div>
+ <Image sizes="(max-width: 767px) 90vw, 540px" src="/brand/ritmo-guia.webp" alt="" width="1276" height="1276"/>
+ <p className="ct-login-brand-note">{redesign.loginBrandNote}</p>
+ </aside>}

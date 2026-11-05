@@ -100,6 +100,7 @@ export function Button({
         BASE,
         VARIANTES[variante],
         TAMANHOS[tamanho],
+        !soIcone && variante === "primaria" && "min-h-14 text-lg",
         soIcone && SO_ICONE[tamanho],
         chip && RECUO_DO_CHIP[tamanho],
         larguraTotal && "w-full",

@@ -5,11 +5,12 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { sistema } from "@/content/site"
+import { sistema, redesign } from "@/content/site"
 import { cn } from "@/lib/cn"
 import { quantosNovos } from "@/lib/consultas"
 import { contar } from "@/lib/formato"
-import { useConta, useDados, usePessoaNaTela } from "@/lib/store"
+import { useConta, useDados, usePessoaNaTela, useSessao } from "@/lib/store"
+import { useAgora } from "@/lib/agora"
 import { Icone } from "./icone"
 import { Logo } from "./logo"
 
@@ -25,6 +26,11 @@ function ehAtivo(atual: string, href: string) {
 }
 
 export function BarraLateral({ aberta, aoFechar }: PropsBarraLateral) {
+  const sessao = useSessao()
+  const agora = useAgora()
+  const primeiroNome = sessao?.nome.trim().split(/\s+/)[0] ?? ""
+  const hora = agora?.getHours() ?? 12
+  const saudacao = hora < 12 ? sistema.comum.saudacao.manha : hora < 18 ? sistema.comum.saudacao.tarde : sistema.comum.saudacao.noite
   const atual = usePathname()
   const { dados } = useDados()
   const pessoa = usePessoaNaTela()
@@ -96,7 +102,7 @@ export function BarraLateral({ aberta, aoFechar }: PropsBarraLateral) {
         className={cn(
           // `.painel-lateral` é o fundo com gradiente e o fio de 1px por dentro
           // da borda direita. A receita mora no globals.css e vale nos 71 temas.
-          "painel-lateral fixed inset-y-0 left-0 z-50 flex w-[248px] max-w-[86vw] flex-col border-r border-hairline",
+          "ct-sidebar fixed inset-y-0 left-0 z-50 flex w-[248px] max-w-[86vw] flex-col border-r border-hairline",
           "transition-[transform,visibility] duration-200 ease-out",
           // `invisible` tira o menu fechado do foco e do leitor de tela sem
           // precisar de um segundo bloco de markup só para o desktop.
@@ -104,7 +110,7 @@ export function BarraLateral({ aberta, aoFechar }: PropsBarraLateral) {
           "lg:visible lg:translate-x-0"
         )}
       >
-        <div className="flex h-16 shrink-0 items-center justify-between gap-2 border-b border-hairline px-4">
+        <div className="ct-sidebar-brand">
           <Link
             href="/app/painel"
             className="-mx-1 flex min-w-0 items-center rounded-ds px-1 py-1 transition-opacity hover:opacity-80 pointer-coarse:min-h-11"
@@ -123,6 +129,7 @@ export function BarraLateral({ aberta, aoFechar }: PropsBarraLateral) {
           />
         </div>
 
+        <div className="ct-sidebar-greeting"><h2>{saudacao},<br/><strong>{primeiroNome}.</strong></h2><p>{redesign.greetingBody}</p></div>
         <nav
           // O tour de boas-vindas aponta pra este bloco. Ver src/content/tour.ts.
           data-tour="menu"
@@ -162,7 +169,7 @@ export function BarraLateral({ aberta, aoFechar }: PropsBarraLateral) {
                         ativo ? "text-primary" : "text-muted group-hover:text-ink"
                       )}
                     />
-                    <span className="truncate">{item.rotulo}</span>
+                    <span className="truncate">{item.href === "/app/painel" ? redesign.overview : item.href === "/app/configuracoes" ? redesign.preferences : item.rotulo}</span>
                     {"contaNovos" in item && novos > 0 && (
                       <Badge variante="aviso" className="ml-auto">
                         {contar(novos, ...sistema.casca.alertasNovos)}
@@ -174,6 +181,7 @@ export function BarraLateral({ aberta, aoFechar }: PropsBarraLateral) {
             })}
           </ul>
         </nav>
+        <div className="ct-sidebar-footer"><Link href="/app/primeiro-uso"><Icone nome="pulseira" className="size-4"/>{redesign.watchLink}</Link><Link href="/"><Icone nome="seta-esquerda" className="size-4"/>{redesign.backSite}</Link></div>
       </aside>
     </>
   )

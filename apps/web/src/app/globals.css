@@ -12,8 +12,8 @@
     Por isso aqui não mora cor nenhuma escrita na mão. Ficam só os valores que
     não são cor e que valem como reserva se algum lugar renderizar sem o layout.
   */
-  --ds-font-display: var(--font-inter), Inter, ui-sans-serif, system-ui, sans-serif;
-  --ds-font-body: var(--font-inter), Inter, ui-sans-serif, system-ui, sans-serif;
+  --ds-font-display: var(--font-fustat), Fustat, ui-sans-serif, system-ui, sans-serif;
+  --ds-font-body: var(--font-fustat), Fustat, ui-sans-serif, system-ui, sans-serif;
   --ds-display-weight: 500;
   --ds-tracking: 0em;
   --ds-radius: 10px;

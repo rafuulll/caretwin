@@ -180,10 +180,10 @@ export const landing = {
 /** Textos de dentro do app. O rótulo do menu e o endereço falam a mesma palavra. */
 export const sistema = {
   nav: [
-    { rotulo: "Painel", href: "/app/painel", icone: "painel" },
+    { rotulo: "Visão geral", href: "/app/painel", icone: "painel" },
     { rotulo: "Sono", href: "/app/sono", icone: "sono" },
     { rotulo: "Batimentos", href: "/app/batimentos", icone: "batimentos" },
-    { rotulo: "Alertas", href: "/app/alertas", icone: "alertas", contaNovos: true },
+    { rotulo: "Mudanças", href: "/app/alertas", icone: "alertas", contaNovos: true },
     // Só aparece para quem entrou com conta: sem conta não existe família.
     { rotulo: "Família", href: "/app/familia", icone: "familia", soConta: true },
     { rotulo: "Configurações", href: "/app/configuracoes", icone: "settings" },
@@ -1012,3 +1012,182 @@ export const comoUsar = {
     ],
   },
 }
+
+/** Copy da direção aprovada, compartilhada pela landing e pelo app. */
+export const redesignCopy = {
+  caretwin_inicio: "CareTwin, início",
+  cada_pessoa_tem: "Cada pessoa tem",
+  seu_proprio: "seu próprio ",
+  ritmo: "ritmo.",
+  acompanhe_seu_dia_ou_o_de_quem_voce_cuida_o_caretwin_compara:
+    "Acompanhe seu dia ou o de quem você cuida. O CareTwin compara passos e sono estimado com a rotina da própria pessoa.",
+  explorar_o_painel: "Explorar o painel ",
+  ver_como_funciona: "Ver como funciona ",
+  ritmo_reclinado_descansando_sobre_uma_base_clara_e_ondas_sua:
+    "Ritmo reclinado, descansando sobre uma base clara e ondas suaves.",
+  no_seu_tempo_do_seu_jeito: "No seu tempo. Do seu jeito.",
+  o_que_a_pulseira_acompanha: "O que a pulseira acompanha?",
+  passos_e_movimentos_que_ajudam_a_estimar_periodos_de_sono_o_:
+    "Passos e movimentos que ajudam a estimar períodos de sono. O CareTwin organiza esses registros e os compara com o histórico da própria pessoa.",
+  como_funciona_a_comparacao_com_a_rotina:
+    "Como funciona a comparação com a rotina?",
+  o_caretwin_precisa_de_um_periodo_inicial_de_registros_para_f:
+    "O CareTwin precisa de um período inicial de registros para formar uma referência pessoal. Depois, compara os registros atuais com esse histórico. Durante o dia, os passos são comparados até o mesmo horário.",
+  o_sono_e_medido_ou_estimado: "O sono é medido ou estimado?",
+  e_uma_estimativa_baseada_nos_movimentos_registrados_pela_pul:
+    "É uma estimativa baseada nos movimentos registrados pela pulseira. Essa informação não equivale a uma avaliação clínica do sono.",
+  quem_pode_acompanhar_meus_registros: "Quem pode acompanhar meus registros?",
+  quem_usa_a_pulseira_e_familiares_com_vinculo_aprovado_a_part:
+    "Quem usa a pulseira e familiares com vínculo aprovado. A participação e as permissões são administradas na área da família do aplicativo.",
+  posso_criar_uma_conta_por_aqui: "Posso criar uma conta por aqui?",
+  o_cadastro_publico_nao_esta_disponivel_para_entrar_no_caretw:
+    "O cadastro público não está disponível. Para entrar no CareTwin, use uma conta existente.",
+  o_caretwin_faz_diagnosticos: "O CareTwin faz diagnósticos?",
+  nao_o_caretwin_acompanha_registros_da_rotina_e_destaca_mudan:
+    "Não. O CareTwin acompanha registros da rotina e destaca mudanças em relação ao histórico pessoal. Não realiza diagnósticos nem substitui uma avaliação profissional.",
+  respostas_claras_tambem: "Respostas claras também",
+  fazem_parte_do_cuidado: "fazem parte do cuidado.",
+  como_funciona: "Como funciona",
+  duvidas: "Dúvidas",
+  caretwin: "CareTwin",
+  voltar_ao_inicio: "Voltar ao início ",
+  continuar_para_como_funciona: "Continuar para como funciona",
+  pular_para_o_conteudo: "Pular para o conteúdo",
+  principal: "Principal",
+  para_quem: "Para quem",
+  abrir_menu: "Abrir menu",
+  encontre_seu_caminho: "Encontre seu caminho.",
+  um_passeio_tambem_conta: "Um passeio também conta.",
+  a_ida_a_feira_a_volta_no_quarteirao_os_passos_pela_casa_a_pu:
+    "A ida à feira, a volta no quarteirão, os passos pela casa. A pulseira registra o movimento que faz parte do seu dia.",
+  passos_no_contexto_da_sua_rotina: "Passos no contexto da sua rotina",
+  a_noite_tambem_conta_uma_historia: "A noite também conta uma história.",
+  enquanto_voce_descansa_os_movimentos_registrados_pela_pulsei:
+    "Enquanto você descansa, os movimentos registrados pela pulseira ajudam a estimar os períodos de sono. Mais contexto para acompanhar suas noites.",
+  sono_estimado_a_partir_do_movimento: "Sono estimado a partir do movimento",
+  o_caretwin_acompanha_os_dois_e_ajuda_voce_a_olhar_para_cada_:
+    "O CareTwin acompanha os dois. E ajuda você a olhar para cada um com mais contexto.",
+  explorar_momentos_da_rotina: "Explorar momentos da rotina",
+  durante_o_dia: "Durante o dia",
+  durante_a_noite: "Durante a noite",
+  registrar: "Registrar",
+  o_cotidiano_vira_registro: "O cotidiano vira registro.",
+  os_passos_e_os_movimentos_da_noite_sao_o_comeco_cada_dia_reu:
+    "Os passos e os movimentos da noite são o começo. Cada dia reúne novos registros da rotina de quem usa a pulseira.",
+  um_dia_de_cada_vez: "Um dia de cada vez.",
+  cada_peca_representa_um_dia_de_registros:
+    "Cada peça representa um dia de registros.",
+  conhecer: "Conhecer",
+  os_dias_formam_um_historico: "Os dias formam um histórico.",
+  com_o_tempo_os_registros_se_conectam_o_caretwin_forma_uma_re:
+    "Com o tempo, os registros se conectam. O CareTwin forma uma referência a partir da rotina da própria pessoa.",
+  os_dias_vistos_em_conjunto: "Os dias, vistos em conjunto.",
+  e_desse_conjunto_que_nasce_a_referencia_pessoal:
+    "É desse conjunto que nasce a referência pessoal.",
+  comparar: "Comparar",
+  mudancas_ganham_contexto: "Mudanças ganham contexto.",
+  os_registros_sao_comparados_com_esse_historico_durante_o_dia:
+    "Os registros são comparados com esse histórico. Durante o dia, os passos são comparados até o mesmo horário.",
+  hoje_encontra_o_seu_contexto: "Hoje encontra o seu contexto.",
+  a_comparacao_considera_o_historico_da_propria_pessoa:
+    "A comparação considera o histórico da própria pessoa.",
+  dias_anteriores_a_esquerda_hoje_a_direita:
+    " Dias anteriores à esquerda; hoje à direita.",
+  hoje: "Hoje",
+  dia: "Dia ",
+  historico_pessoal: "Histórico pessoal",
+  cada_pessoa_tem_um_costume: "Cada pessoa tem um costume.",
+  a_comparacao_precisa_respeitar_isso: "A comparação precisa respeitar isso.",
+  como_a_comparacao_pessoal_funciona: "Como a comparação pessoal funciona",
+  o_seu_costume_e: "O seu costume é",
+  o_ponto_de_partida: "o ponto de partida.",
+  um_olhar_para_a_rotina_de_quem_usa: "Um olhar para a rotina de quem usa.",
+  um_jeito_de_acompanhar_para_quem_se_importa:
+    "Um jeito de acompanhar para quem se importa.",
+  escolher_perspectiva_de_uso: "Escolher perspectiva de uso",
+  para_quem_usa: "Para quem usa",
+  para_a_familia: "Para a família",
+  sua_rotina_continua_sendo_sua: "Sua rotina continua sendo sua.",
+  veja_seus_passos_acompanhe_a_estimativa_de_sono_e_saiba_quem:
+    "Veja seus passos, acompanhe a estimativa de sono e saiba quem participa da sua família.",
+  acompanhar_comeca_com_um_vinculo: "Acompanhar começa com um vínculo.",
+  familiares_com_vinculo_aprovado_acompanham_os_registros_e_as:
+    "Familiares com vínculo aprovado acompanham os registros e as mudanças da rotina.",
+  o_acompanhamento_depende_de_vinculo_aprovado:
+    "O acompanhamento depende de vínculo aprovado.",
+  ritmo_aparece_de_cabeca_para_baixo_para_dar_um_oi:
+    "Ritmo aparece de cabeça para baixo para dar um oi.",
+  seu_dia_com_mais_contexto: "Seu dia, com mais contexto.",
+  entre_para_acompanhar_sua_rotina: "Entre para acompanhar sua rotina",
+  ou_a_de_uma_pessoa_da_sua_familia: "ou a de uma pessoa da sua família.",
+  tenho_uma_duvida: "Tenho uma dúvida ",
+  lua_clara_sobre_uma_esfera_azul_representando_o_descanso_da_:
+    "Lua clara sobre uma esfera azul, representando o descanso da noite.",
+  sol_azul_sobre_uma_esfera_clara_representando_o_movimento_do:
+    "Sol azul sobre uma esfera clara, representando o movimento do dia.",
+  iphone_mostrando_o_painel_de_maria_na_perspectiva_de_um_fami:
+    "iPhone mostrando o painel de Maria, na perspectiva de um familiar.",
+  iphone_mostrando_o_painel_de_antonio_na_perspectiva_de_quem_:
+    "iPhone mostrando o painel de Antônio, na perspectiva de quem usa a pulseira.",
+  fechar_menu: "Fechar menu",
+  antes_de_entrar: "Antes de entrar,",
+  vamos_conversar: "vamos conversar?",
+  o_dia_tem_movimento: "O dia tem movimento.",
+  a_noite_outro_ritmo: "A noite, outro ritmo.",
+  a_sua_referencia: "A sua referência",
+  e_voce: "é você.",
+  estar_perto_tambem: "Estar perto também",
+  e_dar_espaco: "é dar espaço.",
+} as const;
+
+export const redesign = {
+  loginTitle: "Entrar no CareTwin",
+  loginIntro: "Acompanhe seu dia. Com mais contexto.",
+  loginBrandTitle: "Cada pessoa tem seu próprio ritmo.",
+  loginBrandBody: "Conheça seu costume. Acompanhe com mais contexto.",
+  loginBrandNote: "Um olhar para quem você cuida. Espaço para ser você.",
+  greetingBody: "Um olhar para a rotina. No seu próprio ritmo.",
+  overview: "Visão geral",
+  title: "Seu dia, em perspectiva.",
+  titleOther: "O dia de {nome}, em perspectiva.",
+  lastNight: "Última noite",
+  sleepEstimate: "Sono estimado por movimento",
+  noNight: "Aguardando uma noite completa",
+  stepsTitle: "Passos de hoje",
+  stepsTime: "passos até {hora}",
+  history: "Os últimos dias",
+  sevenDays: "7 dias",
+  fourteenDays: "14 dias",
+  historySteps: "Passos",
+  historySleep: "Sono",
+  historyLabel: "Escolher período do histórico",
+  historyMetric: "Escolher registro",
+  ownRange: "Seu costume até {hora}",
+  rangeValue: "{baixo} a {alto} passos",
+  watch: "Sua pulseira",
+  viewSleep: "Ver o sono",
+  viewWatch: "Ver a pulseira",
+  viewChanges: "Ver mudanças",
+  viewHistory: "Ver os últimos dias",
+  noChanges: "Os dias, vistos em conjunto.",
+  noChangesBody:
+    "O CareTwin compara os registros com o costume da própria pessoa.",
+  changes: "Mudanças na rotina",
+  newChanges: "{n} novas",
+  oneNewChange: "1 nova",
+  noNewChanges: "Tudo acompanhado",
+  brandTitle: "O ritmo é seu. O contexto também.",
+  brandBody: "Sua referência vem dos seus próprios dias.",
+  brandLink: "Entenda a faixa pessoal",
+  backSite: "Voltar ao site",
+  account: "Sua conta",
+  following: "Acompanhamento",
+  family: "Família",
+  watchLink: "Sua pulseira",
+  preferences: "Preferências",
+  changePerson: "Escolher pessoa",
+  confirmPerson: "Pessoa selecionada",
+  hours: "h",
+  minutes: "min",
+  today: "Hoje",
+} as const;

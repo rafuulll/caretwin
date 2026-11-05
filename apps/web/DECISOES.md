@@ -120,3 +120,10 @@ Nenhuma biblioteca nova entrou. Consideradas e descartadas: biblioteca de gráfi
 - **Remover pessoa pela tela**: nenhum momento pede. A função existe no `store` (com a cascata) e o "Limpar tudo" das configurações zera tudo.
 - **Modo escuro, texto grande e funcionamento sem internet**, que existiam na versão anterior do `apps/web`: não estão na proposta de valor. O seletor de design system das configurações, que deixava comparar visuais escuros, saiu a pedido do dono do projeto.
 - **Sincronizar a pulseira a qualquer hora**: a pulseira faz isso sozinha. A sincronização de exemplo aparece só onde ela destrava a tela, quando uma pessoa nova ainda não mandou nada.
+
+
+## Redesign aprovado integrado, 5 de novembro de 2026
+
+A identidade vigente é a direção aprovada no protótipo redesign-v1: Fustat, azul de ação, superfícies brancas e cinza claro e Ritmo em 2D. O wordmark usa apenas CareTwin e o ponto azul, sem símbolo adicional. As decisões antigas sobre uma interface monocromática descrevem a direção anterior.
+
+A landing aprovada foi portada para o Next.js com CSS limitado à sua própria superfície e animações existentes. Motion, Lenis, Radix e Phosphor são usados apenas onde a direção aprovada exige; os gráficos do app continuam SVG com alternativa textual. Copy e tokens permanecem centralizados. A integração preserva store, autenticação, API e regras de negócio. Detalhes em docs/redesign/INTEGRACAO.md.
