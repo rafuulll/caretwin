@@ -62,13 +62,15 @@ size_t buildLivePayload(uint32_t steps_today, int64_t epoch_utc, bool clock_vali
   return n < cap ? n : 0;
 }
 
-int parseAccepted(const char* json, char (*dates)[11], size_t max_dates) {
+// Lê uma lista de datas ("2026-10-20", ...) da chave pedida da resposta.
+// Devolve quantas datas foram lidas; -1 se não for JSON ou se a chave não for uma lista.
+static int parseDateList(const char* json, const char* key, char (*dates)[11], size_t max_dates) {
   JsonDocument doc;
   if (deserializeJson(doc, json)) return -1;
-  JsonVariantConst acc = doc["accepted"];
-  if (!acc.is<JsonArrayConst>()) return -1;
+  JsonVariantConst list = doc[key];
+  if (!list.is<JsonArrayConst>()) return -1;
   size_t n = 0;
-  for (JsonVariantConst v : acc.as<JsonArrayConst>()) {
+  for (JsonVariantConst v : list.as<JsonArrayConst>()) {
     if (n >= max_dates) break;
     const char* s = v.as<const char*>();
     if (!s || strlen(s) != 10) continue;  // ignora datas mal formadas
@@ -77,6 +79,14 @@ int parseAccepted(const char* json, char (*dates)[11], size_t max_dates) {
     ++n;
   }
   return static_cast<int>(n);
+}
+
+int parseAccepted(const char* json, char (*dates)[11], size_t max_dates) {
+  return parseDateList(json, "accepted", dates, max_dates);
+}
+
+int parseRejected(const char* json, char (*dates)[11], size_t max_dates) {
+  return parseDateList(json, "rejected", dates, max_dates);
 }
 
 }  // namespace ct

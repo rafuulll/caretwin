@@ -534,6 +534,14 @@ static bool sendDays() {
     return false;
   }
   const size_t removed = store.ackDays(dates, static_cast<size_t>(k));
+  // Dias recusados de propósito pela API (contrato v0.2) também saem da fila: reenviar não adianta.
+  char refused[QUEUE_CAPACITY][11];
+  const int r = parseRejected(resp.c_str(), refused, QUEUE_CAPACITY);
+  size_t dropped = 0;
+  if (r > 0) {
+    dropped = store.ackDays(refused, static_cast<size_t>(r));
+    Serial.printf("[TX] dias recusados pela API, descartados da fila=%u\n", static_cast<unsigned>(dropped));
+  }
   Serial.printf("[TX] dias aceitos=%u restantes=%u\n", static_cast<unsigned>(removed),
                 static_cast<unsigned>(store.pendingDays()));
   return true;
@@ -554,6 +562,14 @@ static bool sendNights() {
       Serial.printf("[TX] noite aceita=%s restantes=%u\n", dates[0],
                     static_cast<unsigned>(store.pendingNights()));
       continue;  // a fila andou; o indice i agora aponta para a proxima
+    }
+    // Noite recusada de propósito pela API: sai da fila, porque reenviar não adianta.
+    char refused[1][11];
+    const int r = (code >= 200 && code < 300) ? parseRejected(resp.c_str(), refused, 1) : -1;
+    if (r == 1 && store.ackNight(refused[0])) {
+      Serial.printf("[TX] noite recusada pela API=%s, descartada da fila; restantes=%u\n", refused[0],
+                    static_cast<unsigned>(store.pendingNights()));
+      continue;
     }
     if (k < 0 && code >= 200 && code < 300) {
       Serial.println("[TX] resposta sem lista 'accepted' (fora do contrato); noite fica na fila");

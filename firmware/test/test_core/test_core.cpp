@@ -198,6 +198,42 @@ static void test_resposta_da_api() {
   TEST_ASSERT_EQUAL_INT(-1, parseAccepted("nao e json", dates, 7));
 }
 
+static void test_resposta_com_itens_recusados() {
+  char dates[7][11];
+  // Contrato v0.2: dia fora dos limites ou pulseira encerrada vem em "rejected".
+  const char* resp = "{\"accepted\":[\"2026-10-20\"],\"rejected\":[\"2026-10-21\",\"2026-10-22\"]}";
+  TEST_ASSERT_EQUAL_INT(1, parseAccepted(resp, dates, 7));
+  TEST_ASSERT_EQUAL_INT(2, parseRejected(resp, dates, 7));
+  TEST_ASSERT_EQUAL_STRING("2026-10-22", dates[1]);
+  // Tudo recusado: accepted vazio, mas rejected cheio.
+  const char* tudo = "{\"accepted\":[],\"rejected\":[\"2026-10-20\"]}";
+  TEST_ASSERT_EQUAL_INT(0, parseAccepted(tudo, dates, 7));
+  TEST_ASSERT_EQUAL_INT(1, parseRejected(tudo, dates, 7));
+  // Sem a chave, ou resposta fora do contrato.
+  TEST_ASSERT_EQUAL_INT(-1, parseRejected("{\"accepted\":[]}", dates, 7));
+  TEST_ASSERT_EQUAL_INT(-1, parseRejected("nao e json", dates, 7));
+  // Datas mal formadas são ignoradas.
+  TEST_ASSERT_EQUAL_INT(1, parseRejected("{\"rejected\":[\"?\",\"2026-10-20\"]}", dates, 7));
+}
+
+static void test_recusados_saem_da_fila() {
+  DayStore s;
+  int64_t t = 1792497600;
+  for (int d = 0; d < 3; ++d) s.onMinute(fullMinute(t + d * 86400LL, 100, 0), 50);
+  TEST_ASSERT_EQUAL_size_t(2, s.pendingDays());  // dias 20 e 21 na fila
+  // A API aceitou o dia 20 e recusou o dia 21 (ex.: mais de 60000 passos): os dois saem da fila.
+  const char* resp = "{\"accepted\":[\"2026-10-20\"],\"rejected\":[\"2026-10-21\"]}";
+  char acc[7][11];
+  char rej[7][11];
+  const int k = parseAccepted(resp, acc, 7);
+  const int r = parseRejected(resp, rej, 7);
+  TEST_ASSERT_EQUAL_INT(1, k);
+  TEST_ASSERT_EQUAL_INT(1, r);
+  TEST_ASSERT_EQUAL_size_t(1, s.ackDays(acc, static_cast<size_t>(k)));
+  TEST_ASSERT_EQUAL_size_t(1, s.ackDays(rej, static_cast<size_t>(r)));
+  TEST_ASSERT_EQUAL_size_t(0, s.pendingDays());
+}
+
 static void test_conversao_de_data() {
   char iso[32];
   formatLocalIso(1792551480, -3 * 3600, iso, sizeof(iso));
@@ -222,6 +258,8 @@ int main(int, char**) {
   RUN_TEST(test_payload_diario_segue_o_contrato);
   RUN_TEST(test_payload_noite_usa_null_para_sem_dado);
   RUN_TEST(test_resposta_da_api);
+  RUN_TEST(test_resposta_com_itens_recusados);
+  RUN_TEST(test_recusados_saem_da_fila);
   RUN_TEST(test_conversao_de_data);
   return UNITY_END();
 }
