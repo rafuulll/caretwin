@@ -26,4 +26,9 @@ size_t buildLivePayload(uint32_t steps_today, int64_t epoch_utc, bool clock_vali
 // Devolve quantas datas foram lidas; -1 se a resposta não seguir o contrato.
 int parseAccepted(const char* json, char (*dates)[11], size_t max_dates);
 
+// Lê {"rejected":["2026-10-20",...]} da resposta: itens que a API recusou de propósito (passos
+// acima de 60000, data fora dos limites, pulseira de pessoa encerrada). O firmware deve tirá-los da
+// fila, porque reenviar nunca vai adiantar. Devolve quantas datas foram lidas; -1 se a chave não existir.
+int parseRejected(const char* json, char (*dates)[11], size_t max_dates);
+
 }  // namespace ct
