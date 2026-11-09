@@ -150,6 +150,18 @@ A do cartão 2.3. Os números estão em `src/lib/modelo.ts` e a conta em `src/li
 
 Os passos de hoje são comparados com o normal até este horário, e não com o dia inteiro. Passos acima do normal são boa notícia: o alerta sai com o título "Mais ativo que o normal", selo verde e frase positiva (`ehBoaNoticia` em `modelo.ts`). As decisões e os motivos estão no `DECISOES.md`.
 
+### Sem internet (cartão 7.7)
+
+Em produção, o app pode ser instalado na tela inicial do celular (o manifest fica em `src/app/manifest.ts`, os ícones em `public/icones/`) e abre sem internet com o último dado que chegou.
+
+- O service worker (`public/sw.js`) guarda só a casca: o HTML das telas e os arquivos de `/_next/static`. Nada de `/api` passa pelo cache dele. Ele só liga em produção (`src/components/registrar-sw.tsx`); no `npm run dev`, nada é guardado.
+- A última leitura da conta que deu certo fica no localStorage, com o id da conta (`CHAVE_COPIA` em `src/lib/store.ts`). Sem internet, o app mostra essa cópia, só para a mesma conta, com a faixa "Sem internet agora. Estes dados são de ... e podem estar desatualizados." Quando a internet volta, o app relê tudo e a faixa some.
+- Sair, ou a sessão vencer, apaga a cópia e a pessoa escolhida no seletor.
+- Aprovar, marcar alerta e as outras ações continuam precisando de internet; sem ela, a tela avisa e não finge que gravou.
+- Mudou o `sw.js`? Troque a `VERSAO` no topo do arquivo, para o navegador instalar o novo e apagar o cache antigo.
+
+Para testar: `npm run build` e `npm run start`, abra o painel uma vez com internet, depois desligue a rede (no Chrome, DevTools, Network, Offline) e recarregue. No celular, o teste final é em modo avião.
+
 ## Publicar na Vercel
 
 O projeto já está publicado em <https://caretwin-omega.vercel.app>, a partir da branch `main`, com Root Directory `apps/web`. Cada pull request ganha um link de preview.

@@ -33,6 +33,8 @@ Situação: **Ok** quer dizer conferido e testado; **Risco aceito** quer dizer c
 | Respostas da API não ficam em cache | Ok (corrigido agora) | `next.config.ts` (`Cache-Control: private, no-store` em `/api`) | Conferido em /me e nas rotas da pulseira |
 | Cabeçalhos contra iframe, sniffing e https | Ok | `next.config.ts` (cartão 5.11) | Conferidos em produção no cartão 5.11 |
 | Cadastro público fechado durante o protótipo | Ok | Supabase, cartão 5.11 | Reabrir com segurança é o cartão 5.12 |
+| Cópia para abrir sem internet fica só com a própria conta | Ok | `src/lib/store.ts` (`guardarCopia`, `lerCopia`, `sair`), cartão 7.7 | A cópia guarda o id da conta e só abre para ela; sair e a sessão vencida apagam a cópia. Testado: outra conta, sem internet no mesmo navegador, não viu nada |
+| O service worker não guarda dados de saúde | Ok | `public/sw.js`, cartão 7.7 | Guarda só HTML das telas e arquivos de `/_next/static`; conferido que nada de `/api` entra no cache |
 
 ## Riscos aceitos
 
@@ -41,7 +43,7 @@ Situação: **Ok** quer dizer conferido e testado; **Risco aceito** quer dizer c
 | A conexão com o banco usa `sslmode=require`, que criptografa mas não confere o certificado do Supabase | Conferir o certificado (`verify-full`) falha com a cadeia própria do Supabase; precisaria guardar o certificado deles no projeto | Antes de ter usuários de verdade |
 | O limite de tentativas de login do Supabase conta por servidor, não por pessoa | Todas as chamadas saem dos servidores da Vercel | Se o cadastro abrir para muita gente (cartão 5.12) |
 | Bloquear uma conta no Supabase não derruba quem já entrou | A sessão é o cookie do app, que vale até 30 dias | Para derrubar todo mundo na hora, trocar o `AUTH_SECRET` na Vercel |
-| O navegador guarda qual pessoa está selecionada no seletor | É só o id, sem dado de saúde | Limpo ao sair a partir do cartão 7.7 |
+| Sem internet, a última leitura da família fica guardada no aparelho (cartão 7.7) | É o que o cartão 7.7 pede: abrir sem internet com o último dado | Fica só até sair; num aparelho dividido, cada pessoa precisa sair da própria conta |
 
 ## Consulta para conferir o RLS em produção
 

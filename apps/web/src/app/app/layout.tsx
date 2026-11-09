@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import { BarraLateral } from "@/components/app/barra-lateral"
+import { AvisoSemRede } from "@/components/app/aviso-sem-rede"
 import { BarraSuperior } from "@/components/app/barra-superior"
 import { Logo } from "@/components/app/logo"
 import { Tour } from "@/components/onboarding/tour"
@@ -82,6 +83,7 @@ export default function LayoutSistema({ children }: { children: React.ReactNode 
           tabIndex={-1}
           className="ct-app-content"
         >
+          <AvisoSemRede />
           {children}
         </main>
       </div>
