@@ -115,7 +115,7 @@ export function FormularioDeEntrada({
 
   return (
     <>
-      <div className="ct-login">
+      <div className="ct-login ct-login-studio">
         <div className="ct-login-form-side">
           <header className="flex items-center justify-between gap-4">
             <Logo />
@@ -139,6 +139,64 @@ export function FormularioDeEntrada({
               </h1>
               <p className="mt-2.5 text-base leading-relaxed text-muted">{redesign.loginIntro}</p>
 
+              {contaLigada ? (
+                <FormularioConta aviso={avisoConta} cadastroAberto={cadastroAberto} />
+              ) : (
+                <>
+                  {/* `noValidate`: a validação é nossa, em português, e some assim que a pessoa corrige. */}
+                  <form onSubmit={aoEnviar} noValidate className="flex flex-col gap-5">
+                    <Input
+                      ref={refUsuario}
+                      rotulo={entrada.campos.usuario.rotulo}
+                      placeholder={entrada.campos.usuario.placeholder}
+                      erro={erros.usuario}
+                      obrigatorio
+                      value={usuario}
+                      onChange={(evento) => {
+                        setUsuario(evento.target.value)
+                        if (erros.usuario) setErros((atual) => ({ ...atual, usuario: undefined }))
+                      }}
+                      autoComplete="username"
+                      autoCapitalize="none"
+                      spellCheck={false}
+                    />
+
+                    <Input
+                      ref={refSenha}
+                      rotulo={entrada.campos.senha.rotulo}
+                      erro={erros.senha}
+                      obrigatorio
+                      type="password"
+                      autoComplete="current-password"
+                      onChange={() => {
+                        if (erros.senha) setErros((atual) => ({ ...atual, senha: undefined }))
+                      }}
+                    />
+
+                    <Button
+                      type="submit"
+                      tamanho="lg"
+                      larguraTotal
+                      carregando={entrando}
+                      className="mt-1 h-14 text-lg"
+                      iconeDireita={<Icone nome="seta-direita" />}
+                    >
+                      {entrada.entrar}
+                    </Button>
+                  </form>
+
+                  <p className="mt-5 text-sm leading-relaxed text-muted">
+                    {entrada.aviso.texto}{" "}
+                    <Link
+                      href="/como-usar"
+                      className="inline-flex min-h-11 items-center font-medium text-ink underline underline-offset-4 pointer-fine:min-h-0"
+                    >
+                      {entrada.aviso.link}
+                    </Link>
+                    .
+                  </p>
+                </>
+              )}
               {mostrarGoogle && (
                 <>
                   <div className="mt-8">
@@ -177,77 +235,10 @@ export function FormularioDeEntrada({
                       </p>
                     )}
                   </div>
-
-                  <div className="my-7 flex items-center gap-3" aria-hidden="true">
-                    <span className="h-px flex-1 bg-hairline" />
-                    <span className="text-xs tracking-[0.16em] text-muted uppercase">{entrada.separador}</span>
-                    <span className="h-px flex-1 bg-hairline" />
-                  </div>
                 </>
               )}
-              {/* Sem o Google, o formulário sobe para logo abaixo do título. */}
-              {!mostrarGoogle && <div className="mt-8" />}
 
-              {contaLigada ? (
-                <FormularioConta aviso={avisoConta} cadastroAberto={cadastroAberto} />
-              ) : (
-                <>
-                  {/* `noValidate`: a validação é nossa, em português, e some assim que a pessoa corrige. */}
-                  <form onSubmit={aoEnviar} noValidate className="flex flex-col gap-5">
-                    <Input
-                      ref={refUsuario}
-                      rotulo={entrada.campos.usuario.rotulo}
-                      placeholder={entrada.campos.usuario.placeholder}
-                      ajuda={entrada.campos.usuario.ajuda}
-                      erro={erros.usuario}
-                      obrigatorio
-                      value={usuario}
-                      onChange={(evento) => {
-                        setUsuario(evento.target.value)
-                        if (erros.usuario) setErros((atual) => ({ ...atual, usuario: undefined }))
-                      }}
-                      autoComplete="username"
-                      autoCapitalize="none"
-                      spellCheck={false}
-                    />
 
-                    <Input
-                      ref={refSenha}
-                      rotulo={entrada.campos.senha.rotulo}
-                      ajuda={entrada.campos.senha.ajuda}
-                      erro={erros.senha}
-                      obrigatorio
-                      type="password"
-                      autoComplete="current-password"
-                      onChange={() => {
-                        if (erros.senha) setErros((atual) => ({ ...atual, senha: undefined }))
-                      }}
-                    />
-
-                    <Button
-                      type="submit"
-                      tamanho="lg"
-                      larguraTotal
-                      carregando={entrando}
-                      className="mt-1 h-14 text-lg"
-                      iconeDireita={<Icone nome="seta-direita" />}
-                    >
-                      {entrada.entrar}
-                    </Button>
-                  </form>
-
-                  <p className="mt-5 text-sm leading-relaxed text-muted">
-                    {entrada.aviso.texto}{" "}
-                    <Link
-                      href="/como-usar"
-                      className="inline-flex min-h-11 items-center font-medium text-ink underline underline-offset-4 pointer-fine:min-h-0"
-                    >
-                      {entrada.aviso.link}
-                    </Link>
-                    .
-                  </p>
-                </>
-              )}
             </div>
           </main>
         </div>
@@ -267,8 +258,8 @@ export function FormularioDeEntrada({
  * O conteúdo é o mesmo do site, de propósito: a coluna acompanha qualquer
  * mudança de texto sem virar cópia divergente.
  */
-function PainelDaMarca(){return <aside className="ct-login-brand">
- <div><h2>{redesign.loginBrandTitle}</h2><p>{redesign.loginBrandBody}</p></div>
- <Image sizes="(max-width: 767px) 90vw, 540px" src="/brand/ritmo-guia.webp" alt="" width="1276" height="1276"/>
- <p className="ct-login-brand-note">{redesign.loginBrandNote}</p>
- </aside>}
+function PainelDaMarca() {
+  return <aside className="ct-login-brand" aria-hidden="true">
+    <Image src="/brand/ritmo-login-studio.png" alt="" fill priority sizes="(max-width:767px) 1px, (max-width:1200px) 48vw, 560px" />
+  </aside>
+}
