@@ -91,6 +91,9 @@ export function DayNight() {
             ]}
           />
           <div className="day-composition">
+            <svg className="routine-squiggle" viewBox="0 0 640 420" fill="none" aria-hidden="true" focusable="false">
+              <path d="M18 330C95 395 190 396 226 342C270 276 162 250 158 310C153 390 371 408 450 346C538 277 493 141 623 91" />
+            </svg>
             <div className="day-text">
               {Object.entries(moments).map(([key, data]) => (
                 <TabsContent

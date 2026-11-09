@@ -1,7 +1,7 @@
 "use client";
 import Image from "next/image";
 import Link from "next/link";
-import { redesignCopy } from "@/content/site";
+import { redesignCopy, redesignFooter } from "@/content/site";
 import { Logo } from "@/components/app/logo";
 import React, { useEffect } from "react";
 import {
@@ -21,7 +21,7 @@ import {
 } from "./components/ui";
 import "./landing.css";
 import { Header, Arrow, ScrollHeading, useInputModality } from "./interaction";
-import { DayNight, History, Family, Close } from "./sections-r2";
+import { DayNight, History, Family } from "./sections-r2";
 import { useSmoothScroll } from "./use-smooth-scroll";
 
 const A = "/brand/";
@@ -64,9 +64,10 @@ function Tilt({ children, className = "", strength = 3 }) {
     </motion.div>
   );
 }
-function Hero() {
+function Hero({ variant }) {
   return (
-    <section className="hero wrap" id="inicio">
+    <section className={`hero wrap${variant ? " hero-concept" : ""}`} id="inicio">
+      {variant && <div className="hero-concept-scene" aria-hidden="true"><Image src={`${A}${variant === "janela" ? "hero-janela-completa" : `hero-estudo-${variant}`}.webp`} alt="" fill priority unoptimized sizes="(max-width: 1023px) 175vw, 100vw" /></div>}
       <div className="hero-copy">
         <h1>
           {redesignCopy.cada_pessoa_tem}
@@ -108,7 +109,7 @@ function Hero() {
           </Button>
         </div>
       </div>
-      <div className="hero-art">
+      {!variant && <div className="hero-art">
         <Tilt strength={5}>
           <Image
             sizes="(max-width: 767px) 90vw, 540px"
@@ -126,7 +127,7 @@ function Hero() {
         <div className="hero-art-caption">
           {redesignCopy.no_seu_tempo_do_seu_jeito}
         </div>
-      </div>
+      </div>}
     </section>
   );
 }
@@ -185,22 +186,69 @@ function FAQ() {
 }
 function Footer() {
   return (
-    <footer className="footer wrap">
-      <div className="footer-top">
-        <Brand />
-        <div>
-          <a href="#como-funciona">{redesignCopy.como_funciona}</a>
-          <a href="#duvidas">{redesignCopy.duvidas}</a>
+    <footer id="rodape" className="signature-footer">
+      <div className="signature-footer-inner">
+        <div className="signature-footer-panel">
+          <div className="signature-footer-top">
+            <div className="signature-footer-help">
+              <h2>
+                {redesignCopy.seu_dia_com_mais_contexto}
+              </h2>
+              <p className="signature-footer-description">
+                {redesignCopy.entre_para_acompanhar_sua_rotina}{" "}
+                {redesignCopy.ou_a_de_uma_pessoa_da_sua_familia}
+              </p>
+              <Link className="signature-footer-help-link" href="/app/painel">
+                {redesignCopy.explorar_o_painel}
+                <Arrow size={17} />
+              </Link>
+            </div>
+            <Brand />
+          </div>
+          <nav
+            className="signature-footer-navigation"
+            aria-label={redesignFooter.navigation}
+          >
+            {redesignFooter.groups.map((group) => (
+              <div className="signature-footer-group" key={group.title}>
+                <h3>{group.title}</h3>
+                <ul>
+                  {group.links.map((link) => (
+                    <li key={link.href}>
+                      {link.href.startsWith("/") ? (
+                        <Link href={link.href}>{link.label}</Link>
+                      ) : (
+                        <a href={link.href}>{link.label}</a>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </nav>
+        </div>
+        <div className="signature-footer-meta">
+          <span>{redesignFooter.signature}</span>
+          <a href="#inicio">
+            {redesignCopy.voltar_ao_inicio}
+            <ArrowUpRight size={16} aria-hidden="true" />
+          </a>
+        </div>
+        <div className="signature-footer-wordmark" aria-hidden="true">
+          <span>{redesignCopy.caretwin}</span>
+          <span className="signature-footer-dot" />
         </div>
       </div>
-      <div className="footer-bottom">
-        <span>{redesignCopy.caretwin}</span>
-        <a href="#inicio">
-          {redesignCopy.voltar_ao_inicio}
-          <ArrowUpRight size={14} aria-hidden="true" />
-        </a>
-      </div>
     </footer>
+  );
+}
+function SectionWave({ surface }) {
+  return (
+    <div className={`section-wave section-wave--${surface}`} aria-hidden="true">
+      <svg viewBox="0 0 1440 100" preserveAspectRatio="none" focusable="false">
+        <path d="M0 0H1440V28C1130 115 930 102 700 58C430 6 235 8 0 75Z" />
+      </svg>
+    </div>
   );
 }
 function SectionBridge() {
@@ -222,7 +270,7 @@ function SectionBridge() {
     </div>
   );
 }
-function Landing() {
+function Landing({ heroVariant }) {
   useSmoothScroll();
   return (
     <>
@@ -231,20 +279,22 @@ function Landing() {
       </a>
       <Header brand={<Brand />} />
       <main>
-        <Hero />
+        <Hero variant={heroVariant} />
         <SectionBridge />
         <DayNight />
+        <SectionWave surface="routine" />
         <History />
-        <Family />
+        <div className="family-flow">
+          <Family />
+        </div>
         <FAQ />
-        <Close />
       </main>
       <Footer />
     </>
   );
 }
 
-export default function ApprovedLanding() {
+export default function ApprovedLanding({ heroVariant = "" }) {
   useInputModality();
   useEffect(() => {
     document.documentElement.dataset.ready = "true";
@@ -255,7 +305,7 @@ export default function ApprovedLanding() {
   return (
     <MotionConfig reducedMotion="user">
       <div className="ct-landing">
-        <Landing />
+        <Landing heroVariant={heroVariant} />
       </div>
     </MotionConfig>
   );

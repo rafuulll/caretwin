@@ -974,3 +974,41 @@
     gap: 10px;
   }
 }
+
+/* A quiet form beside one complete, image-only brand composition. */
+body:has(.ct-login-studio) { background:var(--ds-surface-elevated); }
+.ct-login.ct-login-studio {
+  width:min(1200px,calc(100% - 64px)); margin:32px auto; padding:24px;
+  min-height:min(760px,calc(100dvh - 64px)); grid-template-columns:1.05fr 1fr;
+  gap:48px; border-radius:36px; background:var(--ds-canvas);
+}
+.ct-login-studio .ct-login-brand { position:relative; padding:0; min-height:640px; border-radius:24px; }
+.ct-login-studio .ct-login-brand img { width:100%; height:100%; object-fit:cover; object-position:center; margin:0; }
+.ct-login-studio .ct-login-form-side { padding:16px 28px; }
+.ct-login-studio .ct-login-form-side > header { flex-direction:column; gap:12px; }
+.ct-login-studio .ct-login-form-side > header > a { font-size:12px; }
+.ct-login-studio .ct-login-form { padding:32px 0 16px; max-width:360px; }
+.ct-login-studio .ct-login-fields > h1 { text-align:center; font-size:32px; font-weight:600; }
+.ct-login-studio .ct-login-fields > p { text-align:center; font-size:14px; margin-bottom:32px; }
+.ct-login-studio input {
+  border:0; border-bottom:1px solid var(--ds-ink-muted); border-radius:0;
+  background:transparent; box-shadow:none; padding-inline:0; min-height:48px;
+}
+.ct-login-studio input:focus-visible { outline:2px solid var(--ds-primary); outline-offset:4px; }
+.ct-login-studio input[aria-invalid="true"] { border-bottom-color:var(--ds-danger); }
+.ct-login-studio form { gap:24px; }
+.ct-login-studio form > button[type="submit"] { border-radius:999px; margin-top:12px; background:var(--ds-ink); }
+.ct-login-studio .ct-login-fields > .mt-8 { margin-top:24px; }
+.ct-login-studio .ct-login-fields > .mt-8 > button { border-radius:999px; border-color:transparent; box-shadow:none; }
+.ct-login-studio .ct-login-fields > .mt-8 > p { font-size:12px; line-height:1.5; text-align:center; }
+@media(min-width:768px) and (max-width:1023px) {
+  .ct-login.ct-login-studio { width:calc(100% - 32px); margin:16px auto; padding:16px; gap:24px; }
+  .ct-login-studio .ct-login-form-side { padding:16px 8px; }
+}
+@media(max-width:767px) {
+  .ct-login.ct-login-studio { display:block; width:100%; margin:0; padding:0; border-radius:0; min-height:100dvh; }
+  .ct-login-studio .ct-login-brand { display:none; }
+  .ct-login-studio .ct-login-form-side { padding:24px; }
+  .ct-login-studio .ct-login-form-side > header { flex-direction:row; }
+  .ct-login-studio .ct-login-form { min-height:0; padding:56px 0 32px; }
+}

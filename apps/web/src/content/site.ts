@@ -1191,3 +1191,35 @@ export const redesign = {
   minutes: "min",
   today: "Hoje",
 } as const;
+
+/** Rodapé editorial inspirado na referência fornecida pelo proprietário. */
+export const redesignFooter = {
+  heading: ["Ficou com", "alguma dúvida?"],
+  help: "Ver respostas",
+  navigation: "Navegação do rodapé",
+  signature: "Cada pessoa tem seu próprio ritmo.",
+  groups: [
+    {
+      title: "Conheça",
+      links: [
+        { label: "Como funciona", href: "#como-funciona" },
+        { label: "A comparação pessoal", href: "#seu-historico" },
+        { label: "Para quem", href: "#para-quem" },
+      ],
+    },
+    {
+      title: "Seu CareTwin",
+      links: [
+        { label: "Explorar o painel", href: "/app/painel" },
+        { label: "Entrar na sua conta", href: "/entrar" },
+      ],
+    },
+    {
+      title: "Para entender",
+      links: [
+        { label: "Dúvidas frequentes", href: "#duvidas" },
+        { label: "Como usar o CareTwin", href: "/como-usar" },
+      ],
+    },
+  ],
+} as const;
