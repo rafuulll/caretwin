@@ -21,7 +21,7 @@
 // (o GPIO10 simplesmente nao fica ligado a nada).
 #define PIN_TFT_CS 10
 #define PIN_TFT_DC 7
-#define PIN_TFT_RST 14
+#define PIN_TFT_RST 16
 #define PIN_TFT_BL 15   // luz de fundo (BLK): so acende por alguns segundos
 
 // Botoes (INPUT_PULLUP, ativos em nivel baixo, o outro lado em GND).
@@ -37,23 +37,54 @@
 #define PIN_SIM_FINGER 6
 
 // ---------------- Rede ----------------
+// A senha do Wi-Fi e o token da pulseira ficam em include/segredos.h, que NAO vai para o git
+// (esta no .gitignore). Para criar: rode  node ferramentas/cadastrar-pulseira.mjs  dentro de
+// firmware, ou copie include/segredos.exemplo.h para include/segredos.h e preencha.
+// Na simulacao o segredos.h e ignorado (o Wokwi so conecta no Wokwi-GUEST).
+// Sem segredos.h, valem os valores da simulacao abaixo.
+#if !CT_SIM
+#if __has_include("segredos.h")
+#include "segredos.h"
+#else
+#warning "Sem include/segredos.h: a pulseira vai usar o Wi-Fi e o token da simulacao e a API vai recusar."
+#endif
+#endif
+
+#ifndef WIFI_SSID
 #define WIFI_SSID "Wokwi-GUEST"   // rede virtual do Wokwi, sem senha
+#endif
+#ifndef WIFI_PASS
 #define WIFI_PASS ""
+#endif
+#ifndef WIFI_CHANNEL
+#if CT_SIM
 #define WIFI_CHANNEL 6            // canal do Wokwi-GUEST (conecta mais rapido)
+#else
+#define WIFI_CHANNEL 0            // 0 = procura o canal da rede (ESP32 so enxerga redes de 2,4 GHz)
+#endif
+#endif
 #define NTP_SERVER "pool.ntp.org"
 
-// Ate a API existir, os envios vao para um servico de eco (httpbin), que devolve o que recebeu.
-// Troque pela URL da API real quando ela estiver no ar.
+// Simulacao: os envios vao para um servico de eco (httpbin), que devolve o que recebeu.
+// Pulseira: a API real na Vercel (rotas /api/v1/device/*).
+#ifndef API_BASE_URL
+#if CT_SIM
 #define API_BASE_URL "https://httpbin.org/anything"
+#else
+#define API_BASE_URL "https://caretwin-omega.vercel.app/api"
+#endif
+#endif
 #define PATH_DAILY "/v1/device/daily"
 #define PATH_NIGHTS "/v1/device/nights"
 #define PATH_LIVE "/v1/device/live"
 
-// Token do dispositivo. Na pulseira real ele e gravado pelo script de cadastro, nunca no codigo.
+// Token do dispositivo. O de verdade fica so em segredos.h, nunca no codigo.
+#ifndef DEVICE_TOKEN
 #define DEVICE_TOKEN "sim-token-nao-secreto"
+#endif
 
-// Certificado raiz da API real (PEM). Deixe vazio na simulacao.
-#define API_ROOT_CA ""
+// Certificados raiz aceitos pela pulseira (cartao 5.7). Na simulacao nao sao usados.
+#include "certificados.h"
 
 // ---------------- Tempos ----------------
 #if CT_SIM
