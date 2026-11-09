@@ -4,6 +4,7 @@ import type postgres from "postgres"
 import type { z } from "zod"
 import { conexao } from "./banco"
 import { lerCorpo } from "./conta"
+import { registrarFalha } from "./registro"
 import { erro } from "./rota-v1"
 
 /**
@@ -84,7 +85,7 @@ export async function receberDaPulseira<S extends z.ZodType>(
     if (!resposta) return erro(401, "Token de pulseira inválido.", "token_invalido")
     return NextResponse.json(resposta)
   } catch (falha) {
-    console.error("[api/v1/device]", falha)
+    registrarFalha("api/v1/device", falha)
     return erro(500, "Não deu certo agora. Tente de novo em alguns minutos.")
   }
 }

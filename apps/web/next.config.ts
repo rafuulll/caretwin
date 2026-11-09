@@ -29,6 +29,14 @@ const CABECALHOS_DE_SEGURANCA = [
   { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains" },
 ]
 
+/**
+ * As respostas da API trazem passos, noites e alertas de uma pessoa. Elas não
+ * podem ficar guardadas no cache do navegador nem de nenhum proxy no caminho
+ * (cartão 8.3): `private` diz que não é para cache compartilhado, e `no-store`
+ * que nem o próprio navegador guarda uma cópia.
+ */
+const CABECALHOS_DA_API = [{ key: "Cache-Control", value: "private, no-store" }]
+
 const nextConfig: NextConfig = {
   // Só o Dockerfile liga isto. O `standalone` gera uma pasta `.next/standalone`
   // com o servidor e só o que ele precisa, o que deixa a imagem do Docker
@@ -37,7 +45,10 @@ const nextConfig: NextConfig = {
   output: process.env.CARETWIN_STANDALONE === "1" ? "standalone" : undefined,
 
   async headers() {
-    return [{ source: "/:path*", headers: CABECALHOS_DE_SEGURANCA }]
+    return [
+      { source: "/:path*", headers: CABECALHOS_DE_SEGURANCA },
+      { source: "/api/:path*", headers: CABECALHOS_DA_API },
+    ]
   },
 }
 

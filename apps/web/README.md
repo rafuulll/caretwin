@@ -49,6 +49,7 @@ Abra <http://localhost:3000>. Para parar, `Ctrl+C` e depois `docker compose down
 npm run dev            # servidor de desenvolvimento em http://localhost:3000
 npx tsc --noEmit -p .  # confere os tipos
 npm run lint           # confere o padrão do código
+npm test               # testes de segurança: log sem dado de saúde e validade da sessão
 npm run build          # compila como a Vercel compila
 npm run storybook      # catálogo de componentes em http://localhost:6006
 ```

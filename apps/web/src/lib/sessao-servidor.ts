@@ -82,10 +82,33 @@ export function lerCookieDeSessao(valor: string | undefined): Sessao | null {
     const sessao = JSON.parse(Buffer.from(corpo, "base64url").toString("utf8")) as Sessao
     // Cookie assinado com um formato antigo do tipo continua sendo cookie inválido.
     if (typeof sessao?.nome !== "string" || typeof sessao?.email !== "string") return null
-    return sessao
+    return sessaoNoPrazo(sessao.entrouEm) ? sessao : null
   } catch {
     return null
   }
+}
+
+/**
+ * Uma folga para o relógio do servidor que gravou e o do que lê não baterem
+ * certinho (são máquinas diferentes na Vercel).
+ */
+const FOLGA_DO_RELOGIO_MS = 5 * 60 * 1000
+
+/**
+ * A sessão vale 30 dias contados de quando a pessoa entrou (cartão 8.3).
+ *
+ * O `maxAge` do cookie só manda o navegador apagar o cookie depois de 30 dias;
+ * quem copia o valor do cookie pode continuar mandando ele para sempre. Por
+ * isso o servidor também confere a data de entrada, que vai dentro do cookie
+ * e é coberta pela assinatura: ninguém consegue trocar por uma data nova.
+ */
+function sessaoNoPrazo(entrouEm: unknown): boolean {
+  if (typeof entrouEm !== "string") return false
+  const agora = Date.now()
+  const entrou = Date.parse(entrouEm)
+  if (Number.isNaN(entrou)) return false
+  if (entrou > agora + FOLGA_DO_RELOGIO_MS) return false
+  return agora - entrou <= DURACAO_DA_SESSAO * 1000
 }
 
 /** As opções do cookie, iguais em todo lugar que grava sessão. */

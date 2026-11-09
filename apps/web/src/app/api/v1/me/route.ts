@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { situacaoDoUsuario } from "@/lib/familia"
+import { registrarFalha } from "@/lib/registro"
 import { erro, quemChama } from "@/lib/rota-v1"
 
 /**
@@ -17,7 +18,7 @@ export async function GET() {
     const situacao = await situacaoDoUsuario(chamada.sessao.id)
     return NextResponse.json({ ...chamada.sessao, ...situacao })
   } catch (falha) {
-    console.error("[api/v1/me]", falha)
+    registrarFalha("api/v1/me", falha)
     return erro(500, "Não deu certo agora. Tente de novo em alguns minutos.")
   }
 }

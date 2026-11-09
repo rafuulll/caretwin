@@ -2,6 +2,7 @@ import { cookies } from "next/headers"
 import { NextResponse } from "next/server"
 import { bancoConfigurado } from "./banco"
 import { ehUuid, type Resultado } from "./familia"
+import { registrarFalha } from "./registro"
 import { COOKIE_SESSAO, lerCookieDeSessao } from "./sessao-servidor"
 import type { Sessao } from "./types"
 
@@ -60,7 +61,7 @@ export async function responder<T>(executar: () => Promise<Resultado<T>>) {
     if (resultado.status === 204) return new NextResponse(null, { status: 204 })
     return NextResponse.json(resultado.corpo, { status: resultado.status })
   } catch (falha) {
-    console.error("[api/v1]", falha)
+    registrarFalha("api/v1", falha)
     return erro(500, "Não deu certo agora. Tente de novo em alguns minutos.")
   }
 }
