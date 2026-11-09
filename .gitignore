@@ -1,18 +1,40 @@
-# segredos
+# Este arquivo lista o que NAO vai para o GitHub.
+# Cada app tem o seu .gitignore tambem (apps/web, apps/redesign-v1, firmware).
+
+# ---------------- Segredos ----------------
+# Senhas, tokens e chaves nunca vao para o repositorio.
 .env
 .env.*
 !.env.example
+# firmware: senha do Wi-Fi e token da pulseira (o modelo segredos.exemplo.h vai)
+firmware/include/segredos.h
+# chaves privadas e certificados exportados do navegador
+*.key
+*.p12
+*.pfx
+*.cer
+*.crt
 
-# dependencias e builds
+# ---------------- Dependencias e builds ----------------
 node_modules/
 dist/
 __pycache__/
 *.pyc
 .venv/
 .pio/
-.vscode/.browse*
+.vercel/
 
-# arquivos locais, nao vao para o repositorio
+# ---------------- Editores e sistema ----------------
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
+*.log
+
+# ---------------- Arquivos locais ----------------
 _arquivo_local/
 simulador/saida/
-.DS_Store
+Claude outputs/
+firmware_wokwi/

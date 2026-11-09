@@ -1,2 +1,8 @@
+# Build do PlatformIO (baixa e compila tudo de novo)
 .pio/
-.vscode/.browse*
+.vscode/*
+!.vscode/extensions.json
+
+# Senha do Wi-Fi e token da pulseira. NUNCA vai para o git.
+# O modelo include/segredos.exemplo.h vai, sem valor nenhum dentro.
+include/segredos.h

@@ -8,9 +8,12 @@ Quem so precisa dos DADOS da pulseira (backend, IA, site) nao precisa disto: use
 
   platformio.ini            tres ambientes: wokwi (simulacao), real (placa de verdade), native (testes no PC)
   src/main.cpp              programa da pulseira: telas, botoes, Wi-Fi, envio para a API
-  include/config.h          pinos, Wi-Fi, URL da API, token do dispositivo, tempos
+  include/config.h          pinos, URL da API, tempos
+  include/certificados.h    certificados raiz que a pulseira aceita (conexao segura)
+  include/segredos.exemplo.h modelo do segredos.h (Wi-Fi e token; o segredos.h nao vai para o git)
+  ferramentas/              cadastrar-pulseira.mjs: gera o token e o SQL de cadastro
   lib/caretwin_core/        nucleo testado: validacao, passos, fechamento do dia, fila, JSON do contrato v1
-  test/test_core/           15 testes unitarios do nucleo (rodam no computador)
+  test/test_core/           17 testes unitarios do nucleo (rodam no computador)
   test/scenarios/           cenarios automaticos do Wokwi (01 a 06)
   diagram.json, wokwi.toml  circuito simulado e configuracao do Wokwi
 
@@ -64,18 +67,46 @@ Erro "MissingPackageManifestError" ao compilar: apague a pasta do pacote que o e
 | 10 | Display CS |
 | 11 | Display SDA/MOSI |
 | 12 | Display SCL/SCK |
-| 14 | Display RES |
 | 15 | Display BLK (luz de fundo) |
+| 16 | Display RES |
 
 Pinos evitados de proposito: 0, 3, 45 e 46 (inicializacao), 19 e 20 (USB), 26 a 37 (memoria do modulo N16R8), 43 e 44 (serial) e 48 (LED da placa).
 
 ## Conversa com a API
 
-A pulseira envia para a URL de include/config.h (API_BASE_URL) com o cabecalho Authorization: Device <DEVICE_TOKEN>, nas rotas /v1/device/daily, /nights e /live do contrato (../docs/openapi.yaml). Por padrao aponta para o eco do httpbin, que nao confirma nada.
+A pulseira envia para API_BASE_URL (include/config.h) com o cabecalho Authorization: Device <DEVICE_TOKEN>, nas rotas /v1/device/daily, /nights e /live do contrato (../docs/openapi.yaml).
 
-A API real mora em apps/web (Next.js, decisao 0004): localmente em http://IP-DO-COMPUTADOR:3000/api e em producao em https://caretwin-omega.vercel.app/api. As rotas /v1/device/* estao no contrato, mas ainda nao foram escritas no Next.js; ate la, teste com a API falsa do simulador. Em producao, a Deployment Protection da Vercel barra a pulseira: quando as rotas existirem, sera preciso liberar esses caminhos ou desligar a protecao.
+- Simulacao (wokwi): vai para o eco do httpbin, que nao confirma nada.
+- Pulseira (real): vai para a API real, https://caretwin-omega.vercel.app/api. A Deployment Protection da Vercel esta desligada em producao, entao a pulseira consegue entrar (conferido com curl.exe -i https://caretwin-omega.vercel.app/api/health, resposta 200).
 
-O Wokwi gratuito nao alcanca o computador (localhost). Para testar a API de verdade sem a placa, use o simulador Python em ../simulador. Com a placa real na mesma rede Wi-Fi, API_BASE_URL = http://IP-DO-COMPUTADOR:8080 funciona com a API falsa. Com a API real, use http://IP-DO-COMPUTADOR:3000/api e rode o site aceitando conexoes da rede (npx next dev -H 0.0.0.0, dentro de apps/web).
+A API responde com { accepted, rejected }. A pulseira tira da fila os dois: os aceitos porque ja foram gravados, e os recusados (dia fora da faixa ou pessoa encerrada) porque nunca vao ser aceitos (cartao 4.8).
+
+Para testar com o site rodando no computador, API_BASE_URL pode ser trocado em segredos.h, mas o site local e http e a pulseira so fala https. O simulador Python em ../simulador continua sendo o jeito de testar sem a placa.
+
+## Conexao segura (cartao 5.7)
+
+A pulseira so aceita a API se o certificado do site vier de uma das raizes de include/certificados.h. Sem isso, qualquer rede no meio do caminho poderia se passar pela API e receber os dados de saude.
+
+- Raiz atual: GTS Root R1 (Google Trust Services). A cadeia do site e *.vercel.app, WR1, GTS Root R1. Vale ate 2036.
+- Reserva: ISRG Root X1 (Let's Encrypt), que a Vercel tambem usa. Vale ate 2035.
+- Nao usamos o certificado do proprio site porque ele vence a cada 90 dias (o atual vence em 27/11/2026). A raiz nao muda nas renovacoes.
+
+Se a pulseira passar a mostrar erro de conexao no envio (resposta http negativa no monitor serial) com o Wi-Fi funcionando, confira a raiz do site: Chrome, cadeado, certificado, aba Detalhes, hierarquia; a raiz e o item de cima. Se nao for uma das duas, acrescente o PEM dela em certificados.h e grave a pulseira de novo. A hora tambem precisa estar certa (NTP), porque o certificado tem data de validade.
+
+## Cadastro de uma pulseira real
+
+Cada pulseira tem um codigo (CT-XXXX, impresso nela) e um token secreto. O token fica so no firmware, em include/segredos.h, que esta no .gitignore. O banco guarda so o sha256 do token, entao quem le o banco nao consegue se passar pela pulseira.
+
+1. Dentro da pasta firmware: node ferramentas/cadastrar-pulseira.mjs
+   Ele sorteia o codigo, grava o token em include/segredos.h e mostra o SQL. O token nao aparece na tela.
+2. Em include/segredos.h, troque o nome e a senha do Wi-Fi (rede de 2,4 GHz).
+3. No Supabase, SQL Editor, rode o insert que o script mostrou.
+4. Grave: pio run -e real -t upload
+5. No site, ligue a pulseira pelo codigo.
+
+Para trocar o token de uma pulseira ja cadastrada: node ferramentas/cadastrar-pulseira.mjs --codigo CT-XXXX --trocar-token (o script mostra um update no lugar do insert).
+
+Nunca use em producao os codigos CT-TST1, CT-TST2 e CT-TST3 de apps/web/banco/dev: os tokens deles sao publicos.
 
 ## Montagem real
 
@@ -85,7 +116,7 @@ Sensores e display (tudo em 3,3 V):
 | --- | --- |
 | MPU-6050 | VCC para 3V3, GND para GND, SDA para GPIO8, SCL para GPIO9, AD0 sem ligar (endereco 0x68) |
 | MAX30102 | VIN para 3V3, GND para GND, SDA para GPIO8, SCL para GPIO9, INT sem ligar (endereco 0x57) |
-| Display ST7789 | VCC para 3V3, GND para GND, SCL para GPIO12, SDA para GPIO11, RES para GPIO14, DC para GPIO7, CS para GPIO10, BLK para GPIO15 |
+| Display ST7789 | VCC para 3V3, GND para GND, SCL para GPIO12, SDA para GPIO11, RES para GPIO16, DC para GPIO7, CS para GPIO10, BLK para GPIO15 |
 | Botao A / B | um lado em GPIO4 / GPIO5, o outro em GND |
 
 Se o modulo de display nao tiver pino CS, deixe o GPIO10 sem ligar.
