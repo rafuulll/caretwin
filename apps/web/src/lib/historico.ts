@@ -2,7 +2,9 @@ import type postgres from "postgres"
 import { conexao } from "./banco"
 import { ehUuid, type Resultado } from "./familia"
 import type { Direcao, Metrica } from "./modelo"
-import type { Alerta, DataISO, DiaRegistrado, Noite } from "./types"
+import { explicarAlerta } from "./ia/explicar"
+import { procurarMudancas } from "./normal"
+import type { Alerta, Dados, DataISO, DiaRegistrado, ExplicacaoDoAlerta, Noite } from "./types"
 
 /**
  * O que o site lê do que a pulseira mandou: os dias e os alertas de uma pessoa
@@ -220,4 +222,97 @@ export async function marcarAlerta(usuarioId: string, alertaId: string, lido: bo
   `
   if (!linha) return NAO_ENCONTRADO
   return { ok: true, status: 200, corpo: alertaDaLinha(linha) }
+}
+
+// --- explicação do alerta (cartão 6.3) -----------------------------------------
+
+/** Texto da IA guardado por uma hora: abrir o alerta de novo não chama o modelo de novo. */
+const GUARDADAS = new Map<string, { explicacao: ExplicacaoDoAlerta; ate: number }>()
+const GUARDAR_POR_MS = 60 * 60 * 1000
+const MAXIMO_GUARDADAS = 200
+
+/**
+ * `GET /v1/alertas/{id}/explicacao`: a frase que explica o alerta, escrita pela
+ * IA local e conferida pelo verificador (`ia/verificador.ts`), ou o texto de
+ * regra quando o modelo não responde ou é reprovado. Quase nunca dá erro: o
+ * pior caso é a frase de regra, que sempre existe.
+ *
+ * A conferência de acesso é a mesma do `marcarAlerta`: sem vínculo aprovado
+ * com a pessoa do alerta, 404. Os números que o modelo recebe são recalculados
+ * aqui, com a mesma regra do normal que criou o alerta, e não lidos do texto.
+ */
+export async function explicarAlertaDaFamilia(
+  usuarioId: string,
+  alertaId: string
+): Promise<Resultado<ExplicacaoDoAlerta>> {
+  if (!ehUuid(alertaId)) return NAO_ENCONTRADO
+  const sql = banco()
+
+  const [alerta] = await sql<LinhaAlerta[]>`
+    select a.id, a.pessoa_id, a.data::text as data, a.metrica, a.direcao, a.desvio, a.texto, a.lido, a.criado_em
+    from alertas a
+    where a.id = ${alertaId}
+      and exists (
+        select 1
+        from vinculos v
+        join pessoas p on p.id = v.pessoa_id
+        where v.usuario_id = ${usuarioId}
+          and v.pessoa_id = a.pessoa_id
+          and v.aprovado
+          and p.encerrado_em is null
+      )
+  `
+  if (!alerta) return NAO_ENCONTRADO
+
+  const guardada = GUARDADAS.get(alerta.id)
+  if (guardada && guardada.ate > Date.now()) return { ok: true, status: 200, corpo: guardada.explicacao }
+
+  const [pessoa] = await sql<{ nome: string; criado_em: Date }[]>`
+    select nome, criado_em from pessoas where id = ${alerta.pessoa_id}
+  `
+  if (!pessoa) return NAO_ENCONTRADO
+
+  const hoje = hojeNoBrasil()
+  const dias = await sql.begin((tx) => buscarDias(tx, alerta.pessoa_id, somarDias(hoje, -40), hoje))
+  const dados: Dados = {
+    pessoas: [{ id: alerta.pessoa_id, nome: pessoa.nome, quemAcompanha: "", criadoEm: pessoa.criado_em.toISOString() }],
+    pulseiras: [],
+    dias,
+    alertas: [],
+  }
+  const mudanca = procurarMudancas(dados, hoje).find((m) => m.data === alerta.data && m.metrica === alerta.metrica)
+
+  // Sem os números do dia (a pulseira reenviou dias e a mudança sumiu), não há
+  // o que conferir: vale o texto que o alerta já tem.
+  if (!mudanca) {
+    const corpo: ExplicacaoDoAlerta = { alertaId: alerta.id, texto: alerta.texto, origem: "regra" }
+    return { ok: true, status: 200, corpo }
+  }
+
+  const resultado = await explicarAlerta(
+    {
+      nome: pessoa.nome,
+      metrica: alerta.metrica,
+      direcao: alerta.direcao,
+      valor: mudanca.valor,
+      normal: mudanca.faixa.normal,
+      desvio: alerta.desvio,
+    },
+    mudanca.id
+  )
+  // O log diz só o motivo, nunca o texto nem os números de ninguém.
+  if (resultado.origem === "regra" && resultado.motivo === "reprovado") {
+    console.warn("[ia] texto do modelo bloqueado:", resultado.bloqueios?.join(",") ?? "")
+  }
+
+  const corpo: ExplicacaoDoAlerta =
+    resultado.origem === "ia"
+      ? { alertaId: alerta.id, texto: resultado.texto, origem: "ia", modelo: resultado.modelo }
+      : { alertaId: alerta.id, texto: resultado.texto, origem: "regra" }
+
+  if (corpo.origem === "ia") {
+    if (GUARDADAS.size >= MAXIMO_GUARDADAS) GUARDADAS.clear()
+    GUARDADAS.set(alerta.id, { explicacao: corpo, ate: Date.now() + GUARDAR_POR_MS })
+  }
+  return { ok: true, status: 200, corpo }
 }

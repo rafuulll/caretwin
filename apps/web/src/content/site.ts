@@ -400,6 +400,7 @@ export const sistema = {
       escrever: "Escrever o resumo do dia",
       outro: "Escrever de outro jeito",
       escrevendo: "Escrevendo",
+      daIa: "Escrito pela IA e conferido contra os números do dia antes de aparecer.",
     },
     ia: {
       aviso:
@@ -453,6 +454,14 @@ export const sistema = {
       boaNoticia: { titulo: "Mais ativo que o normal", desvio: "{n}% a mais que o normal" },
       lado: { abaixo: "abaixo", acima: "acima" },
       escritoPelaIa: "Texto de exemplo escrito pela IA",
+      explicar: {
+        botao: "Explicar com a IA",
+        outra: "Ver a explicação de novo",
+        carregando: "Escrevendo a explicação",
+        daIa: "Escrita pela IA e conferida contra os números do dia antes de aparecer.",
+        padrao: "Explicação padrão do CareTwin, escrita com os números do dia.",
+        erro: "Não deu para buscar a explicação agora. O texto acima continua valendo.",
+      },
       vazio: {
         titulo: "Nenhuma mudança por aqui",
         texto: "Os dias de {nome} seguem parecidos com o normal. Quando algo mudar por dois dias, o alerta aparece aqui.",

@@ -31,7 +31,7 @@ const NA_METRICA: Record<Metrica, string> = {
   batimentos: "nos batimentos medidos",
 }
 
-function valorFalado(metrica: Metrica, valor: number) {
+export function valorFalado(metrica: Metrica, valor: number) {
   if (metrica === "passos") return `${numero(Math.round(valor))} passos`
   if (metrica === "sono") return duracaoFalada(valor)
   return `${numero(Math.round(valor))} batimentos por minuto`

@@ -11,7 +11,12 @@ A IA do CareTwin tem duas camadas, e so a segunda e um modelo de linguagem.
 
 - A regra da linha de base (cartao 2.3: base de 7 dias, 3 dias recentes, faixa de 20% para cada lado, alerta quando 2 dos 3 dias fogem para o mesmo lado, minimo de 5 dias validos) ja existe em TypeScript, em `apps/web/src/lib/modelo.ts` e `apps/web/src/lib/normal.ts`. Hoje ela roda no navegador, sobre os dados de exemplo.
 - Os textos do resumo e dos alertas sao modelos prontos preenchidos com os numeros, em `apps/web/src/lib/respostas-ia.ts`.
-- Nenhum modelo de linguagem esta ligado ainda.
+- A camada de texto ja existe em `apps/web/src/lib/ia/`:
+  - `verificador.ts` (cartao 6.2): confere o texto de um modelo contra os numeros da regra. Bloqueia direcao contraria, numero inventado, termo de diagnostico, ordem ao usuario, tom de alarme e formato fora do padrao.
+  - `ollama.ts` e `explicar.ts` (cartao 6.3): o servidor pede a frase ao Ollama, passa pelo verificador e, se o modelo nao estiver ligado, demorar ou for reprovado, usa o texto de regra.
+  - Rota `GET /api/v1/alertas/{id}/explicacao` e botao "Explicar com a IA" no cartao do alerta (cartao 7.6, so com conta).
+  - Testes em `apps/web/testes/ia.test.mjs` (`npm test`).
+- Para ligar o modelo, preencha `OLLAMA_URL` no `.env.local` (veja `.env.example`).
 
 ## O plano
 
