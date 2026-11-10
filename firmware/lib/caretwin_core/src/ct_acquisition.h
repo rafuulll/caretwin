@@ -25,6 +25,9 @@ class StepDetector {
   bool has_last_ = false;
   uint32_t last_step_ms_ = 0;
   uint8_t pending_ = 0;   // passos aguardando confirmação
+  uint32_t prev_dt_ = 0;  // último intervalo entre passos (para checar a regularidade ao começar)
+  float avg_dt_ = 0;      // média recente do intervalo, durante a caminhada
+  uint8_t irregular_ = 0; // intervalos fora do ritmo seguidos
   bool walking_ = false;  // caminhada confirmada: cada novo passo conta na hora
 };
 

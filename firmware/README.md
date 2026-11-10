@@ -13,7 +13,7 @@ Quem so precisa dos DADOS da pulseira (backend, IA, site) nao precisa disto: use
   include/segredos.exemplo.h modelo do segredos.h (Wi-Fi e token; o segredos.h nao vai para o git)
   ferramentas/              cadastrar-pulseira.mjs: gera o token e o SQL de cadastro
   lib/caretwin_core/        nucleo testado: validacao, passos, fechamento do dia, fila, JSON do contrato v1
-  test/test_core/           17 testes unitarios do nucleo (rodam no computador)
+  test/test_core/           19 testes unitarios do nucleo (rodam no computador)
   test/scenarios/           cenarios automaticos do Wokwi (01 a 06)
   diagram.json, wokwi.toml  circuito simulado e configuracao do Wokwi
 

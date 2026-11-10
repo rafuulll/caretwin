@@ -48,6 +48,32 @@ static void test_gesto_de_3_picos_nao_conta() {
   TEST_ASSERT_EQUAL_UINT16(0, walk(det, t, 3));
 }
 
+// Picos de 1,5 g (150 ms) com os intervalos entre passos dados em ms.
+static uint16_t walkGaps(StepDetector& det, uint32_t& t, const uint32_t* gaps, int n) {
+  uint16_t total = 0;
+  for (int k = 0; k < n; ++k) {
+    for (int i = 0; i < 8; ++i, t += 20) total += det.update(t, 1.5f);
+    for (uint32_t x = 0; x < gaps[k] - 150; x += 20, t += 20) total += det.update(t, 0.8f);
+  }
+  return total;
+}
+
+static void test_ritmo_irregular_nao_conta() {
+  // Sacudida com intervalos de 350 a 1300 ms: nao e ritmo de caminhada.
+  const uint32_t g[] = {400, 1100, 500, 1300, 380, 900, 600, 1200, 350, 1000, 450, 1250, 420, 1150, 500, 1300};
+  StepDetector det;
+  uint32_t t = 0;
+  TEST_ASSERT_EQUAL_UINT16(0, walkGaps(det, t, g, 16));
+}
+
+static void test_caminhada_com_pequena_variacao_conta_tudo() {
+  // Ritmo de uns 2 passos por segundo com variacao natural de ate 10%.
+  const uint32_t g[] = {500, 540, 470, 520, 480, 510, 530, 460, 500, 520, 490, 510, 470, 530, 500, 510, 520, 480, 500, 510};
+  StepDetector det;
+  uint32_t t = 0;
+  TEST_ASSERT_EQUAL_UINT16(20, walkGaps(det, t, g, 20));
+}
+
 static void test_parado_nao_conta() {
   StepDetector det;
   uint16_t total = 0;
@@ -247,6 +273,8 @@ int main(int, char**) {
   RUN_TEST(test_validacao_de_amostra);
   RUN_TEST(test_20_passos_contam_20);
   RUN_TEST(test_gesto_de_3_picos_nao_conta);
+  RUN_TEST(test_ritmo_irregular_nao_conta);
+  RUN_TEST(test_caminhada_com_pequena_variacao_conta_tudo);
   RUN_TEST(test_parado_nao_conta);
   RUN_TEST(test_minuto_fecha_na_virada);
   RUN_TEST(test_dia_fecha_na_meia_noite_local);

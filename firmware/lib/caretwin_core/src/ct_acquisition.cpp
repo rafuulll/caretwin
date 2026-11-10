@@ -34,21 +34,55 @@ uint16_t StepDetector::update(uint32_t t_ms, float mag_g) {
 
   // Pico detectado.
   armed_ = false;
+  uint32_t dt = 0;
   if (has_last_) {
-    const uint32_t dt = t_ms - last_step_ms_;
+    dt = t_ms - last_step_ms_;
     if (dt < params::STEP_MIN_INTERVAL_MS) return 0;  // rápido demais: tremor, não passo
     if (dt > params::STEP_MAX_INTERVAL_MS) {          // pausa longa: a caminhada recomeça
       walking_ = false;
       pending_ = 0;
+      prev_dt_ = 0;
+      irregular_ = 0;
+      dt = 0;
     }
   }
   has_last_ = true;
   last_step_ms_ = t_ms;
 
-  if (walking_) return 1;
+  if (walking_) {
+    // Caminhada confirmada: o ritmo precisa continuar parecido com o recente. Sacudidas e gestos
+    // têm ritmo irregular; um passo fora do ritmo não conta, e vários seguidos encerram a caminhada.
+    const float lo = avg_dt_ * (1.0f - params::STEP_WALK_TOLERANCE);
+    const float hi = avg_dt_ * (1.0f + params::STEP_WALK_TOLERANCE);
+    if (dt >= lo && dt <= hi) {
+      irregular_ = 0;
+      avg_dt_ = 0.8f * avg_dt_ + 0.2f * static_cast<float>(dt);
+      return 1;
+    }
+    if (++irregular_ >= params::STEP_MAX_IRREGULAR) {
+      walking_ = false;
+      pending_ = 1;
+      prev_dt_ = 0;
+      irregular_ = 0;
+    }
+    return 0;
+  }
+
+  // Ainda não é caminhada: os intervalos entre os primeiros picos precisam ser regulares.
+  if (dt > 0 && prev_dt_ > 0) {
+    const float diff = dt > prev_dt_ ? static_cast<float>(dt - prev_dt_) : static_cast<float>(prev_dt_ - dt);
+    if (diff > params::STEP_START_REGULARITY * static_cast<float>(prev_dt_)) {
+      pending_ = 1;  // ritmo quebrou: este pico começa uma nova sequência
+      prev_dt_ = dt;
+      return 0;
+    }
+  }
+  if (dt > 0) prev_dt_ = dt;
   ++pending_;
   if (pending_ >= params::STEP_CONFIRM) {
     walking_ = true;
+    avg_dt_ = prev_dt_ > 0 ? static_cast<float>(prev_dt_) : static_cast<float>(dt);
+    irregular_ = 0;
     const uint16_t confirmed = pending_;
     pending_ = 0;
     return confirmed;

@@ -36,7 +36,9 @@
 using namespace ct;
 
 // ---------------- Hardware ----------------
+#if CT_SIM
 static Adafruit_MPU6050 imu;
+#endif
 static bool imu_ok = false;
 static uint32_t last_imu_retry_ms = 0;
 static bool imu_error_logged = false;
@@ -135,9 +137,23 @@ static bool hr_finger = false;
 
 #if !CT_SIM
 static uint32_t hr_last_beat_ms = 0;
-static uint8_t hr_rates[4];
+static uint8_t hr_rates[8];
 static uint8_t hr_rate_n = 0;
 static uint8_t hr_rate_i = 0;
+static uint8_t hr_rejects = 0;
+
+// Mediana dos ultimos batimentos: um batimento errado (dedo mexeu) nao puxa o numero.
+static int hrMedian() {
+  uint8_t t[8];
+  for (uint8_t k = 0; k < hr_rate_n; ++k) t[k] = hr_rates[k];
+  for (uint8_t i = 1; i < hr_rate_n; ++i) {
+    const uint8_t v = t[i];
+    int j = i - 1;
+    while (j >= 0 && t[j] > v) { t[j + 1] = t[j]; --j; }
+    t[j + 1] = v;
+  }
+  return hr_rate_n == 0 ? 0 : t[hr_rate_n / 2];
+}
 #endif
 
 static void hrInit() {
@@ -160,6 +176,7 @@ static void hrWake() {
   if (hr_hw_ok) hrSensor.wakeUp();
   hr_rate_n = 0;
   hr_rate_i = 0;
+  hr_rejects = 0;
 #endif
 }
 
@@ -196,12 +213,18 @@ static void hrPoll(uint32_t now) {
     if (delta > 0) {
       const float bpm = 60000.0f / static_cast<float>(delta);
       if (bpm > 30.0f && bpm < 220.0f) {
+        // Com 3 ou mais batimentos guardados, joga fora o que destoa mais de 25% da mediana.
+        // Se 4 seguidos destoarem, o ritmo mudou de verdade: recomeca a media.
+        const int med = hrMedian();
+        if (hr_rate_n >= 3 && (bpm < med * 0.75f || bpm > med * 1.25f)) {
+          if (++hr_rejects >= 4) { hr_rate_n = 0; hr_rate_i = 0; hr_rejects = 0; }
+          return;
+        }
+        hr_rejects = 0;
         hr_rates[hr_rate_i] = static_cast<uint8_t>(bpm);
-        hr_rate_i = (hr_rate_i + 1) % 4;
-        if (hr_rate_n < 4) ++hr_rate_n;
-        uint16_t sum = 0;
-        for (uint8_t k = 0; k < hr_rate_n; ++k) sum += hr_rates[k];
-        hr_bpm = sum / hr_rate_n;
+        hr_rate_i = (hr_rate_i + 1) % 8;
+        if (hr_rate_n < 8) ++hr_rate_n;
+        hr_bpm = hrMedian();
       }
     }
   }
@@ -329,8 +352,8 @@ static void initDisplay() {
 #if CT_SIM
   tft.begin();
 #else
-  // Se o seu modulo 240x240 mostrar imagem torta ou apagada, troque SPI_MODE2 por SPI_MODE3.
-  tft.init(240, 240, SPI_MODE2);
+  // Este modulo 240x240 (sem CS) so funcionou em SPI_MODE3 na bancada (teste_hw_modo3).
+  tft.init(240, 240, SPI_MODE3);
 #endif
   tft.setRotation(0);
   tft.fillScreen(C_BLACK);
@@ -379,12 +402,30 @@ static void uiTick(uint32_t now) {
 }
 
 // ---------------- Sensores ----------------
+#if CT_SIM
 static bool initImu() {
   if (!imu.begin(IMU_I2C_ADDR, &Wire)) return false;
   imu.setAccelerometerRange(MPU6050_RANGE_4_G);
   imu.setFilterBandwidth(MPU6050_BAND_21_HZ);
   return true;
 }
+#else
+// Na pulseira real o MPU e um clone que responde WHO_AM_I = 0x72, e a biblioteca da Adafruit so
+// aceita 0x68. Por isso configuramos direto pelos registradores, igual ao teste_sensores.
+static bool imuWrite(uint8_t reg, uint8_t val) {
+  Wire.beginTransmission(IMU_I2C_ADDR);
+  Wire.write(reg);
+  Wire.write(val);
+  return Wire.endTransmission() == 0;
+}
+
+static bool initImu() {
+  if (!imuWrite(0x6B, 0x00)) return false;  // PWR_MGMT_1: acorda
+  delay(10);
+  return imuWrite(0x1A, 0x04) &&            // CONFIG: filtro de 21 Hz
+         imuWrite(0x1C, 0x08);              // ACCEL_CONFIG: faixa de 4 g (8192 LSB por g)
+}
+#endif
 
 #if CT_SIM
 static bool sim_walk = false;  // comando W: caminhada falsa, 2 passos por segundo
@@ -401,6 +442,7 @@ static ImuSample readImu() {
   }
 #endif
   if (!imu_ok) return s;
+#if CT_SIM
   sensors_event_t a, g, t;
   if (!imu.getEvent(&a, &g, &t)) return s;
   s.ax = a.acceleration.x / SENSORS_GRAVITY_STANDARD;
@@ -408,6 +450,19 @@ static ImuSample readImu() {
   s.az = a.acceleration.z / SENSORS_GRAVITY_STANDARD;
   s.ok = true;
   return s;
+#else
+  Wire.beginTransmission(IMU_I2C_ADDR);
+  Wire.write(0x3B);  // ACCEL_XOUT_H
+  if (Wire.endTransmission(false) != 0) return s;
+  if (Wire.requestFrom(static_cast<int>(IMU_I2C_ADDR), 6) != 6) return s;
+  uint8_t b[6];
+  for (uint8_t i = 0; i < 6; i++) b[i] = Wire.read();
+  s.ax = static_cast<int16_t>((b[0] << 8) | b[1]) / 8192.0f;
+  s.ay = static_cast<int16_t>((b[2] << 8) | b[3]) / 8192.0f;
+  s.az = static_cast<int16_t>((b[4] << 8) | b[5]) / 8192.0f;
+  s.ok = true;
+  return s;
+#endif
 }
 
 static void logMinute(const MinuteSummary& m) {
