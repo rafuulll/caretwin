@@ -6,7 +6,8 @@ import type {
   PedidoRecebido,
   PessoaComPulseira,
 } from "./familia"
-import type { Alerta, DiaRegistrado, Sessao } from "./types"
+import type { FatosDoAlerta, FatosDoDia } from "./respostas-ia"
+import type { Alerta, DiaRegistrado, ExplicacaoDoAlerta, Sessao } from "./types"
 
 /**
  * As chamadas do navegador às rotas de `src/app/api/v1`.
@@ -101,4 +102,12 @@ export const v1 = {
   alertas: (pessoaId: string) => chamar<Alerta[]>("GET", `/pessoas/${p(pessoaId)}/alertas`),
   /** O lido vale para a família toda. */
   marcarAlerta: (alertaId: string, lido: boolean) => chamar<Alerta>("PATCH", `/alertas/${p(alertaId)}`, { lido }),
+  /** A explicação do alerta, da IA ou do texto de regra (cartão 6.3). Pode levar alguns segundos. */
+  explicacao: (alertaId: string) => chamar<ExplicacaoDoAlerta>("GET", `/alertas/${p(alertaId)}/explicacao`),
+  /** A explicação de um alerta de exemplo (modo demonstração): sem conta, só com os números. */
+  explicarExemplo: (fatos: FatosDoAlerta & { chave: string }) =>
+    chamar<ExplicacaoDoAlerta>("POST", "/ia/explicar", fatos),
+  /** O resumo do dia escrito pela IA, a partir dos números que o navegador já calculou. */
+  resumirDia: (fatos: FatosDoDia & { chave: string }) =>
+    chamar<{ texto: string; origem: "ia" | "regra"; modelo?: string }>("POST", "/ia/resumo", fatos),
 }

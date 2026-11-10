@@ -1,11 +1,13 @@
 "use client"
 
+import { useState } from "react"
 import { Badge, Button, Card } from "@/components/ui"
 import { sistema } from "@/content/site"
 import { cn } from "@/lib/cn"
 import { preencher } from "@/lib/formato"
 import { ehBoaNoticia } from "@/lib/modelo"
-import type { Alerta } from "@/lib/types"
+import { ia, useConta } from "@/lib/store"
+import type { Alerta, ExplicacaoDoAlerta } from "@/lib/types"
 import { Icone } from "../icone"
 
 const textos = sistema.alertas.lista
@@ -20,6 +22,26 @@ const textos = sistema.alertas.lista
  */
 export function CartaoAlerta({ alerta, aoMarcar }: { alerta: Alerta; aoMarcar: (lido: boolean) => void }) {
   const boa = ehBoaNoticia(alerta.metrica, alerta.direcao)
+  const conta = useConta()
+  const [explicacao, setExplicacao] = useState<ExplicacaoDoAlerta | null>(null)
+  const [explicando, setExplicando] = useState(false)
+  const [falhou, setFalhou] = useState(false)
+
+  /**
+   * A explicação da IA (cartão 7.6). É o servidor que fala com o modelo: com
+   * conta, ele busca os números no banco; na demonstração, o navegador manda os
+   * números do exemplo. Quando o modelo não está ligado ou é reprovado, vem o
+   * texto de regra e aparece do mesmo jeito: é uma explicação, não um erro.
+   */
+  async function explicar() {
+    setExplicando(true)
+    setFalhou(false)
+    const resposta = conta ? await ia.explicarAlerta(alerta.id) : await ia.explicarAlertaDeExemplo(alerta)
+    setExplicando(false)
+    if (resposta.ok) setExplicacao(resposta.corpo)
+    else setFalhou(true)
+  }
+
   return (
     <Card className={cn("p-5", !alerta.lido && (boa ? "border-success/40" : "border-warning/40"))}>
       <article aria-labelledby={`titulo-${alerta.id}`}>
@@ -46,6 +68,26 @@ export function CartaoAlerta({ alerta, aoMarcar }: { alerta: Alerta; aoMarcar: (
 
         <p className="mt-3 text-base leading-relaxed text-ink">{alerta.texto}</p>
         <p className="mt-2 text-sm text-muted">{textos.escritoPelaIa}</p>
+
+        <div className="mt-4" aria-live="polite">
+          {explicacao && (
+            <div className="mb-3 rounded-2xl border border-hairline bg-surface p-4">
+              <p className="text-base leading-relaxed text-ink">{explicacao.texto}</p>
+              <p className="mt-2 text-sm text-muted">
+                {explicacao.origem === "ia" ? textos.explicar.daIa : textos.explicar.padrao}
+              </p>
+            </div>
+          )}
+          {falhou && <p className="mb-3 text-sm text-muted">{textos.explicar.erro}</p>}
+          <Button
+            variante="secundaria"
+            carregando={explicando}
+            onClick={explicar}
+            iconeEsquerda={<Icone nome="escrever" />}
+          >
+            {explicando ? textos.explicar.carregando : explicacao ? textos.explicar.outra : textos.explicar.botao}
+          </Button>
+        </div>
 
         <Button
           variante={alerta.lido ? "fantasma" : "secundaria"}
