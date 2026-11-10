@@ -19,7 +19,10 @@ constexpr float STEP_HIGH_G = 1.25f;              // [H] limiar de pico
 constexpr float STEP_LOW_G = 1.05f;               // [H] limiar para rearmar
 constexpr uint32_t STEP_MIN_INTERVAL_MS = 300;    // no máximo ~3,3 passos por segundo
 constexpr uint32_t STEP_MAX_INTERVAL_MS = 2000;   // acima disso a caminhada é considerada interrompida
-constexpr uint8_t STEP_CONFIRM = 4;               // passos seguidos antes de começar a contar (evita gestos)
+constexpr uint8_t STEP_CONFIRM = 6;               // passos seguidos antes de começar a contar (evita gestos)
+constexpr float STEP_START_REGULARITY = 0.30f;    // ao começar, cada intervalo deve ficar a até 30% do anterior (ritmo de caminhada)
+constexpr float STEP_WALK_TOLERANCE = 0.50f;      // caminhando, intervalo fora de ±50% da média recente não conta
+constexpr uint8_t STEP_MAX_IRREGULAR = 3;         // 3 intervalos fora do ritmo seguidos encerram a caminhada
 
 // Minuto com movimento e minuto com dado
 constexpr float MOVE_THRESHOLD_G = 0.10f;         // |módulo - 1 g| acima disso = amostra com movimento [H]

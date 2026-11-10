@@ -97,5 +97,5 @@
 #define DEMO_DURATION_MS (2UL * 60UL * 1000UL)
 #define DEMO_PERIOD_MS 5000
 #define IMU_RETRY_MS 5000
-#define SCREEN_ON_MS 10000UL     // a tela (e a luz de fundo) apagam sozinhas depois disso
+#define SCREEN_ON_MS 60000UL     // a tela (e a luz de fundo) apagam sozinhas depois disso
 #define HR_FINGER_IR_MIN 50000   // MAX30102: leitura IR acima disso = dedo no sensor
