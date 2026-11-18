@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "node --test testes/seguranca.test.mjs testes/ia.test.mjs",
+    "test": "node --test testes/seguranca.test.mjs testes/ia.test.mjs testes/ao-vivo.test.mjs",
     "revisar-ia": "node --env-file-if-exists=.env.local testes/revisar-ia.mjs",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build"

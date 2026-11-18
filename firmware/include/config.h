@@ -77,6 +77,7 @@
 #define PATH_DAILY "/v1/device/daily"
 #define PATH_NIGHTS "/v1/device/nights"
 #define PATH_LIVE "/v1/device/live"
+#define PATH_RAW "/v1/device/raw"   // modo ao vivo: dados brutos dos sensores, 1 lote por segundo (pagina /ao-vivo)
 
 // Token do dispositivo. O de verdade fica so em segredos.h, nunca no codigo.
 #ifndef DEVICE_TOKEN
@@ -95,7 +96,7 @@
 #define HTTP_TIMEOUT_MS 8000
 #define LONG_PRESS_MS 2000
 #define DEMO_DURATION_MS (2UL * 60UL * 1000UL)
-#define DEMO_PERIOD_MS 5000
+#define DEMO_PERIOD_MS 1000      // modo ao vivo: um lote bruto por segundo (50 leituras do MPU-6050 e do MAX30102)
 #define IMU_RETRY_MS 5000
 #define SCREEN_ON_MS 60000UL     // a tela (e a luz de fundo) apagam sozinhas depois disso
 #define HR_FINGER_IR_MIN 50000   // MAX30102: leitura IR acima disso = dedo no sensor

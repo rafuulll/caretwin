@@ -22,11 +22,16 @@ Exemplos (a partir da raiz do repositorio):
   # 5) modo ao vivo: 10 envios de /v1/device/live, um a cada 5 s
   python simulador/simulador.py --url http://localhost:8080 --ao-vivo 10
 
+  # 6) dados BRUTOS ao vivo (pagina /ao-vivo): 60 lotes de 1 segundo, 50 leituras cada.
+  #    --bruto 0 manda sem parar, ate apertar Ctrl+C
+  python simulador/simulador.py --url http://localhost:3000/api --token token-de-teste-1 --bruto 60
+
 Cenarios: normal, queda, aumento, sedentario, poucos_dias, falhas, invalidos.
 """
 import argparse
 import datetime as dt
 import json
+import math
 import os
 import random
 import sys
@@ -154,6 +159,45 @@ def enviar(url_base, token, rota, corpo):
         return None, "sem conexao com a API: {}".format(e)
 
 
+TAXA_BRUTA_HZ = 50  # leituras por segundo, igual ao modo ao vivo do firmware
+CICLO_ANDANDO_S = 20  # o simulador anda 20 s e para 10 s, para os graficos mostrarem os dois jeitos
+CICLO_PARADO_S = 10
+
+
+def lote_bruto(segundo, rng, passos, bpm):
+    """Um segundo de leituras brutas no formato de POST /v1/device/raw.
+
+    Unidades inteiras, como o firmware manda: aceleracao em milesimos de g (1000 = 1 g),
+    giroscopio em decimos de grau por segundo, infravermelho de 0 a 262143.
+    Andando, o braco balanca a cerca de 1,8 passo por segundo; parado, so sobra o ruido do sensor
+    e a gravidade no eixo z.
+    """
+    andando = (segundo % (CICLO_ANDANDO_S + CICLO_PARADO_S)) < CICLO_ANDANDO_S
+    imu, ir = [], []
+    for i in range(TAXA_BRUTA_HZ):
+        t = segundo + i / TAXA_BRUTA_HZ
+        passo = math.sin(2 * math.pi * 1.8 * t)
+        amp = 1.0 if andando else 0.0
+        ax = 350 * amp * passo + rng.gauss(0, 12)
+        ay = 180 * amp * math.sin(2 * math.pi * 0.9 * t) + rng.gauss(0, 12)
+        az = 1000 + 420 * amp * math.sin(2 * math.pi * 1.8 * t + 1.2) + rng.gauss(0, 12)
+        gx = 900 * amp * math.sin(2 * math.pi * 0.9 * t) + rng.gauss(0, 4)
+        gy = 500 * amp * math.cos(2 * math.pi * 0.9 * t) + rng.gauss(0, 4)
+        gz = 250 * amp * passo + rng.gauss(0, 4)
+        imu.append([int(round(v)) for v in (ax, ay, az, gx, gy, gz)])
+        # O pulso reflete mais ou menos luz a cada batida: um pico por batida, mais um ruido pequeno.
+        batida = math.sin(2 * math.pi * (bpm / 60.0) * t)
+        ir.append(int(round(120000 + 3800 * batida + 900 * math.sin(4 * math.pi * (bpm / 60.0) * t) + rng.gauss(0, 150))))
+    return {
+        "rate_hz": TAXA_BRUTA_HZ,
+        "ts": dt.datetime.now(FUSO).isoformat(timespec="seconds"),
+        "steps_today": passos,
+        "bpm": bpm,
+        "imu": imu,
+        "ir": ir,
+    }
+
+
 def main():
     p = argparse.ArgumentParser(description="Simulador da pulseira CareTwin (contrato v1)",
                                 formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -167,10 +211,30 @@ def main():
     p.add_argument("--salvar", metavar="PASTA", help="grava os JSONs na pasta em vez de (ou alem de) enviar")
     p.add_argument("--ao-vivo", type=int, metavar="N", help="envia N vezes /v1/device/live e sai")
     p.add_argument("--intervalo", type=float, default=5.0, help="segundos entre envios ao vivo (padrao 5)")
+    p.add_argument("--bruto", type=int, metavar="N",
+                   help="envia N lotes de dados brutos (/v1/device/raw), um por segundo; 0 envia sem parar")
     a = p.parse_args()
 
     rng = random.Random(a.semente)
     data_final = dt.date.fromisoformat(a.data_final) if a.data_final else dt.datetime.now(FUSO).date()
+
+    if a.bruto is not None:
+        if not a.url:
+            sys.exit("--bruto precisa de --url")
+        passos, bpm, k = 3000, 72, 0
+        while a.bruto == 0 or k < a.bruto:
+            andando = (k % (CICLO_ANDANDO_S + CICLO_PARADO_S)) < CICLO_ANDANDO_S
+            if andando:
+                passos += rng.randint(1, 3)
+            bpm = max(55, min(110, bpm + rng.choice((-1, 0, 0, 1)) + (1 if andando and bpm < 95 else 0)))
+            corpo = lote_bruto(k, rng, passos, bpm)
+            status, resp = enviar(a.url, a.token, "/v1/device/raw", corpo)
+            print("raw lote {} ({} leituras, bpm {}, passos {}) -> {} {}".format(k + 1, len(corpo["imu"]), bpm, passos, status, resp))
+            if status is not None and status < 500 and status not in (200, 429):
+                sys.exit("a API recusou o lote; confira a URL e o token")
+            k += 1
+            time.sleep(1.0)
+        return
 
     if a.ao_vivo:
         if not a.url:

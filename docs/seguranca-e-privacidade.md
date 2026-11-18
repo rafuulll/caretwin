@@ -12,7 +12,7 @@ Situação: **Ok** quer dizer conferido e testado; **Risco aceito** quer dizer c
 | Pessoa sem vínculo devolve 404, nunca 403 | Ok | mesmas funções | No mesmo teste; id que não é uuid e uuid inexistente também dão 404 |
 | Pedido pendente não vê nada antes de aprovado | Ok | `exigirMembro` exige `aprovado` | A conta com pedido pendente recebeu 404 em todas as rotas |
 | Sem login, nenhuma rota de dados responde | Ok | `src/lib/rota-v1.ts` (`quemChama`) | /me, /pessoas e /dias sem cookie: 401 |
-| O banco não abre pela API pública do Supabase | Ok | `banco/migracoes/0001` e `0006`: RLS ligado nas 7 tabelas, sem nenhuma policy | Conferir em produção com a consulta abaixo |
+| O banco não abre pela API pública do Supabase | Ok | `banco/migracoes/0001`, `0006` e `0008`: RLS ligado nas 8 tabelas, sem nenhuma policy | Conferir em produção com a consulta abaixo |
 | Token da pulseira guardado só como hash | Ok | `src/lib/dispositivo.ts` (`hashDoToken`) | Token errado ou ausente: 401 |
 | Limite de códigos errados ao ligar pulseira | Ok | cartão 5.10 | Testado no cartão 5.10 |
 
@@ -38,6 +38,19 @@ Situação: **Ok** quer dizer conferido e testado; **Risco aceito** quer dizer c
 | Quem exclui a conta some do banco | Ok | `excluirConta` em `src/lib/familia.ts`, `quemChama` em `src/lib/rota-v1.ts`, migração 0007 | A conta excluída para de funcionar na hora (401 em todas as rotas, também em outro aparelho), tem 30 dias para ser recuperada pela senha e depois a tarefa diária apaga o login e os vínculos. Testado num Postgres local: sair das famílias com mais gente, encerrar a que ficaria vazia, recuperar dentro do prazo e apagar de vez depois dele |
 | O service worker não guarda dados de saúde | Ok | `public/sw.js`, cartão 7.7 | Guarda só HTML das telas e arquivos de `/_next/static`; conferido que nada de `/api` entra no cache |
 
+## Páginas abertas: /demo e /ao-vivo
+
+Estas duas páginas são a única parte do site aberta de propósito, sem login, para a banca ver o produto funcionando. A exposição é pequena e controlada.
+
+| Item | Situação | Onde está | Como foi conferido |
+| --- | --- | --- | --- |
+| Só aparece a pulseira que a gente escolheu | Ok | `src/lib/publico.ts` (`pulseiraPedida`), variável `PULSEIRAS_PUBLICAS` na Vercel | Sem a variável, as duas rotas públicas e as páginas respondem 404. Com `CT-DM01`, qualquer outro código (cadastrado ou não) também dá 404. Coberto por `npm test` e testado com a aplicação rodando |
+| Nenhum dado de pessoa de verdade fica aberto | Ok | é decisão de configuração: só entra na lista uma pulseira de demonstração | A lista começa vazia (opt-in). Para publicar uma pessoa de verdade, a família teria que pôr o código dela na variável |
+| Rotas públicas só leem | Ok | `src/app/api/publico/*` só têm `GET` | Nenhuma grava nada. A gravação dos lotes brutos exige o token da pulseira (`/v1/device/raw`) |
+| A resposta de /demo não traz id do banco | Ok | `src/lib/demo-publica.ts` troca todos por ids simples | Teste com a aplicação rodando: nenhum uuid na resposta |
+| Freio contra uso abusivo | Risco aceito | `passouDoLimiteDeLeitura`: 120 pedidos por minuto por endereço | Conta na memória de cada instância da Vercel, então não é exato, mas um laço de repetição não enche o banco. Testado em `npm test` |
+| Os dados brutos não entram no histórico | Ok | tabela `ao_vivo_lotes` (migração 0008) | Cada pulseira guarda só os últimos 10 minutos; o servidor apaga o resto a cada lote novo. Nada vira dia, alerta nem normal |
+
 ## Riscos aceitos
 
 | Risco | Por que fica | Quando resolver |
@@ -47,6 +60,7 @@ Situação: **Ok** quer dizer conferido e testado; **Risco aceito** quer dizer c
 | Plano gratuito de alguns provedores pode usar as entradas para melhorar produtos | Só números sem nome saem do servidor, então nada identifica a pessoa | Antes de ter usuários de verdade, passar para o plano pago sem treino com os dados |
 | O limite de tentativas de login do Supabase conta por servidor, não por pessoa | Todas as chamadas saem dos servidores da Vercel | Se o cadastro abrir para muita gente (cartão 5.12) |
 | Bloquear uma conta no Supabase não derruba quem já entrou | A sessão é o cookie do app, que vale até 30 dias | Para derrubar todo mundo na hora, trocar o `AUTH_SECRET` na Vercel |
+| Se uma pulseira com pessoa de verdade for posta em `PULSEIRAS_PUBLICAS`, os passos, o sono, a bateria e os dados brutos dela ficam abertos a quem tiver o link | A lista é escolha de quem administra o site; a demonstração usa só a pulseira CT-DM01 | Antes de pôr qualquer pulseira que não seja de demonstração, conversar com a família |
 | Sem internet, a última leitura da família fica guardada no aparelho (cartão 7.7) | É o que o cartão 7.7 pede: abrir sem internet com o último dado | Fica só até sair; num aparelho dividido, cada pessoa precisa sair da própria conta |
 
 ## Consulta para conferir o RLS em produção
@@ -62,7 +76,7 @@ where n.nspname = 'public' and c.relkind = 'r'
 order by 1;
 ```
 
-O esperado são 7 linhas (alertas, dias, pessoas, pulseiras, tentativas_de_codigo, usuarios e vinculos), todas com `rls_ligado = true` e `policies = 0`.
+O esperado são 8 linhas (alertas, ao_vivo_lotes, dias, pessoas, pulseiras, tentativas_de_codigo, usuarios e vinculos), todas com `rls_ligado = true` e `policies = 0`.
 
 ## Como repetir os testes
 

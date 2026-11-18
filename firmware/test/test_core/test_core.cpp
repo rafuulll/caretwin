@@ -268,6 +268,45 @@ static void test_conversao_de_data() {
   TEST_ASSERT_TRUE(isClockValid(1792551480));
 }
 
+static void test_conversao_para_o_contrato_bruto() {
+  TEST_ASSERT_EQUAL_INT(1000, toMilliG(1.0f));
+  TEST_ASSERT_EQUAL_INT(-1234, toMilliG(-1.2344f));
+  TEST_ASSERT_EQUAL_INT(16000, toMilliG(99.0f));    // passou do teto: vira o teto
+  TEST_ASSERT_EQUAL_INT(-16000, toMilliG(-99.0f));
+  TEST_ASSERT_EQUAL_INT(0, toMilliG(NAN));
+  TEST_ASSERT_EQUAL_INT(100, toDeciDps(10.0f));
+  TEST_ASSERT_EQUAL_INT(-465, toDeciDps(-46.5f));
+  TEST_ASSERT_EQUAL_INT(20000, toDeciDps(5000.0f));
+}
+
+static void test_payload_bruto_segue_o_contrato() {
+  RawSample r[3] = {{3, -2, 1000, 1, 0, -1, 120000}, {4, -2, 1002, 2, 0, -1, 120040}, {5, -3, 998, 1, 1, 0, 120080}};
+  static char buf[1024];
+  TEST_ASSERT_TRUE(buildRawPayload(r, 3, 50, 72, 4210, 1792551480, true, buf, sizeof(buf)) > 0);
+  TEST_ASSERT_EQUAL_STRING(
+      "{\"rate_hz\":50,\"ts\":\"2026-10-20T23:58:00-03:00\",\"steps_today\":4210,\"bpm\":72,"
+      "\"imu\":[[3,-2,1000,1,0,-1],[4,-2,1002,2,0,-1],[5,-3,998,1,1,0]],"
+      "\"ir\":[120000,120040,120080]}",
+      buf);
+}
+
+static void test_payload_bruto_sem_dedo_nem_hora() {
+  RawSample r[1] = {{0, 0, 1000, 0, 0, 0, 0}};
+  static char buf[512];
+  TEST_ASSERT_TRUE(buildRawPayload(r, 1, 50, 0, 7, 0, false, buf, sizeof(buf)) > 0);
+  // bpm 0 vira null, hora invalida vira null, e sem sinal infravermelho a chave "ir" nao vai.
+  TEST_ASSERT_EQUAL_STRING(
+      "{\"rate_hz\":50,\"ts\":null,\"steps_today\":7,\"bpm\":null,\"imu\":[[0,0,1000,0,0,0]]}", buf);
+}
+
+static void test_payload_bruto_recusa_lote_invalido() {
+  RawSample r[1] = {{0, 0, 1000, 0, 0, 0, 0}};
+  char buf[512];
+  TEST_ASSERT_EQUAL_UINT32(0, buildRawPayload(r, 0, 50, 0, 0, 0, false, buf, sizeof(buf)));
+  TEST_ASSERT_EQUAL_UINT32(0, buildRawPayload(r, RAW_BATCH_MAX + 1, 50, 0, 0, 0, false, buf, sizeof(buf)));
+  TEST_ASSERT_EQUAL_UINT32(0, buildRawPayload(r, 1, 50, 0, 0, 0, false, buf, 16));  // nao coube
+}
+
 int main(int, char**) {
   UNITY_BEGIN();
   RUN_TEST(test_validacao_de_amostra);
@@ -289,5 +328,9 @@ int main(int, char**) {
   RUN_TEST(test_resposta_com_itens_recusados);
   RUN_TEST(test_recusados_saem_da_fila);
   RUN_TEST(test_conversao_de_data);
+  RUN_TEST(test_conversao_para_o_contrato_bruto);
+  RUN_TEST(test_payload_bruto_segue_o_contrato);
+  RUN_TEST(test_payload_bruto_sem_dedo_nem_hora);
+  RUN_TEST(test_payload_bruto_recusa_lote_invalido);
   return UNITY_END();
 }

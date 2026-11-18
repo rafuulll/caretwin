@@ -63,6 +63,10 @@ tags:
     description: Enviados pela pulseira (token de dispositivo)
   - name: app
     description: Usados pelo site (sessao do login com e-mail e senha)
+  - name: publico
+    description: >
+      Abertos, sem login, so leitura, so das pulseiras de demonstracao listadas
+      em PULSEIRAS_PUBLICAS. Alimentam as paginas /demo e /ao-vivo
   - name: futuro
     description: Reservado. Documentado para o formato ja estar combinado, nao implementar ainda
 paths:
@@ -189,6 +193,49 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AcceptedRejected'
+  /v1/device/raw:
+    post:
+      tags: [device]
+      summary: Modo ao vivo, dados brutos dos sensores (um lote por segundo)
+      description: >
+        O modo ao vivo da pulseira (botao A por 2 s) manda, a cada segundo, ate
+        100 leituras do acelerometro e do giroscopio do MPU-6050 (50 por
+        segundo), o sinal infravermelho do MAX30102 e os batimentos. Como o
+        /v1/device/live, nao cria dia nem mexe no historico: o lote entra numa
+        janela de 10 minutos por pulseira (tabela ao_vivo_lotes, migracao 0008),
+        que a pagina /ao-vivo le. accepted traz o ts recebido, ou fica vazio
+        quando ts veio null.
+
+
+        Os valores sao inteiros de proposito (o JSON do ESP32 fica curto):
+        aceleracao em milesimos de g (1000 = 1 g), giroscopio em decimos de
+        grau por segundo (100 = 10 graus/s).
+      security:
+        - DeviceToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RawPayload'
+            example:
+              rate_hz: 50
+              ts: '2026-10-20T15:04:05-03:00'
+              steps_today: 1234
+              bpm: 72
+              imu: [[3, -2, 1000, 1, 0, -1], [4, -2, 1002, 2, 0, -1]]
+              ir: [120000, 120040]
+      responses:
+        '401':
+          description: Sem o cabecalho Authorization ou token invalido
+        '422':
+          description: Corpo invalido (eixo faltando, numero quebrado, valor alem do teto do sensor, ir de tamanho diferente do imu)
+        '200':
+          description: Recebido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcceptedRejected'
   /v1/device/heartrate:
     post:
       tags: [futuro]
@@ -221,6 +268,62 @@ paths:
               schema:
                 $ref: '#/components/schemas/AcceptedRejected'
 
+  /publico/demo:
+    get:
+      tags: [publico]
+      summary: Dados da pessoa de demonstracao, no formato que o app usa (pagina /demo)
+      description: >
+        Sem login. So responde para os codigos de PULSEIRAS_PUBLICAS (variavel de
+        ambiente, lista separada por virgula); sem a variavel, ou com outro
+        codigo, e 404, igual a um codigo que nao existe. Nenhum id do banco sai
+        na resposta. Limite de 120 pedidos por minuto por endereco (429).
+      parameters:
+        - name: pulseira
+          in: query
+          required: false
+          schema:
+            type: string
+            pattern: '^CT-[A-Z0-9]{4}$'
+          description: Sem ele, a primeira pulseira da lista
+      responses:
+        '200':
+          description: Os ultimos 40 dias, a pulseira e os alertas da pessoa
+        '404':
+          description: Demonstracao desligada ou codigo fora da lista
+        '429':
+          description: Muitos pedidos
+  /publico/ao-vivo:
+    get:
+      tags: [publico]
+      summary: Lotes brutos mais novos da pulseira de demonstracao (pagina /ao-vivo)
+      description: >
+        Sem login, somente leitura, mesma regra de PULSEIRAS_PUBLICAS do /publico/demo.
+        Sem `depois`, devolve os 10 lotes mais recentes (cerca de 10 s). Com
+        `depois`, so os que chegaram depois daquele id (no maximo 40). A pagina
+        pergunta uma vez por segundo.
+      parameters:
+        - name: pulseira
+          in: query
+          required: false
+          schema:
+            type: string
+            pattern: '^CT-[A-Z0-9]{4}$'
+        - name: depois
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+          description: id do ultimo lote que a pagina ja tem
+      responses:
+        '200':
+          description: A pulseira e os lotes (id, ts, recebidoEm, taxaHz, passosHoje, bpm, imu, ir), mais a hora do servidor em `agora`
+        '404':
+          description: Demonstracao desligada ou codigo fora da lista
+        '422':
+          description: depois nao e um numero
+        '429':
+          description: Muitos pedidos
   /v1/me:
     get:
       tags: [app]
@@ -992,6 +1095,51 @@ components:
           format: date-time
           nullable: true
           description: null quando o relogio da pulseira ainda nao acertou pela rede
+    RawPayload:
+      type: object
+      required: [rate_hz, ts, steps_today, bpm, imu]
+      properties:
+        rate_hz:
+          type: integer
+          minimum: 1
+          maximum: 200
+          description: leituras por segundo (50 no firmware)
+        ts:
+          type: string
+          format: date-time
+          nullable: true
+          description: hora da primeira leitura do lote; null quando o relogio da pulseira ainda nao acertou
+        steps_today:
+          type: integer
+          minimum: 0
+          maximum: 60000
+          nullable: true
+        bpm:
+          type: integer
+          minimum: 30
+          maximum: 220
+          nullable: true
+          description: null sem dedo no sensor
+        imu:
+          type: array
+          minItems: 1
+          maxItems: 100
+          description: "[ax, ay, az, gx, gy, gz] por leitura. a em milesimos de g (ate 16000), g em decimos de grau/s (ate 20000)"
+          items:
+            type: array
+            minItems: 6
+            maxItems: 6
+            items:
+              type: integer
+        ir:
+          type: array
+          minItems: 1
+          maxItems: 100
+          description: sinal infravermelho (0 a 262143), uma leitura para cada leitura de imu
+          items:
+            type: integer
+            minimum: 0
+            maximum: 262143
     HeartratePayload:
       type: object
       required: [measurements]

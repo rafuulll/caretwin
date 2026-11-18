@@ -41,7 +41,22 @@ Com o Docker Desktop aberto, nesta pasta:
 docker compose up --build
 ```
 
-Abra <http://localhost:3000>. Para parar, `Ctrl+C` e depois `docker compose down`. Depois de mudar o código, rode de novo o `up --build`. A porta fica presa a este computador. Para ligar o banco no container, descomente a linha `env_file` do `docker-compose.yml`.
+Sobe o app e um Postgres com as migrações e uma pessoa de demonstração (Dona Helena, pulseira CT-DM01, 30 dias de dados). Abra:
+
+- <http://localhost:3000/demo>: o painel dela, sem login.
+- <http://localhost:3000/ao-vivo>: os dados brutos em tempo real (acelerômetro, giroscópio e batimentos).
+
+Para ver o /ao-vivo mexendo sem a pulseira, ligue também o simulador, que manda um lote por segundo:
+
+```bash
+docker compose --profile simulador up --build
+```
+
+Para parar, `Ctrl+C` e depois `docker compose down`. Para apagar o banco e recomeçar, `docker compose down -v` (as migrações só rodam no banco vazio). Depois de mudar o código, rode de novo o `up --build`. As portas ficam presas a este computador (o banco fica em `127.0.0.1:5433`, usuário e senha `caretwin`).
+
+O que não vem no Docker: o login com e-mail e senha, que é o Supabase Auth, um serviço à parte, e as tarefas agendadas (pg_cron). As páginas abertas e a API da pulseira (`/api/v1/device/*`) funcionam inteiras. Para ligar o login, ponha as chaves no `environment` do `docker-compose.yml`.
+
+O banco do Docker usa `docker/banco/00-supabase-falso.sql`, que cria só o pedaço do Supabase que as migrações precisam. Não use esses arquivos num banco de verdade.
 
 ### Comandos
 

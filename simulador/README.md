@@ -32,6 +32,9 @@ A API real mora em apps/web (Next.js), com as rotas /v1/device prontas. Com o np
   --semente N        mesma semente gera os mesmos dados (padrao 42), bom para testes repetiveis
   --salvar PASTA     grava os JSONs na pasta (fixtures para pytest, Postman, curl)
   --ao-vivo N        envia N vezes /v1/device/live, a cada --intervalo segundos (padrao 5)
+  --bruto N          envia N lotes de dados brutos (/v1/device/raw), um por segundo, 50 leituras de
+                     acelerometro, giroscopio e infravermelho cada. Anda 20 s e para 10 s, em ciclo.
+                     --bruto 0 manda sem parar (Ctrl+C para sair). E o que alimenta a pagina /ao-vivo
 
 ## Exemplos por pessoa
 
@@ -61,6 +64,8 @@ Responde ao contrato v1 com validacao simples e guarda tudo na memoria. Serve de
   POST /v1/device/daily   {"firmware", "battery_pct", "days": [{"date", "steps", "active_minutes"}]}   ate 7 dias por envio
   POST /v1/device/nights  {"night_date", "window_start", "counts": [840 valores, minuto sem dado = null]}   janela das 20:00 as 10:00, fuso -03:00
   POST /v1/device/live    {"steps_today", "ts"}
+  POST /v1/device/raw     {"rate_hz", "ts", "steps_today", "bpm", "imu": [[ax,ay,az,gx,gy,gz], ...ate 100], "ir": [...]}   1 lote por segundo
+                          ax,ay,az em milesimos de g; gx,gy,gz em decimos de grau/s; ir de 0 a 262143; bpm null sem dedo
 
 ## Simulador versus Wokwi
 

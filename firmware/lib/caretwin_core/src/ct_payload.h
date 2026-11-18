@@ -22,6 +22,20 @@ size_t buildNightPayload(const NightRecord& night, char* out, size_t cap);
 size_t buildLivePayload(uint32_t steps_today, int64_t epoch_utc, bool clock_valid, char* out,
                         size_t cap);
 
+// Converte uma leitura em unidades físicas para os inteiros do contrato, sem passar do teto
+// que a API aceita (16 g e 2000 graus/s): um valor ruim vira o teto, nunca um lote recusado.
+int16_t toMilliG(float g);
+int16_t toDeciDps(float dps);
+
+// POST /v1/device/raw (só no modo ao vivo): um lote de até RAW_BATCH_MAX leituras.
+// {"rate_hz":50,"ts":"2026-10-20T15:04:05-03:00","steps_today":1234,"bpm":72,
+//  "imu":[[ax,ay,az,gx,gy,gz],...],"ir":[120000,...]}
+// bpm <= 0 vira null (sem dedo). O "ir" só vai se alguma leitura tiver sinal (ir > 0).
+// ts é a hora da primeira leitura do lote. Devolve 0 se n for 0, maior que o máximo ou não couber.
+size_t buildRawPayload(const RawSample* samples, size_t n, uint16_t rate_hz, int bpm,
+                       uint32_t steps_today, int64_t first_epoch_utc, bool clock_valid, char* out,
+                       size_t cap);
+
 // Lê {"accepted":["2026-10-20",...]} da resposta.
 // Devolve quantas datas foram lidas; -1 se a resposta não seguir o contrato.
 int parseAccepted(const char* json, char (*dates)[11], size_t max_dates);

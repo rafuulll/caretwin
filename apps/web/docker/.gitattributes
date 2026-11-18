@@ -1,0 +1,2 @@
+# O script roda dentro do Linux do container: fim de linha do Unix, mesmo no Windows.
+*.sh text eol=lf

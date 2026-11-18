@@ -1,14 +1,81 @@
-# Sobe o CareTwin com um comando só: docker compose up --build
+# Sobe o CareTwin inteiro neste computador, com banco e dados de demonstração:
+#
+#   docker compose up --build
+#
+# Depois abra:
+#   http://localhost:3000/demo      o painel da Dona Helena, sem login
+#   http://localhost:3000/ao-vivo   os dados brutos da pulseira em tempo real
+#
+# Para ver o /ao-vivo mexendo sem ter a pulseira, ligue também o simulador:
+#
+#   docker compose --profile simulador up --build
+#
+# Para apagar o banco e começar de novo (as migrações só rodam no banco vazio):
+#
+#   docker compose down -v
+#
+# O banco é um Postgres comum com um "Supabase de mentira" por cima
+# (docker/banco/00-supabase-falso.sql), só o bastante para as migrações rodarem.
+# O login com e-mail e senha precisa do Supabase de verdade e não funciona aqui;
+# a demonstração, a página ao vivo e a API da pulseira funcionam inteiras.
 services:
+  banco:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: caretwin
+      POSTGRES_PASSWORD: caretwin
+      POSTGRES_DB: caretwin
+    volumes:
+      - dados-do-banco:/var/lib/postgresql/data
+      # A imagem roda tudo isto, em ordem alfabética, uma vez, quando o banco é novo.
+      - ./docker/banco:/docker-entrypoint-initdb.d:ro
+      - ./banco/migracoes:/migracoes:ro
+    # Só este computador enxerga o banco (psql -h 127.0.0.1 -p 5433 -U caretwin).
+    ports:
+      - "127.0.0.1:5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U caretwin -d caretwin"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
   caretwin:
     build: .
+    depends_on:
+      banco:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://caretwin:caretwin@banco:5432/caretwin
+      # As pulseiras de demonstração que as páginas abertas mostram. Sem isto
+      # (ou com a lista vazia) /demo e /ao-vivo ficam desligadas.
+      PULSEIRAS_PUBLICAS: CT-DM01
+      # Chaves (Google, Supabase Auth, IA, AUTH_SECRET) entram aqui só quando você
+      # for ligar cada uma. A demonstração funciona sem nenhuma.
     # `127.0.0.1` na frente da porta é o que prende o app a este computador.
     # Sem isso, qualquer pessoa na mesma rede (wifi da faculdade, por exemplo)
     # abriria o app pelo seu endereço.
     ports:
       - "127.0.0.1:3000:3000"
-    # Chaves (Google, banco, IA) entram aqui só quando você for ligar cada uma.
-    # O app funciona sem nenhuma.
-    # env_file:
-    #   - .env.local
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3000/api/saude >/dev/null || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
     restart: unless-stopped
+
+  # A pulseira de mentira: manda um lote de dados brutos por segundo para a API,
+  # com o token da pulseira CT-DM01 (docker/banco/20-demonstracao.sql).
+  simulador:
+    profiles: ["simulador"]
+    image: python:3.12-alpine
+    depends_on:
+      caretwin:
+        condition: service_healthy
+    volumes:
+      - ../../simulador:/simulador:ro
+    command: ["python", "/simulador/simulador.py", "--url", "http://caretwin:3000/api", "--token", "token-de-demonstracao", "--bruto", "0"]
+    restart: unless-stopped
+
+volumes:
+  dados-do-banco:
