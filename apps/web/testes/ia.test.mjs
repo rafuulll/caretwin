@@ -177,7 +177,31 @@ test("o pedido ao modelo leva só os fatos da regra", () => {
   assert.match(pedido, /\[NOME\]/)
   assert.match(pedido, /abaixo/)
   assert.match(pedido, /3\.200/)
-  assert.match(pedido, /41%/)
+  assert.doesNotMatch(pedido, /41/, "a distância em percentual não vai: o texto não deve citá-la")
+})
+
+test("hoje, ontem e dia da semana nas explicações de alerta são bloqueados, e percentual feito pelo modelo também", () => {
+  bloqueia(
+    "Hoje, Ana registrou 3.200 passos, abaixo do normal, que é de 5.400 passos. Vale perguntar como foram esses dias.",
+    PASSOS_ABAIXO,
+    "dia_relativo"
+  )
+  bloqueia(
+    "Ana andou menos ontem: foram 3.200 passos, e o normal dela fica perto de 5.400. Vale observar os próximos dias.",
+    PASSOS_ABAIXO,
+    "dia_relativo"
+  )
+  bloqueia(
+    "Ana andou menos na sexta-feira: foram 3.200 passos, e o normal dela fica perto de 5.400. Vale observar os próximos dias.",
+    PASSOS_ABAIXO,
+    "dia_relativo"
+  )
+  // O percentual do pedido não existe mais: a conta que o modelo faz sozinho (3.200 contra 5.400 dá 41%, mas a média dos dias é outra) cai como número inventado.
+  bloqueia(
+    "Ana andou menos nos últimos dias: 3.200 passos no dia mais recente contra 5.400 de costume, uma queda de 37%.",
+    PASSOS_ABAIXO,
+    "numero_inventado"
+  )
 })
 
 const CONFIG = { url: "http://modelo.local", chave: "k", modelo: "teste", tempoMs: 1000 }
