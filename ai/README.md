@@ -11,7 +11,12 @@ A IA do CareTwin tem duas camadas, e so a segunda e um modelo de linguagem.
 
 - A regra da linha de base (cartao 2.3: base de 7 dias, 3 dias recentes, faixa de 20% para cada lado, alerta quando 2 dos 3 dias fogem para o mesmo lado, minimo de 5 dias validos) ja existe em TypeScript, em `apps/web/src/lib/modelo.ts` e `apps/web/src/lib/normal.ts`. Hoje ela roda no navegador, sobre os dados de exemplo.
 - Os textos do resumo e dos alertas sao modelos prontos preenchidos com os numeros, em `apps/web/src/lib/respostas-ia.ts`.
-- Nenhum modelo de linguagem esta ligado ainda.
+- A camada de texto ja existe em `apps/web/src/lib/ia/`:
+  - `verificador.ts` (cartao 6.2): confere o texto de um modelo contra os numeros da regra. Bloqueia direcao contraria, numero inventado, termo de diagnostico, ordem ao usuario, tom de alarme e formato fora do padrao.
+  - `modelo.ts` e `explicar.ts` (cartao 6.3): o servidor pede a frase a um modelo na nuvem (API no formato da OpenAI: Gemini, Groq, OpenAI), passa pelo verificador e, se o modelo nao estiver ligado, demorar ou for reprovado, usa o texto de regra. O nome da pessoa nao vai para o modelo. Por que nuvem e nao local: `docs/decisoes/0005-ia-na-nuvem-com-verificador.md`.
+  - Rota `GET /api/v1/alertas/{id}/explicacao` e botao "Explicar com a IA" no cartao do alerta (cartao 7.6, so com conta).
+  - Testes em `apps/web/testes/ia.test.mjs` (`npm test`).
+- Para ligar o modelo, preencha `IA_URL`, `IA_CHAVE` e `IA_MODELO` no `.env.local` (veja `.env.example`) e, para o site publicado, nas variaveis da Vercel.
 
 ## O plano
 
@@ -26,13 +31,13 @@ Desde 15/10/2026 a API mora dentro do Next.js (`apps/web`), e nao num servidor P
 
   | Provedor | Quando |
   | --- | --- |
-  | Ollama (modelo local) | Primeira opcao: privacidade (LGPD) e custo zero |
+  | Modelo na nuvem (API no formato da OpenAI) | Primeira opcao: rapido, funciona no site publicado, custo por uso muito baixo (decisao 0005) |
   | Texto por regras (os modelos de hoje) | Reserva: sempre funciona, sem modelo |
 
-  Se o Ollama nao responder, a API usa o texto por regras.
+  Se o modelo nao responder, a API usa o texto por regras.
 
 - Esta pasta pode guardar uma versao de referencia da regra (por exemplo em Python) e uma bateria de testes para comparar com a versao em TypeScript, usando os cenarios do `simulador/`.
 
 ## Onde o modelo roda
 
-A Vercel nao roda modelos de linguagem. Na demo, o Ollama roda num notebook e a API chama ele pela rede; a versao publicada usa o texto por regras como reserva. Testar a qualidade em portugues de modelos pequenos (3B a 8B) antes de decidir.
+Na nuvem, chamado pelo servidor do Next.js (nunca pelo navegador). Isso funciona tanto no `npm run dev` quanto na Vercel, desde que `IA_URL`, `IA_CHAVE` e `IA_MODELO` estejam no ambiente. Um modelo local foi testado primeiro e abandonado: no computador do grupo, sem placa de video, levou 1 min 36 s para carregar e escrevia a 7,3 tokens por segundo. Os numeros e a comparacao completa estao na decisao 0005.

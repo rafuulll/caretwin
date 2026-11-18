@@ -68,6 +68,19 @@ export type DiaRegistrado = {
   batimentos: MedicaoBatimentos[]
 }
 
+/**
+ * A explicação de um alerta escrita pela IA e conferida pelo verificador (6.2),
+ * ou, quando o modelo não está disponível ou é reprovado, o texto de regra.
+ * Quem lê não precisa saber qual foi: os dois são texto normal.
+ */
+export type ExplicacaoDoAlerta = {
+  alertaId: string
+  texto: string
+  origem: "ia" | "regra"
+  /** Só quando a origem é "ia": o modelo que escreveu. */
+  modelo?: string
+}
+
 export type Alerta = {
   id: string
   pessoaId: string

@@ -12,3 +12,5 @@ Motivo: privacidade, custo zero, mas Railway nao roda modelos e tunel para noteb
 Plano: API chama uma interface de provedor; na demo, tudo em um notebook; versao em nuvem com texto por regras como reserva.
 
 Atualizacao (15/10/2026): a parte de apps/api e da Railway foi substituida pela decisao 0004. O backend mora em apps/web, dentro do Next.js, e a IA local continua valendo, chamada pela API do Next.js.
+
+Atualizacao (10/11/2026): a IA local foi testada e trocada por um modelo na nuvem, conferido pelo verificador, com o texto de regra como reserva. Motivo e numeros na decisao 0005.

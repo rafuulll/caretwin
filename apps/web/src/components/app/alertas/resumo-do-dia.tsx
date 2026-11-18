@@ -6,7 +6,7 @@ import { sistema } from "@/content/site"
 import { medicoesDe, noiteMaisRecente, passosDeHoje, quantosNovos } from "@/lib/consultas"
 import { paraISO } from "@/lib/formato"
 import { RESUMOS_DO_DIA } from "@/lib/respostas-ia"
-import { useDados } from "@/lib/store"
+import { ia, useDados } from "@/lib/store"
 import type { Pessoa } from "@/lib/types"
 import { Icone } from "../icone"
 import { ModalIa } from "./modal-ia"
@@ -32,6 +32,7 @@ export function ResumoDoDia({ pessoa, agora }: { pessoa: Pessoa; agora: Date }) 
   const { dados } = useDados()
   const [texto, setTexto] = useState("")
   const [escrevendo, setEscrevendo] = useState(false)
+  const [daIa, setDaIa] = useState(false)
   const [modalAberto, setModalAberto] = useState(false)
   const fila = useRef<number[]>([])
   const relogio = useRef<number | null>(null)
@@ -40,14 +41,14 @@ export function ResumoDoDia({ pessoa, agora }: { pessoa: Pessoa; agora: Date }) 
     if (relogio.current !== null) window.clearTimeout(relogio.current)
   }, [])
 
-  function escrever() {
+  async function escrever() {
     if (fila.current.length === 0) fila.current = embaralhar(RESUMOS_DO_DIA.length)
     const indice = fila.current.shift() ?? 0
 
     const passos = passosDeHoje(dados, pessoa.id, agora)
     const noite = noiteMaisRecente(dados, pessoa.id, agora)
     const ultima = medicoesDe(dados, pessoa.id).find((m) => m.data === paraISO(agora))
-    const resumo = RESUMOS_DO_DIA[indice]({
+    const fatos = {
       nome: pessoa.nome,
       passos: passos.passos,
       normalDePassos: passos.faixaAteAgora?.normal ?? null,
@@ -56,16 +57,21 @@ export function ResumoDoDia({ pessoa, agora }: { pessoa: Pessoa; agora: Date }) 
       situacaoSono: noite && !noite.deOntem ? noite.situacao : "aprendendo",
       ultimoBpm: ultima?.bpm ?? null,
       alertasNovos: quantosNovos(dados, pessoa.id),
-    })
+    } as const
+    const reserva = RESUMOS_DO_DIA[indice](fatos)
 
-    // Um respiro curto antes do texto: resposta instantânea parece texto
-    // pronto guardado, e é bem isso que ele é. O respiro não finge ser a IA,
-    // ele só dá tempo do botão mostrar que alguma coisa aconteceu.
+    // Primeiro tenta a IA (a rota confere o texto contra os números antes de
+    // responder). Sem modelo ligado, reprovado ou fora do ar, entra o texto de
+    // exemplo, e o aviso embaixo diz qual dos dois está na tela.
     setEscrevendo(true)
-    relogio.current = window.setTimeout(() => {
-      setTexto(resumo)
-      setEscrevendo(false)
-    }, 600)
+    const [resposta] = await Promise.all([
+      ia.resumirDia(fatos, `${pessoa.id}:${paraISO(agora)}:${indice}`),
+      new Promise((ok) => (relogio.current = window.setTimeout(ok, 600))),
+    ])
+    const daModelo = resposta.ok && resposta.corpo.origem === "ia"
+    setTexto(daModelo && resposta.ok ? resposta.corpo.texto : reserva)
+    setDaIa(daModelo)
+    setEscrevendo(false)
   }
 
   return (
@@ -83,7 +89,7 @@ export function ResumoDoDia({ pessoa, agora }: { pessoa: Pessoa; agora: Date }) 
               {texto}
             </p>
             <p className="mt-2 text-sm text-muted">
-              {textos.ia.aviso}{" "}
+              {daIa ? textos.resumo.daIa : textos.ia.aviso}{" "}
               <button
                 type="button"
                 onClick={() => setModalAberto(true)}

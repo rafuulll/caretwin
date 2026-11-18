@@ -4,7 +4,7 @@
  * Nesta versão a IA não roda de verdade. Estes textos foram escritos para o
  * CareTwin, recebem os números reais de cada pessoa e são sorteados a cada
  * clique, sem repetir nas primeiras vezes. Quando a API do CareTwin chamar a IA
- * local (Ollama), é ela que escreve, e estes textos ficam como reserva para
+ * na nuvem, é ela que escreve, e estes textos ficam como reserva para
  * quando o modelo não responder.
  *
  * A régua do tom vale pra qualquer texto novo que entrar aqui: calmo, sem
@@ -31,7 +31,7 @@ const NA_METRICA: Record<Metrica, string> = {
   batimentos: "nos batimentos medidos",
 }
 
-function valorFalado(metrica: Metrica, valor: number) {
+export function valorFalado(metrica: Metrica, valor: number) {
   if (metrica === "passos") return `${numero(Math.round(valor))} passos`
   if (metrica === "sono") return duracaoFalada(valor)
   return `${numero(Math.round(valor))} batimentos por minuto`

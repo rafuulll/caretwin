@@ -15,7 +15,7 @@ import type { Dados } from "./types"
  * e o banco nunca discordarem sobre o que é "fora do normal".
  *
  * A frase vem dos textos de `respostas-ia.ts`, os mesmos do protótipo. Quando a
- * IA local escrever os textos (cartões 6.2 e 6.3), estes ficam como reserva.
+ * IA escrever os textos (cartões 6.2 e 6.3), estes ficam como reserva.
  */
 
 /** Sempre a transação de quem chama: o alerta nasce junto com o dia, ou nada. */

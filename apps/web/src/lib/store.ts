@@ -4,9 +4,10 @@ import { useCallback, useSyncExternalStore } from "react"
 import { v1, type Eu, type Papel, type PessoaComPulseira, type Resposta } from "./cliente-v1"
 import { paraISO } from "./formato"
 import { MINUTOS_PARA_RELER_A_CONTA } from "./modelo"
-import { fracaoDoDia } from "./normal"
+import { fracaoDoDia, procurarMudancas } from "./normal"
+import type { FatosDoDia } from "./respostas-ia"
 import { gerarExemplos, passosPrevistosParaHoje, recalcularAlertas } from "./seed"
-import type { Alerta, Dados, DiaRegistrado, Pessoa, Pulseira, Sessao } from "./types"
+import type { Alerta, Dados, DiaRegistrado, ExplicacaoDoAlerta, Pessoa, Pulseira, Sessao } from "./types"
 
 /**
  * A ÚNICA porta de dados do CareTwin. Nenhuma tela lê ou grava por fora daqui.
@@ -671,6 +672,36 @@ export const familia = {
   encerrar: (pessoaId: string, confirmacao: string) =>
     v1.encerrar(pessoaId, confirmacao).then(depoisDeMudar),
   recuperar: (pessoaId: string) => v1.recuperar(pessoaId).then(depoisDeMudar),
+}
+
+/**
+ * A IA que escreve a explicação dos alertas (cartão 6.3). Com conta, o servidor
+ * busca os números no banco. No modo demonstração, os alertas moram no
+ * navegador: os números saem da mesma regra do normal, sobre os dados de
+ * exemplo, e vão para uma rota que não lê nem grava nada.
+ */
+export const ia = {
+  /** O resumo do dia. Os números já vêm calculados pela tela; a rota só pede o texto ao modelo. */
+  resumirDia: (fatos: FatosDoDia, chave: string) => v1.resumirDia({ ...fatos, chave }),
+  explicarAlerta: (alertaId: string) => lendo(v1.explicacao(alertaId)),
+  explicarAlertaDeExemplo: async (alerta: Alerta): Promise<Resposta<ExplicacaoDoAlerta>> => {
+    const { dados } = lerInstantaneo()
+    const mudanca = procurarMudancas(dados, paraISO(new Date())).find((m) => m.id === alerta.id)
+    const pessoa = dados.pessoas.find((p) => p.id === alerta.pessoaId)
+    // Sem os números do dia, vale o texto que o alerta já tem.
+    if (!mudanca || !pessoa) {
+      return { ok: true, status: 200, corpo: { alertaId: alerta.id, texto: alerta.texto, origem: "regra" } }
+    }
+    return v1.explicarExemplo({
+      nome: pessoa.nome,
+      metrica: alerta.metrica,
+      direcao: alerta.direcao,
+      valor: mudanca.valor,
+      normal: mudanca.faixa.normal,
+      desvio: alerta.desvio,
+      chave: alerta.id,
+    })
+  },
 }
 
 /** `null` no lado do navegador. Com conta, quem entrou e o papel em cada família. */
