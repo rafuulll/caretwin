@@ -1,5 +1,7 @@
 # Revisão de qualidade das explicações (cartão 6.5)
 
+> Esta amostra é da primeira versão, com o modelo local (llama3.2:3b), antes da troca para a nuvem (decisão 0005). Os textos 3, 9 e 10 mostram por que o verificador passou a bloquear causas adivinhadas ("dor ou cansaço") e réguas de fora ("saudável", "ideal"). Para gerar a amostra do modelo na nuvem, ligue a chave e rode `npm run revisar-ia`.
+
 Gerado em 2026-11-10. Modelo: llama3.2:3b.
 
 Escritas pela IA e aprovadas pelo verificador: 18 de 24.

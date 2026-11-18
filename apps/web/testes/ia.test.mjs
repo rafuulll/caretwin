@@ -22,7 +22,8 @@ async function carregar(entrada) {
 
 const { verificarTexto, verificarResumo } = await carregar("src/lib/ia/verificador.ts")
 const { explicarAlerta, pedidoDoAlerta, resumirDia, pedidoDoResumo } = await carregar("src/lib/ia/explicar.ts")
-const { configDoOllama } = await carregar("src/lib/ia/ollama.ts")
+const { configDoModelo, pedirAoModelo } = await carregar("src/lib/ia/modelo.ts")
+const { passouDoLimite } = await carregar("src/lib/ia/limite.ts")
 const { textosDoAlerta, RESUMOS_DO_DIA } = await carregar("src/lib/respostas-ia.ts")
 
 const PASSOS_ABAIXO = { nome: "Ana", metrica: "passos", direcao: "abaixo", valor: 3200, normal: 5400, desvio: 41 }
@@ -104,6 +105,16 @@ test("diagnóstico, remédio e médico são bloqueados, mas 'não é diagnóstic
     PASSOS_ABAIXO,
     "diagnostico"
   )
+  bloqueia(
+    "Ana andou menos: 3.200 passos contra 5.400 de costume, talvez por dor ou cansaço. Vale observar os próximos dias.",
+    PASSOS_ABAIXO,
+    "diagnostico"
+  )
+  bloqueia(
+    "Ana dormiu 5 horas e 30 minutos, abaixo do que é considerado saudável e do normal dela, de 7 horas.",
+    SONO_ABAIXO,
+    "diagnostico"
+  )
   const ok = verificarTexto(
     "Ana andou menos: 3.200 passos contra 5.400 de costume. Isso não é diagnóstico, é só o dia comparado com o jeito de sempre dela.",
     PASSOS_ABAIXO
@@ -162,13 +173,14 @@ test("sono é conferido em horas e minutos", () => {
 
 test("o pedido ao modelo leva só os fatos da regra", () => {
   const pedido = pedidoDoAlerta(PASSOS_ABAIXO)
-  assert.match(pedido, /Ana/)
+  assert.doesNotMatch(pedido, /Ana/, "o nome da pessoa não pode ir para o modelo")
+  assert.match(pedido, /\[NOME\]/)
   assert.match(pedido, /abaixo/)
   assert.match(pedido, /3\.200/)
   assert.match(pedido, /41%/)
 })
 
-const CONFIG = { url: "http://modelo.local", modelo: "teste", tempoMs: 1000 }
+const CONFIG = { url: "http://modelo.local", chave: "k", modelo: "teste", tempoMs: 1000 }
 
 test("sem modelo configurado, vale o texto de regra", async () => {
   const r = await explicarAlerta(PASSOS_ABAIXO, "alerta-1", { config: null })
@@ -216,17 +228,6 @@ test("o mesmo alerta ganha sempre o mesmo texto de reserva", async () => {
   const a = await explicarAlerta(SONO_ABAIXO, "alerta-2", { config: null })
   const b = await explicarAlerta(SONO_ABAIXO, "alerta-2", { config: null })
   assert.equal(a.texto, b.texto)
-})
-
-test("a configuração do Ollama vem do ambiente e é opcional", () => {
-  assert.equal(configDoOllama({}), null)
-  assert.equal(configDoOllama({ OLLAMA_URL: "  " }), null)
-  assert.deepEqual(configDoOllama({ OLLAMA_URL: "http://192.168.0.10:11434/" }), {
-    url: "http://192.168.0.10:11434",
-    modelo: "llama3.2:3b",
-    tempoMs: 8000,
-  })
-  assert.equal(configDoOllama({ OLLAMA_URL: "http://x", OLLAMA_MODELO: "qwen2.5:7b", OLLAMA_TEMPO_MS: "15000" }).tempoMs, 15000)
 })
 
 // O resumo do dia (cartão 6.3 estendido): mesmo fluxo, com os números do dia.
@@ -284,6 +285,7 @@ test("o resumo do dia cai no texto de regra sem modelo, e usa a IA quando o text
 
 test("o pedido do resumo leva só os fatos do dia", () => {
   const pedido = pedidoDoResumo(DIA)
+  assert.doesNotMatch(pedido, /Seu Jorge/, "o nome da pessoa não pode ir para o modelo")
   assert.match(pedido, /3\.914/)
   assert.match(pedido, /4 horas e 28 minutos/)
   assert.match(pedido, /Alertas novos: 1/)
@@ -330,7 +332,7 @@ function pedido(corpo, tipo = "application/json") {
 }
 
 test("a rota da demonstração devolve o texto de regra quando não há modelo", async () => {
-  delete process.env.OLLAMA_URL
+  for (const nome of ["IA_URL", "IA_CHAVE", "IA_MODELO"]) delete process.env[nome]
   const r = await explicarDemo(pedido({ ...PASSOS_ABAIXO, chave: "alerta-demo-1" }))
   assert.equal(r.status, 200)
   const corpo = await r.json()
@@ -351,7 +353,7 @@ test("a rota da demonstração recusa pedido fora do formato", async () => {
 })
 
 test("a rota do resumo devolve o texto de regra sem modelo e recusa pedido ruim", async () => {
-  delete process.env.OLLAMA_URL
+  for (const nome of ["IA_URL", "IA_CHAVE", "IA_MODELO"]) delete process.env[nome]
   const bom = await resumoDemo(pedido({ ...DIA, chave: "pessoa-jorge:2026-11-10:0" }))
   assert.equal(bom.status, 200)
   const corpo = await bom.json()
@@ -365,4 +367,67 @@ test("a rota do resumo devolve o texto de regra sem modelo e recusa pedido ruim"
   ]) {
     assert.equal((await resumoDemo(req)).status, 400)
   }
+})
+
+test("o nome entra no texto só depois que o modelo respondeu", async () => {
+  let visto = ""
+  const r = await explicarAlerta(PASSOS_ABAIXO, "x", {
+    config: CONFIG,
+    pedir: async (_c, instrucoes, pedido) => {
+      visto = instrucoes + pedido
+      return BOM_ABAIXO.replace("Ana", "[NOME]")
+    },
+  })
+  assert.doesNotMatch(visto, /Ana/)
+  assert.equal(r.origem, "ia")
+  assert.equal(r.texto, BOM_ABAIXO)
+})
+
+test("a configuração da nuvem vem do ambiente e é opcional", () => {
+  assert.equal(configDoModelo({}), null)
+  assert.equal(configDoModelo({ IA_URL: "https://x.com/v1", IA_MODELO: "m" }), null, "sem chave não liga")
+  assert.equal(configDoModelo({ IA_CHAVE: "k", IA_MODELO: "m" }), null, "sem endereço não liga")
+  assert.equal(configDoModelo({ IA_URL: "  ", IA_CHAVE: "k", IA_MODELO: "m" }), null)
+  const nuvem = configDoModelo({ IA_URL: "https://x.com/v1/", IA_CHAVE: " segredo ", IA_MODELO: "m" })
+  assert.deepEqual(nuvem, { url: "https://x.com/v1", chave: "segredo", modelo: "m", tempoMs: 15000, raciocinio: undefined })
+  assert.equal(configDoModelo({ IA_URL: "https://x.com/v1", IA_CHAVE: "k", IA_MODELO: "m", IA_TEMPO_MS: "5000", IA_RACIOCINIO: "none" }).raciocinio, "none")
+  assert.equal(configDoModelo({ IA_URL: "https://x.com/v1", IA_CHAVE: "k", IA_MODELO: "m", IA_TEMPO_MS: "50" }).tempoMs, 15000)
+})
+
+test("a chamada à nuvem usa o formato da OpenAI e nunca mostra a chave num erro", async () => {
+  const original = globalThis.fetch
+  const chamadas = []
+  try {
+    globalThis.fetch = async (url, opcoes) => {
+      chamadas.push({ url, opcoes })
+      return new Response(JSON.stringify({ choices: [{ message: { content: "texto da nuvem" } }] }), { status: 200 })
+    }
+    const config = { url: "https://x.com/v1", chave: "segredo-123", modelo: "m", tempoMs: 2000 }
+    assert.equal(await pedirAoModelo(config, "regras", "pedido"), "texto da nuvem")
+    assert.equal(chamadas[0].url, "https://x.com/v1/chat/completions")
+    assert.equal(chamadas[0].opcoes.headers.Authorization, "Bearer segredo-123")
+    const corpo = JSON.parse(chamadas[0].opcoes.body)
+    assert.equal(corpo.model, "m")
+    assert.equal(corpo.messages[0].role, "system")
+    assert.equal(corpo.reasoning_effort, undefined)
+
+    globalThis.fetch = async () => new Response(JSON.stringify({ error: "segredo-123 inválida" }), { status: 401 })
+    await assert.rejects(pedirAoModelo(config, "a", "b"), (falha) => {
+      assert.doesNotMatch(String(falha.message), /segredo/)
+      return true
+    })
+    globalThis.fetch = async () => new Response(JSON.stringify({ choices: [] }), { status: 200 })
+    await assert.rejects(pedirAoModelo(config, "a", "b"))
+  } finally {
+    globalThis.fetch = original
+  }
+})
+
+test("o freio das rotas abertas conta por endereço e solta depois da janela", () => {
+  const de = (ip) => new Request("http://localhost/x", { headers: { "x-forwarded-for": `${ip}, 10.0.0.1` } })
+  const t0 = 1_000_000
+  for (let i = 0; i < 30; i++) assert.equal(passouDoLimite(de("1.1.1.1"), t0 + i), false)
+  assert.equal(passouDoLimite(de("1.1.1.1"), t0 + 100), true, "o 31º pedido passa do limite")
+  assert.equal(passouDoLimite(de("2.2.2.2"), t0 + 100), false, "outro endereço não é afetado")
+  assert.equal(passouDoLimite(de("1.1.1.1"), t0 + 11 * 60 * 1000), false, "passada a janela, libera")
 })

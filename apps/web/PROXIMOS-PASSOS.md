@@ -45,11 +45,9 @@ São dois caminhos, e os dois gravam a mesma sessão assinada (`src/lib/sessao-s
 
 ## 3. A IA que escreve os textos
 
-**O que é.** Hoje o resumo do dia e o texto de cada alerta são escritos a partir de modelos de texto com os números reais (`src/lib/respostas-ia.ts`). Ligar a IA é pedir esses textos a um modelo.
+**O que é.** Os textos de reserva são modelos prontos preenchidos com os números reais (`src/lib/respostas-ia.ts`). Com a IA ligada, é um modelo que escreve a frase, e esses textos ficam para quando ele falhar.
 
-**O plano do CareTwin.** Uma IA local (Ollama) rodando no computador da API, chamada pela API do CareTwin: sem chave e sem dado de saúde saindo do computador. Os textos de exemplo continuam como reserva quando o modelo não responder.
-
-**Com chave, se preferir.** A chave da OpenAI (<https://platform.openai.com>) tem grupo próprio no `.env.example` (`OPENAI_API_KEY`). A Anthropic (<https://console.anthropic.com>) funciona do mesmo jeito. A chamada sai sempre de uma rota em `src/app/api`, nunca do navegador.
+**Como está.** O resumo do dia e a explicação dos alertas já são escritos por um modelo na nuvem (Gemini, Groq ou OpenAI, pela API no formato da OpenAI), ligado por `IA_URL`, `IA_CHAVE` e `IA_MODELO` no `.env.example`. Cada texto passa pelo verificador antes de aparecer e, se o modelo falhar, entra o texto de regra (`src/lib/respostas-ia.ts`). Por que nuvem e não um modelo local: `docs/decisoes/0005-ia-na-nuvem-com-verificador.md`. A chamada sai sempre de uma rota em `src/app/api`, nunca do navegador.
 
 **A regra que não muda.** A estatística decide o que mudou; a IA só escreve a frase. Nenhum texto pode soar como diagnóstico ou alarme.
 

@@ -8,7 +8,7 @@ import {
   type FatosDoDia,
 } from "../respostas-ia"
 import { duracaoFalada, numero } from "../formato"
-import { configDoOllama, pedirAoOllama, type ConfigDoOllama } from "./ollama"
+import { configDoModelo, pedirAoModelo, type ConfigDoModelo } from "./modelo"
 import { verificarResumo, verificarTexto, type Motivo, type Veredito } from "./verificador"
 
 /**
@@ -34,14 +34,19 @@ Regras que valem sempre:
 - Use somente os números que receber. Nunca invente, some ou compare outros números.
 - Diga para que lado o dia fugiu do normal (abaixo ou acima) exatamente como recebeu.
 - Não faça diagnóstico, não cite doenças, remédios, médicos ou hospital, e não mande a pessoa fazer nada.
+- A pessoa acompanhada aparece como [NOME]. Escreva [NOME], exatamente assim e com os colchetes, sempre que precisar citá-la.
 - Tom calmo e gentil, sem urgência e sem alarme. No máximo, sugira observar os próximos dias ou conversar com quem cuida.
 - Se for uma boa notícia, conte com alegria, sem prometer nada sobre saúde.`
 
-/** O que o modelo recebe: só os fatos, já escritos do jeito que devem aparecer. */
+/**
+ * O que o modelo recebe: só os fatos, já escritos do jeito que devem aparecer.
+ * O nome da pessoa NÃO vai: o pedido leva `[NOME]`, e o nome de verdade entra no
+ * texto só depois que ele volta. Assim nenhum serviço de fora fica sabendo quem é.
+ */
 export function pedidoDoAlerta(f: FatosDoAlerta): string {
   const metrica = { passos: "passos", sono: "sono", batimentos: "batimentos" }[f.metrica]
   return [
-    `Pessoa acompanhada: ${f.nome}`,
+    "Pessoa acompanhada: [NOME]",
     `O que mudou: ${metrica}`,
     `Para que lado do normal: ${f.direcao === "abaixo" ? "abaixo" : "acima"}${ehBoaNoticia(f.metrica, f.direcao) ? " (boa notícia)" : ""}`,
     `Valor no dia mais recente: ${valorFalado(f.metrica, f.valor)}`,
@@ -58,9 +63,9 @@ export function textoDeRegra(fatos: FatosDoAlerta, chave: string): string {
 }
 
 export type Dependencias = {
-  config?: ConfigDoOllama | null
+  config?: ConfigDoModelo | null
   /** Trocável nos testes: devolve o texto que o "modelo" escreveu, ou lança erro. */
-  pedir?: (config: ConfigDoOllama, instrucoes: string, pedido: string) => Promise<string>
+  pedir?: (config: ConfigDoModelo, instrucoes: string, pedido: string) => Promise<string>
 }
 
 /** Até duas tentativas: o modelo pequeno às vezes erra um número e acerta na segunda. */
@@ -72,6 +77,7 @@ export async function explicarAlerta(fatos: FatosDoAlerta, chave: string, deps: 
     pedidoDoAlerta(fatos),
     (texto) => verificarTexto(texto, fatos),
     () => textoDeRegra(fatos, chave),
+    fatos.nome,
     deps
   )
 }
@@ -83,6 +89,7 @@ Regras que valem sempre:
 - Diga se passos e sono ficaram abaixo, dentro ou acima do costume exatamente como recebeu. Se algo ainda não chegou da pulseira, diga que ainda não chegou.
 - Se houver alertas novos, diga só que estão logo abaixo, sem repetir o conteúdo deles.
 - Não faça diagnóstico, não cite doenças, remédios, médicos ou hospital, e não mande a pessoa fazer nada.
+- A pessoa acompanhada aparece como [NOME]. Escreva [NOME], exatamente assim e com os colchetes, sempre que precisar citá-la.
 - Tom calmo e gentil, sem urgência e sem alarme.`
 
 const SITUACAO = { abaixo: "abaixo do costume", dentro: "dentro do costume", acima: "acima do costume", aprendendo: "ainda aprendendo o costume" }
@@ -90,7 +97,7 @@ const SITUACAO = { abaixo: "abaixo do costume", dentro: "dentro do costume", aci
 /** O que o modelo recebe do dia: só os fatos, já escritos do jeito que devem aparecer. */
 export function pedidoDoResumo(f: FatosDoDia): string {
   return [
-    `Pessoa acompanhada: ${f.nome}`,
+    "Pessoa acompanhada: [NOME]",
     f.passos === null
       ? "Passos de hoje: ainda não chegaram da pulseira"
       : `Passos de hoje até agora: ${numero(f.passos)}${f.normalDePassos !== null ? ` (o normal até este horário é perto de ${numero(Math.round(f.normalDePassos))})` : ""}, ${SITUACAO[f.situacaoPassos]}`,
@@ -110,6 +117,7 @@ export async function resumirDia(fatos: FatosDoDia, chave: string, deps: Depende
     pedidoDoResumo(fatos),
     (texto) => verificarResumo(texto, fatos),
     () => RESUMOS_DO_DIA[indiceFixo(chave, RESUMOS_DO_DIA.length)](fatos),
+    fatos.nome,
     deps
   )
 }
@@ -119,7 +127,8 @@ async function escreverComModelo(
   pedido: string,
   verificar: (texto: string) => Veredito,
   reserva: () => string,
-  { config = configDoOllama(), pedir = pedirAoOllama }: Dependencias
+  nome: string,
+  { config = configDoModelo(), pedir = pedirAoModelo }: Dependencias
 ): Promise<Explicacao> {
   if (!config) return { texto: reserva(), origem: "regra", motivo: "sem_modelo" }
 
@@ -127,7 +136,7 @@ async function escreverComModelo(
   for (let i = 0; i < TENTATIVAS; i++) {
     let texto: string
     try {
-      texto = (await pedir(config, instrucoes, pedido)).trim()
+      texto = (await pedir(config, instrucoes, pedido)).split("[NOME]").join(nome).trim()
     } catch {
       return { texto: reserva(), origem: "regra", motivo: "modelo_falhou" }
     }

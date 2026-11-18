@@ -22,7 +22,7 @@ Projeto academico da disciplina UPX, Engenharia da Computacao, UniFacens.
 | Alertas criados quando chegam dias novos | Pronto e testado: mesma regra do normal das telas, rodando no servidor (cartoes 6.1 e 5.5) |
 | Rotas de leitura de dias e alertas (/v1/pessoas/{id}/dias e /alertas) | Prontas e testadas (cartao 5.6) |
 | Dias e alertas reais nas telas (Painel, Sono, Alertas) | Pronto e testado no navegador nos tres cenarios: aprendendo, dentro e fora do normal (cartao 7.3) |
-| IA escrevendo os textos | Falta (hoje os textos sao modelos preenchidos com os numeros) |
+| IA escrevendo os textos | Pronto e testado: modelo na nuvem (formato da OpenAI) com verificador e texto de regra como reserva (cartoes 6.2, 6.3 e 7.6). Liga com IA_URL, IA_CHAVE e IA_MODELO |
 
 O roteiro completo do que falta esta em [apps/web/PROXIMOS-PASSOS.md](apps/web/PROXIMOS-PASSOS.md).
 
@@ -31,7 +31,7 @@ O roteiro completo do que falta esta em [apps/web/PROXIMOS-PASSOS.md](apps/web/P
 ```
 Pulseira (ESP32-S3)  --HTTPS-->  apps/web: API do Next.js (/api/v1)  -->  Supabase (PostgreSQL + Auth)
 Navegador            --HTTPS-->  apps/web: telas e API do Next.js
-API                  -->  IA (Ollama, planejado)  -->  texto em linguagem simples
+API                  -->  IA na nuvem + verificador  -->  texto em linguagem simples
 ```
 
 A API e o centro: o navegador e a pulseira so conversam com ela, e ela e a unica que fala com o banco. O contrato fica em [docs/openapi.yaml](docs/openapi.yaml).
@@ -47,7 +47,7 @@ Desde 15/10/2026 o backend mora dentro do proprio Next.js, em `apps/web/src/app/
 | `apps/api` | Nao e mais usada. Ficou so um README explicando a mudanca |
 | `firmware` | Programa da pulseira (ESP32-S3, C++, PlatformIO), com simulador Wokwi e testes |
 | `simulador` | Pulseira simulada e API falsa em Python, para testar sem o ESP32 |
-| `ai` | O plano da IA: linha de base estatistica e texto por um modelo local |
+| `ai` | O plano da IA: linha de base estatistica e texto por um modelo na nuvem, conferido por um verificador |
 | `docs` | Contrato da API, registros de decisao e documentos de hardware |
 
 ## Stack

@@ -1,5 +1,7 @@
 import { z } from "zod"
 import { lerCorpo } from "@/lib/conta"
+import { passouDoLimite } from "@/lib/ia/limite"
+import { configDoModelo } from "@/lib/ia/modelo"
 import { explicarAlerta } from "@/lib/ia/explicar"
 import { erro } from "@/lib/rota-v1"
 import type { ExplicacaoDoAlerta } from "@/lib/types"
@@ -12,8 +14,8 @@ import type { ExplicacaoDoAlerta } from "@/lib/types"
  * O corpo traz só os números que o navegador já calculou com a regra do normal.
  * Nada aqui toca em dados de ninguém: não lê sessão, não lê banco e não grava
  * nada. O texto passa pelo mesmo verificador (6.2) e, sem modelo ligado, volta
- * o texto de regra. Com `OLLAMA_URL` no `.env.local`, o Ollama do notebook
- * escreve: é o que aparece no vídeo do pitch.
+ * o texto de regra. Com `IA_URL`, `IA_CHAVE` e `IA_MODELO` no ambiente, o
+ * modelo escreve. O nome da pessoa não vai para o modelo.
  */
 
 export const dynamic = "force-dynamic"
@@ -32,6 +34,10 @@ const esquema = z.object({
 })
 
 export async function POST(requisicao: Request) {
+  // Com modelo ligado, cada pedido gasta a cota da chave do projeto: há um freio por endereço.
+  if (configDoModelo() && passouDoLimite(requisicao)) {
+    return erro(429, "Muitos pedidos agora. Tente de novo em alguns minutos.", "limite")
+  }
   const corpo = await lerCorpo(requisicao, esquema)
   if (!corpo) return erro(400, "Pedido inválido.")
 

@@ -1,10 +1,12 @@
 import { z } from "zod"
 import { lerCorpo } from "@/lib/conta"
+import { passouDoLimite } from "@/lib/ia/limite"
+import { configDoModelo } from "@/lib/ia/modelo"
 import { resumirDia } from "@/lib/ia/explicar"
 import { erro } from "@/lib/rota-v1"
 
 /**
- * POST /v1/ia/resumo: o resumo do dia escrito pela IA local (cartão 6.3),
+ * POST /v1/ia/resumo: o resumo do dia escrito por um modelo na nuvem (cartão 6.3),
  * conferido pelo verificador (6.2) antes de sair.
  *
  * Igual a `/v1/ia/explicar`: o navegador manda só os números que já calculou
@@ -32,6 +34,10 @@ const esquema = z.object({
 })
 
 export async function POST(requisicao: Request) {
+  // Com modelo ligado, cada pedido gasta a cota da chave do projeto: há um freio por endereço.
+  if (configDoModelo() && passouDoLimite(requisicao)) {
+    return erro(429, "Muitos pedidos agora. Tente de novo em alguns minutos.", "limite")
+  }
   const corpo = await lerCorpo(requisicao, esquema)
   if (!corpo) return erro(400, "Pedido inválido.")
 

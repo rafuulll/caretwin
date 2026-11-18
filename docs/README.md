@@ -6,6 +6,7 @@
 | `decisoes/0001-repositorio-e-fluxo.md` | Monorepo e contrato primeiro (e a 0002, IA local com reserva por regras) |
 | `decisoes/0003-site-em-nextjs.md` | Site em Next.js e Tailwind, funcionando sozinho com dados de exemplo |
 | `decisoes/0004-backend-no-nextjs.md` | Backend dentro do Next.js, Supabase como banco e contas |
+| `decisoes/0005-ia-na-nuvem-com-verificador.md` | Texto da IA por um modelo na nuvem, conferido pelo verificador, com o texto de regra como reserva (no lugar da IA local da 0002) |
 | `seguranca-e-privacidade.md` | Checklist de seguranca e privacidade dos dados: quem ve o que, logs, sessao e riscos aceitos (cartao 8.3) |
 | `hardware/CareTwin_Sensores_Hardware_Compras.md` | Pesquisa de sensores, alternativas e riscos (setembro de 2026) |
 

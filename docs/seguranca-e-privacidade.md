@@ -34,6 +34,7 @@ Situação: **Ok** quer dizer conferido e testado; **Risco aceito** quer dizer c
 | Cabeçalhos contra iframe, sniffing e https | Ok | `next.config.ts` (cartão 5.11) | Conferidos em produção no cartão 5.11 |
 | Cadastro público fechado durante o protótipo | Ok | Supabase, cartão 5.11 | Reabrir com segurança é o cartão 5.12 |
 | Cópia para abrir sem internet fica só com a própria conta | Ok | `src/lib/store.ts` (`guardarCopia`, `lerCopia`, `sair`), cartão 7.7 | A cópia guarda o id da conta e só abre para ela; sair e a sessão vencida apagam a cópia. Testado: outra conta, sem internet no mesmo navegador, não viu nada |
+| O que sai para o provedor de IA não identifica ninguém | Ok | `src/lib/ia/explicar.ts` (`[NOME]`), `src/lib/ia/modelo.ts`, decisão 0005 | O pedido ao modelo leva só números do dia e o lado do normal; o nome entra no texto depois que ele volta. `npm test` confere que o nome não aparece no pedido nem nas instruções. A chave só existe no servidor e não aparece em mensagem de erro (testado) |
 | O service worker não guarda dados de saúde | Ok | `public/sw.js`, cartão 7.7 | Guarda só HTML das telas e arquivos de `/_next/static`; conferido que nada de `/api` entra no cache |
 
 ## Riscos aceitos
@@ -41,6 +42,8 @@ Situação: **Ok** quer dizer conferido e testado; **Risco aceito** quer dizer c
 | Risco | Por que fica | Quando resolver |
 | --- | --- | --- |
 | A conexão com o banco usa `sslmode=require`, que criptografa mas não confere o certificado do Supabase | Conferir o certificado (`verify-full`) falha com a cadeia própria do Supabase; precisaria guardar o certificado deles no projeto | Antes de ter usuários de verdade |
+| O freio das rotas de IA abertas (30 pedidos a cada 10 minutos por endereço) conta na memória de cada instância da Vercel | Basta contra abuso simples da cota da chave; um contador compartilhado exigiria outro serviço | Se a chave passar a ter cota paga alta |
+| Plano gratuito de alguns provedores pode usar as entradas para melhorar produtos | Só números sem nome saem do servidor, então nada identifica a pessoa | Antes de ter usuários de verdade, passar para o plano pago sem treino com os dados |
 | O limite de tentativas de login do Supabase conta por servidor, não por pessoa | Todas as chamadas saem dos servidores da Vercel | Se o cadastro abrir para muita gente (cartão 5.12) |
 | Bloquear uma conta no Supabase não derruba quem já entrou | A sessão é o cookie do app, que vale até 30 dias | Para derrubar todo mundo na hora, trocar o `AUTH_SECRET` na Vercel |
 | Sem internet, a última leitura da família fica guardada no aparelho (cartão 7.7) | É o que o cartão 7.7 pede: abrir sem internet com o último dado | Fica só até sair; num aparelho dividido, cada pessoa precisa sair da própria conta |

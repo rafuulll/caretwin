@@ -1,11 +1,12 @@
 // Gera a amostra de explicações para a revisão de qualidade (cartão 6.5).
-// Rode com o Ollama ligado: `npm run revisar-ia`. O relatório sai em docs/revisao-ia.md,
-// com uma linha por explicação para quem revisa marcar. Sem OLLAMA_URL, só o texto de regra aparece.
+// Rode com o modelo ligado (IA_URL, IA_CHAVE e IA_MODELO no .env.local) com `npm run revisar-ia`.
+// O relatório sai em docs/revisao-ia.md, com uma linha por explicação para quem revisa marcar.
+// Sem as três variáveis, só o texto de regra aparece.
 import { writeFileSync } from "node:fs"
 import { build } from "esbuild"
 
-// A primeira chamada carrega o modelo na memória e pode levar bem mais que os 8 segundos do dia a dia.
-process.env.OLLAMA_TEMPO_MS ||= "90000"
+// A revisão dá mais tempo ao modelo que o dia a dia (15 segundos).
+process.env.IA_TEMPO_MS ||= "30000"
 
 const { outputFiles } = await build({
   entryPoints: ["src/lib/ia/explicar.ts"],
@@ -16,9 +17,9 @@ const { outputFiles } = await build({
   logLevel: "silent",
 })
 const { explicarAlerta } = await import(`data:text/javascript;base64,${Buffer.from(outputFiles[0].text).toString("base64")}`)
-const { configDoOllama } = await import(
+const { configDoModelo } = await import(
   `data:text/javascript;base64,${Buffer.from(
-    (await build({ entryPoints: ["src/lib/ia/ollama.ts"], bundle: true, write: false, format: "esm", platform: "node" })).outputFiles[0].text
+    (await build({ entryPoints: ["src/lib/ia/modelo.ts"], bundle: true, write: false, format: "esm", platform: "node" })).outputFiles[0].text
   ).toString("base64")}`
 )
 
@@ -48,29 +49,26 @@ for (const metrica of ["passos", "sono", "batimentos"]) {
   }
 }
 
-const config = configDoOllama()
+const config = configDoModelo()
 
-// Antes de gastar 24 chamadas, descobre por que o modelo não responde, se for o caso.
+// Antes de gastar 24 chamadas, confere se a nuvem está ligada e responde.
 if (config) {
+  console.log(`Modelo na nuvem: ${config.modelo} em ${config.url}. A chave não é mostrada.`)
   try {
-    const resposta = await fetch(`${config.url}/api/tags`, { signal: AbortSignal.timeout(5000) })
-    const { models = [] } = await resposta.json()
-    const nomes = models.map((m) => m.name)
-    if (!nomes.some((nome) => nome === config.modelo || nome.startsWith(`${config.modelo}:`))) {
-      console.log(`O Ollama está de pé, mas o modelo "${config.modelo}" não está instalado.`)
-      console.log(`Rode: ollama pull ${config.modelo}`)
-      console.log(`Instalados agora: ${nomes.length ? nomes.join(", ") : "nenhum"}`)
-      process.exit(1)
-    }
-    console.log(`Ollama ok em ${config.url}, modelo ${config.modelo}. A primeira resposta demora mais.`)
+    const { pedirAoModelo } = await import(
+      `data:text/javascript;base64,${Buffer.from(
+        (await build({ entryPoints: ["src/lib/ia/modelo.ts"], bundle: true, write: false, format: "esm", platform: "node" })).outputFiles[0].text
+      ).toString("base64")}`
+    )
+    await pedirAoModelo(config, "Responda só com a palavra ok.", "ok?")
+    console.log("A nuvem respondeu ao teste. Rodando os 24 casos.")
   } catch (falha) {
-    console.log(`Não consegui falar com o Ollama em ${config.url} (${falha?.cause?.code ?? falha?.name ?? "erro"}).`)
-    console.log("Confira se o Ollama está aberto (ícone perto do relógio) e se o OLLAMA_URL do .env.local está certo.")
-    console.log("O endereço normal é http://localhost:11434, sem nada depois.")
+    console.log(`A nuvem não respondeu ao teste (${falha?.message ?? "erro"}).`)
+    console.log("Confira IA_URL, IA_CHAVE e IA_MODELO no .env.local (o nome do modelo vem da página do serviço).")
     process.exit(1)
   }
 } else {
-  console.log("OLLAMA_URL está vazio no .env.local: só vai aparecer o texto de regra.")
+  console.log("IA_URL, IA_CHAVE e IA_MODELO não estão todos no ambiente: só vai aparecer o texto de regra.")
 }
 const linhas = []
 const contagem = { ia: 0, regra: 0 }

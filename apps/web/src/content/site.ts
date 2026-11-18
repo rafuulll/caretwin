@@ -408,27 +408,27 @@ export const sistema = {
       como: "Como",
       modal: {
         titulo: "Como ligar a IA de verdade",
-        descricao: "São três caminhos curtos. Os dois primeiros pedem uma chave; o terceiro roda no seu computador.",
+        descricao: "São três caminhos curtos, e todos pedem uma chave de API. Escolha um serviço.",
         passos: [
           {
-            titulo: "Uma chave na OpenAI",
+            titulo: "Uma chave no Google AI Studio (Gemini)",
+            texto: "Tem plano gratuito. Crie a chave e use o endereço que está no .env.example.",
+            link: { rotulo: "Abrir o Google AI Studio", href: "https://aistudio.google.com" },
+          },
+          {
+            titulo: "Ou uma chave no Groq",
+            texto: "Também tem plano gratuito e responde muito rápido.",
+            link: { rotulo: "Abrir o console do Groq", href: "https://console.groq.com" },
+          },
+          {
+            titulo: "Ou uma chave na OpenAI",
             texto: "Crie uma conta e gere uma chave de API no painel da OpenAI.",
             link: { rotulo: "Abrir o painel da OpenAI", href: "https://platform.openai.com" },
           },
           {
-            titulo: "Ou uma chave na Anthropic",
-            texto: "O mesmo caminho, no console da Anthropic.",
-            link: { rotulo: "Abrir o console da Anthropic", href: "https://console.anthropic.com" },
-          },
-          {
-            titulo: "Ou a IA local, sem chave",
-            texto:
-              "O plano do CareTwin é um modelo local (Ollama) rodando no computador da API. A API do CareTwin chama o modelo e o texto chega aqui pronto, sem chave e sem dado saindo do computador.",
-          },
-          {
             titulo: "Peça ao seu assistente pra ligar com segurança",
             texto:
-              "A chave mora numa variável de ambiente no arquivo .env.local, documentada sem valor no .env.example. A chamada sai de uma rota de servidor em src/app/api. A chave nunca é escrita no código do navegador e nunca vai para o repositório.",
+              "A chave mora numa variável de ambiente (IA_CHAVE) no arquivo .env.local, documentada sem valor no .env.example. A chamada sai de uma rota de servidor em src/app/api. A chave nunca é escrita no código do navegador e nunca vai para o repositório.",
           },
         ],
         fechar: "Entendi",
@@ -1002,8 +1002,8 @@ export const comoUsar = {
       },
       {
         titulo: "A IA que escreve os textos",
-        texto: "Para escrever o resumo do dia e os textos dos alertas de verdade. O plano é a IA local (Ollama) chamada pela API; também dá para usar uma chave da OpenAI, que tem grupo próprio no .env.example. A chamada sai sempre de uma rota de servidor, nunca do navegador.",
-        onde: "src/app/api e .env.example, grupo OPENAI_API_KEY",
+        texto: "O resumo do dia e a explicação dos alertas são escritos por um modelo de linguagem e conferidos contra os números do dia antes de aparecer. Liga na nuvem (Gemini, Groq ou OpenAI), com IA_URL, IA_CHAVE e IA_MODELO. A chamada sai sempre de uma rota de servidor, nunca do navegador.",
+        onde: "src/lib/ia e .env.example, grupo IA_URL",
       },
       {
         titulo: "WhatsApp",

@@ -233,7 +233,7 @@ const MAXIMO_GUARDADAS = 200
 
 /**
  * `GET /v1/alertas/{id}/explicacao`: a frase que explica o alerta, escrita pela
- * IA local e conferida pelo verificador (`ia/verificador.ts`), ou o texto de
+ * IA e conferida pelo verificador (`ia/verificador.ts`), ou o texto de
  * regra quando o modelo não responde ou é reprovado. Quase nunca dá erro: o
  * pior caso é a frase de regra, que sempre existe.
  *

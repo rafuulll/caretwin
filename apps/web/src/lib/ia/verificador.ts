@@ -75,6 +75,16 @@ const DIAGNOSTICO = [
   /\bsamu\b/,
   /\binternar\b/,
   /\binternacao\b/,
+  // Adivinhar a causa ou julgar com uma régua de fora também soa como médico.
+  // Achados na revisão do cartão 6.5: "talvez por dor ou cansaço", "abaixo do
+  // que é considerado saudável", "o tempo de sono ideal".
+  /\bdor(es)?\b/,
+  /\bcansac\w*/,
+  /\bfadiga\b/,
+  /\bestresse?\b/,
+  /\bfebre\b/,
+  /\bsaudave(l|is)\b/,
+  /\bideal\b/,
 ]
 
 /** O app sugere, no máximo, observar ou conversar. Mandar fazer algo é decidir pela pessoa. */
