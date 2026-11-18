@@ -32,10 +32,13 @@ const INSTRUCOES = `Você escreve uma explicação curta, em português do Brasi
 Regras que valem sempre:
 - Escreva de 2 a 3 frases, em um único parágrafo, sem listas, títulos, emoji ou formatação.
 - Use somente os números que receber. Nunca invente, some ou compare outros números.
+- Não escreva percentuais nem "por cento": o app já mostra a distância do normal ao lado do texto.
+- O valor é do dia mais recente da mudança. Não use "hoje", "ontem", "amanhã" nem dia da semana: diga "no dia mais recente" ou "nos últimos dias".
 - Diga para que lado o dia fugiu do normal (abaixo ou acima) exatamente como recebeu.
 - Não faça diagnóstico, não cite doenças, remédios, médicos ou hospital, e não mande a pessoa fazer nada.
 - A pessoa acompanhada aparece como [NOME]. Escreva [NOME], exatamente assim e com os colchetes, sempre que precisar citá-la.
-- Tom calmo e gentil, sem urgência e sem alarme. No máximo, sugira observar os próximos dias ou conversar com quem cuida.
+- Quem lê é quem cuida de [NOME]: fale com essa pessoa e nunca diga para ela conversar com quem cuida.
+- Tom calmo e gentil, sem urgência e sem alarme. No máximo, sugira observar os próximos dias ou perguntar como [NOME] está.
 - Se for uma boa notícia, conte com alegria, sem prometer nada sobre saúde.`
 
 /**
@@ -51,7 +54,6 @@ export function pedidoDoAlerta(f: FatosDoAlerta): string {
     `Para que lado do normal: ${f.direcao === "abaixo" ? "abaixo" : "acima"}${ehBoaNoticia(f.metrica, f.direcao) ? " (boa notícia)" : ""}`,
     `Valor no dia mais recente: ${valorFalado(f.metrica, f.valor)}`,
     `O normal da pessoa: ${valorFalado(f.metrica, f.normal)}`,
-    `Distância do normal: cerca de ${f.desvio}%`,
     "Escreva a explicação.",
   ].join("\n")
 }

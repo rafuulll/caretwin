@@ -27,6 +27,7 @@ export type Motivo =
   | "tom_de_alarme"
   | "contradiz_a_direcao"
   | "numero_inventado"
+  | "dia_relativo"
 
 const MINIMO = 40
 const MAXIMO = 600
@@ -147,6 +148,15 @@ const SO_PARA_ACIMA = [
 ]
 const SO_PARA_BOA_NOTICIA = [/\bboa noticia\b/, /\bparabens\b/, /\botim[ao]s?\b/, /\bexcelente\b/, /\bbom sinal\b/]
 
+/**
+ * A explicação de um alerta fala do dia mais recente da mudança, que pode ter
+ * sido ontem ou sexta: "hoje" ou o dia da semana seriam um chute do modelo, que
+ * não recebe a data. Só vale para o alerta: o resumo do dia fala mesmo de hoje.
+ * (O percentual de distância não vai no pedido, então um percentual escrito pelo
+ * modelo é conta dele e cai em `numero_inventado`.)
+ */
+const DIA_RELATIVO = [/\b(hoje|ontem|amanha|anteontem)\b/, /\b(segunda|terca|quarta|quinta|sexta)(-feira)?\b/, /\b(sabado|domingo)\b/]
+
 function tem(padroes: RegExp[], texto: string) {
   return padroes.some((p) => p.test(texto))
 }
@@ -199,6 +209,7 @@ export function verificarTexto(texto: string, fatos: FatosDoAlerta): Veredito {
   const contraria = fatos.direcao === "abaixo" ? SO_PARA_ABAIXO : SO_PARA_ACIMA
   if (tem(contraria, t)) motivos.push("contradiz_a_direcao")
   if (!boa && tem(SO_PARA_BOA_NOTICIA, t)) motivos.push("contradiz_a_direcao")
+  if (tem(DIA_RELATIVO, t)) motivos.push("dia_relativo")
 
   conferirNumeros(bruto, numerosPermitidos(fatos), motivos)
 
