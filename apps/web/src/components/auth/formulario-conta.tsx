@@ -4,6 +4,7 @@ import { useRef, useState, type FormEvent, type ReactNode } from "react"
 import { Icone } from "@/components/app/icone"
 import { Button, Input } from "@/components/ui"
 import { entrada } from "@/content/site"
+import { diaDoCarimbo, formatarDataPorExtenso, preencher } from "@/lib/formato"
 import { useFragmento } from "./use-fragmento"
 
 const textos = entrada.conta
@@ -20,7 +21,7 @@ const ROTAS = {
 
 type Modo = keyof typeof ROTAS
 type Erros = { nome?: string; email?: string; senha?: string }
-type Resposta = { ok?: boolean; motivo?: string; confirmar?: boolean }
+type Resposta = { ok?: boolean; motivo?: string; confirmar?: boolean; apagaEm?: string }
 
 function textoDoMotivo(motivo: string | undefined): string {
   const motivos = textos.motivos as Record<string, string | undefined>
@@ -54,6 +55,8 @@ export function FormularioConta({ aviso, cadastroAberto = true }: FormularioCont
   const [falha, setFalha] = useState<string>()
   const [enviado, setEnviado] = useState<string>()
   const [ocupado, setOcupado] = useState(false)
+  /** Conta excluída há menos de 30 dias: a data em que ela será apagada de vez. */
+  const [excluidaAte, setExcluidaAte] = useState<string>()
   const refNome = useRef<HTMLInputElement>(null)
   const refEmail = useRef<HTMLInputElement>(null)
   const refSenha = useRef<HTMLInputElement>(null)
@@ -67,6 +70,7 @@ export function FormularioConta({ aviso, cadastroAberto = true }: FormularioCont
     setModo(novo)
     setErros({})
     setFalha(undefined)
+    setExcluidaAte(undefined)
     setEnviado(undefined)
     if (refSenha.current) refSenha.current.value = ""
   }
@@ -82,6 +86,14 @@ export function FormularioConta({ aviso, cadastroAberto = true }: FormularioCont
 
   async function aoEnviar(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault()
+    await enviar(false)
+  }
+
+  /**
+   * `reativar`: o mesmo pedido de entrar, com o e-mail e a senha de novo, mais
+   * o pedido de desfazer a exclusão da conta. Só quem sabe a senha recupera.
+   */
+  async function enviar(reativar: boolean) {
     if (ocupado) return
 
     const senha = refSenha.current?.value ?? ""
@@ -95,11 +107,12 @@ export function FormularioConta({ aviso, cadastroAberto = true }: FormularioCont
 
     setErros({})
     setFalha(undefined)
+    setExcluidaAte(undefined)
     setOcupado(true)
 
     const corpo =
       modo === "entrar"
-        ? { email: email.trim(), senha }
+        ? { email: email.trim(), senha, ...(reativar ? { reativar: true } : {}) }
         : modo === "criar"
           ? { nome: nome.trim(), email: email.trim(), senha }
           : { email: email.trim() }
@@ -118,7 +131,8 @@ export function FormularioConta({ aviso, cadastroAberto = true }: FormularioCont
     }
 
     if (!resposta.ok) {
-      setFalha(textoDoMotivo(resposta.motivo))
+      if (resposta.motivo === "conta_excluida" && resposta.apagaEm) setExcluidaAte(resposta.apagaEm)
+      else setFalha(textoDoMotivo(resposta.motivo))
       setOcupado(false)
       return
     }
@@ -219,6 +233,28 @@ export function FormularioConta({ aviso, cadastroAberto = true }: FormularioCont
               if (erros.senha) setErros((atual) => ({ ...atual, senha: undefined }))
             }}
           />
+        )}
+
+        {excluidaAte && modo === "entrar" && (
+          <div
+            role="alert"
+            className="flex flex-col gap-3 rounded-ds-fine border border-hairline bg-elevated px-3 py-3 text-sm leading-relaxed text-ink"
+          >
+            <p>
+              {preencher(textos.contaExcluida.texto, {
+                data: formatarDataPorExtenso(diaDoCarimbo(excluidaAte)).toLowerCase(),
+              })}
+            </p>
+            <Button
+              type="button"
+              variante="secundaria"
+              carregando={ocupado}
+              onClick={() => void enviar(true)}
+              iconeEsquerda={<Icone nome="check" />}
+            >
+              {textos.contaExcluida.recuperar}
+            </Button>
+          </div>
         )}
 
         {falha && (

@@ -1,5 +1,6 @@
 import type {
   Encerramento,
+  ExclusaoDaConta,
   Membro,
   Papel,
   Pedido,
@@ -21,7 +22,7 @@ import type { Alerta, DiaRegistrado, ExplicacaoDoAlerta, Sessao } from "./types"
  * certa. Sem rede, o código é `sem_rede` e o status é 0.
  */
 
-export type { Encerramento, Membro, Papel, Pedido, PedidoRecebido, PessoaComPulseira }
+export type { Encerramento, ExclusaoDaConta, Membro, Papel, Pedido, PedidoRecebido, PessoaComPulseira }
 
 /** O que `GET /v1/me` devolve: a sessão, os pedidos que esperam e o que dá para recuperar. */
 export type Eu = Sessao & {
@@ -72,6 +73,8 @@ const p = (id: string) => encodeURIComponent(id)
 
 export const v1 = {
   eu: () => chamar<Eu>("GET", "/me"),
+  /** Excluir a própria conta, com a frase de confirmação. O servidor já apaga o cookie. */
+  excluirConta: (confirmacao: string) => chamar<ExclusaoDaConta>("POST", "/me/excluir", { confirmacao }),
   pessoas: () => chamar<PessoaComPulseira[]>("GET", "/pessoas"),
 
   digitarCodigo: (entrada: { codigo: string; papel: Papel; nome?: string }) =>

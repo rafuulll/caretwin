@@ -718,6 +718,22 @@ export const sistema = {
         email: "Escreva um e-mail válido, como voce@exemplo.com.",
       },
     },
+
+    /** Excluir a própria conta (migração 0007). Só aparece para quem entrou com conta. */
+    excluir: {
+      titulo: "Excluir minha conta",
+      texto:
+        "A conta para de funcionar na hora e você sai de todas as famílias. Se você for a última pessoa na família de alguém, o acompanhamento é encerrado junto. Durante {dias} dias, dá para recuperar a conta entrando de novo com o seu e-mail e a sua senha. Depois disso, a conta é apagada de vez.",
+      instrucao: "Para confirmar, escreva esta frase:",
+      rotulo: "Frase de confirmação",
+      ajuda: "Pode escrever sem acento e sem ponto final.",
+      acao: "Excluir minha conta",
+      erros: {
+        confirmacao_errada: "A frase não confere. Escreva exatamente a frase acima.",
+        sem_rede: "Sem internet agora. A conta não foi excluída.",
+        falhou: "Não deu certo agora. A conta não foi excluída. Tente de novo em alguns minutos.",
+      },
+    },
   },
 }
 
@@ -847,7 +863,14 @@ export const entrada = {
       link_expirado: "Esse link expirou ou já foi usado. Peça um novo em Esqueci minha senha.",
       invalido: "Algum campo veio vazio ou num formato que não reconhecemos. Confira e tente de novo.",
       indisponivel: "O login está fora do ar agora. Tente de novo em alguns minutos.",
+      conta_excluida: "Esta conta foi excluída. Para recuperar, entre de novo com o e-mail e a senha.",
       falhou: "Não deu certo desta vez. Tente de novo em alguns minutos.",
+    },
+
+    /** Quem entra com uma conta excluída há menos de 30 dias. */
+    contaExcluida: {
+      texto: "Esta conta foi excluída e será apagada de vez em {data}. Até lá, dá para recuperar tudo.",
+      recuperar: "Recuperar minha conta",
     },
 
     /** Avisos no topo do formulário. `confirmada` vem de `?conta=` no endereço. */

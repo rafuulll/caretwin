@@ -1,7 +1,7 @@
 import type postgres from "postgres"
 import { criarAlertasNovos } from "./alertas"
 import { conexao } from "./banco"
-import { confirmacaoConfere, DIAS_PARA_RECUPERAR } from "./encerramento"
+import { confirmacaoConfere, DIAS_PARA_RECUPERAR, exclusaoConfere } from "./encerramento"
 import { LIMITE_DE_CODIGOS_ERRADOS } from "./modelo"
 
 /**
@@ -23,6 +23,8 @@ import { LIMITE_DE_CODIGOS_ERRADOS } from "./modelo"
  *   - O último membro não sai: encerra, com frase de confirmação e 30 dias
  *     para recuperar.
  *   - Sem vínculo aprovado, a pessoa "não existe" (404), para não revelar ids.
+ *   - Excluir a conta sai de todas as famílias (e encerra as que ficariam
+ *     sem ninguém), e a conta tem 30 dias para ser recuperada.
  *
  * Toda mudança na família acontece numa transação que trava a linha da pessoa
  * (`for update`). Assim dois cliques ao mesmo tempo, como dois administradores
@@ -619,4 +621,120 @@ export async function recuperar(usuarioId: string, pessoaId: string): Promise<Re
     const [visivel] = await pessoasVisiveis(tx, usuarioId, pessoaId)
     return visivel ? certo(visivel) : naoEncontrado<PessoaComPulseira>()
   })
+}
+
+// --- excluir a conta -----------------------------------------------------------
+
+export type ExclusaoDaConta = {
+  excluidaEm: string
+  apagaEm: string
+  /** Nomes das pessoas encerradas junto, porque a conta era a última da família. */
+  encerradas: string[]
+  /** Nomes das famílias de que a conta saiu e que continuam com outras pessoas. */
+  saiu: string[]
+}
+
+/**
+ * Excluir a própria conta, com a frase de confirmação.
+ *
+ * Nada é apagado na hora. Na mesma transação, a conta:
+ *   - desiste dos pedidos que ainda esperavam;
+ *   - sai das famílias que têm mais gente (como em `sair`, e a administração
+ *     passa adiante se precisar);
+ *   - encerra as pessoas de que era a última da família (como em `encerrar`),
+ *     que ficam recuperáveis pelos mesmos 30 dias;
+ *   - ganha a data de exclusão. A partir dela, `quemChama` recusa a sessão, e
+ *     a tarefa da migração 0007 apaga o login depois de 30 dias.
+ *
+ * Pedir de novo, com a conta já excluída, devolve as mesmas datas.
+ */
+export async function excluirConta(usuarioId: string, confirmacao: string): Promise<Resultado<ExclusaoDaConta>> {
+  if (!ehUuid(usuarioId)) return naoEncontrado()
+  if (!exclusaoConfere(confirmacao)) {
+    return falha(422, "A frase de confirmação não confere.", "confirmacao_errada")
+  }
+  return banco().begin(async (tx) => {
+    const [eu] = await tx<{ excluida_em: Date | null }[]>`
+      select excluida_em from usuarios where id = ${usuarioId} for update
+    `
+    if (!eu) return naoEncontrado<ExclusaoDaConta>()
+    if (eu.excluida_em) {
+      return certo<ExclusaoDaConta>({
+        excluidaEm: iso(eu.excluida_em) ?? "",
+        apagaEm: apagaEm(eu.excluida_em),
+        encerradas: [],
+        saiu: [],
+      })
+    }
+
+    // Em ordem de id: duas transações que travam as mesmas pessoas travam na
+    // mesma ordem, e uma espera a outra em vez de as duas se esperarem.
+    const meus = await tx<{ pessoa_id: string; aprovado: boolean }[]>`
+      select v.pessoa_id, v.aprovado
+      from vinculos v
+      join pessoas p on p.id = v.pessoa_id
+      where v.usuario_id = ${usuarioId} and p.encerrado_em is null
+      order by v.pessoa_id
+    `
+    const encerradas: string[] = []
+    const saiu: string[] = []
+    for (const { pessoa_id: pessoaId, aprovado } of meus) {
+      const pessoa = await travarPessoa(tx, pessoaId)
+      if (!pessoa || pessoa.encerrado_em) continue
+
+      if (!aprovado) {
+        await tx`delete from vinculos where usuario_id = ${usuarioId} and pessoa_id = ${pessoaId}`
+      } else if ((await outrosMembrosAprovados(tx, usuarioId, pessoaId)) === 0) {
+        await tx`delete from vinculos where pessoa_id = ${pessoaId} and not aprovado`
+        await tx`update pessoas set encerrado_em = now(), encerrado_por = ${usuarioId} where id = ${pessoaId}`
+        encerradas.push(pessoa.nome)
+      } else {
+        await tx`delete from vinculos where usuario_id = ${usuarioId} and pessoa_id = ${pessoaId}`
+        await garantirAdministrador(tx, pessoaId)
+        saiu.push(pessoa.nome)
+      }
+    }
+
+    const [linha] = await tx<{ excluida_em: Date }[]>`
+      update usuarios set excluida_em = now() where id = ${usuarioId} returning excluida_em
+    `
+    return certo<ExclusaoDaConta>({
+      excluidaEm: iso(linha.excluida_em) ?? "",
+      apagaEm: apagaEm(linha.excluida_em),
+      encerradas,
+      saiu,
+    })
+  })
+}
+
+/**
+ * Se a conta foi excluída: `null` para conta normal. `vencida` quer dizer que
+ * os 30 dias já passaram e a tarefa diária ainda não apagou o login.
+ */
+export async function exclusaoDaConta(
+  usuarioId: string
+): Promise<{ excluidaEm: string; apagaEm: string; vencida: boolean } | null> {
+  if (!ehUuid(usuarioId)) return null
+  const [linha] = await banco()<{ excluida_em: Date | null }[]>`
+    select excluida_em from usuarios where id = ${usuarioId}
+  `
+  if (!linha?.excluida_em) return null
+  const limite = apagaEm(linha.excluida_em)
+  return { excluidaEm: iso(linha.excluida_em) ?? "", apagaEm: limite, vencida: Date.parse(limite) <= Date.now() }
+}
+
+/**
+ * Desfaz a exclusão dentro do prazo. A conta volta a funcionar; as pessoas
+ * encerradas junto aparecem em "o que dá para recuperar", e as famílias de que
+ * ela saiu precisam de um pedido novo, como em qualquer saída.
+ */
+export async function reativarConta(usuarioId: string): Promise<boolean> {
+  if (!ehUuid(usuarioId)) return false
+  const linhas = await banco()`
+    update usuarios set excluida_em = null
+    where id = ${usuarioId}
+      and excluida_em > now() - make_interval(days => ${DIAS_PARA_RECUPERAR})
+    returning id
+  `
+  return linhas.length > 0
 }

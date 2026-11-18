@@ -1,7 +1,7 @@
 import { cookies } from "next/headers"
 import { NextResponse } from "next/server"
 import { bancoConfigurado } from "./banco"
-import { ehUuid, type Resultado } from "./familia"
+import { ehUuid, exclusaoDaConta, type Resultado } from "./familia"
 import { registrarFalha } from "./registro"
 import { COOKIE_SESSAO, lerCookieDeSessao } from "./sessao-servidor"
 import type { Sessao } from "./types"
@@ -46,6 +46,17 @@ export async function quemChama(): Promise<Chamada> {
   if (!sessao) return { recusa: erro(401, "Entre na sua conta para continuar.") }
   if (!sessao.id || !ehUuid(sessao.id)) {
     return { recusa: erro(403, "Esta rota precisa de uma conta com e-mail e senha.", "sem_conta") }
+  }
+  // Conta excluída para de funcionar na hora, também no celular e em outro
+  // navegador em que ela ainda estava aberta: o cookie continua assinado, mas
+  // a data de exclusão no banco vale mais que ele. O 401 faz o app sair.
+  try {
+    if (await exclusaoDaConta(sessao.id)) {
+      return { recusa: erro(401, "Esta conta foi excluída.", "conta_excluida") }
+    }
+  } catch (falha) {
+    registrarFalha("api/v1", falha)
+    return { recusa: erro(500, "Não deu certo agora. Tente de novo em alguns minutos.") }
   }
   return { sessao: { ...sessao, id: sessao.id } }
 }

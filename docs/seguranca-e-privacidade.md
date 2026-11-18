@@ -35,6 +35,7 @@ Situação: **Ok** quer dizer conferido e testado; **Risco aceito** quer dizer c
 | Cadastro público fechado durante o protótipo | Ok | Supabase, cartão 5.11 | Reabrir com segurança é o cartão 5.12 |
 | Cópia para abrir sem internet fica só com a própria conta | Ok | `src/lib/store.ts` (`guardarCopia`, `lerCopia`, `sair`), cartão 7.7 | A cópia guarda o id da conta e só abre para ela; sair e a sessão vencida apagam a cópia. Testado: outra conta, sem internet no mesmo navegador, não viu nada |
 | O que sai para o provedor de IA não identifica ninguém | Ok | `src/lib/ia/explicar.ts` (`[NOME]`), `src/lib/ia/modelo.ts`, decisão 0005 | O pedido ao modelo leva só números do dia e o lado do normal; o nome entra no texto depois que ele volta. `npm test` confere que o nome não aparece no pedido nem nas instruções. A chave só existe no servidor e não aparece em mensagem de erro (testado) |
+| Quem exclui a conta some do banco | Ok | `excluirConta` em `src/lib/familia.ts`, `quemChama` em `src/lib/rota-v1.ts`, migração 0007 | A conta excluída para de funcionar na hora (401 em todas as rotas, também em outro aparelho), tem 30 dias para ser recuperada pela senha e depois a tarefa diária apaga o login e os vínculos. Testado num Postgres local: sair das famílias com mais gente, encerrar a que ficaria vazia, recuperar dentro do prazo e apagar de vez depois dele |
 | O service worker não guarda dados de saúde | Ok | `public/sw.js`, cartão 7.7 | Guarda só HTML das telas e arquivos de `/_next/static`; conferido que nada de `/api` entra no cache |
 
 ## Riscos aceitos

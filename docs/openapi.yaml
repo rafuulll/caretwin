@@ -245,6 +245,80 @@ paths:
           $ref: '#/components/responses/NaoAutenticado'
         '403':
           $ref: '#/components/responses/SemPermissao'
+  /v1/me/excluir:
+    post:
+      tags: [app]
+      summary: Excluir a propria conta (com 30 dias para recuperar)
+      description: >
+        A conta manda a frase de confirmacao "Excluir minha conta". A comparacao
+        ignora maiusculas, acentos e espacos a mais. Frase diferente responde 422
+        (codigo confirmacao_errada) e nada muda.
+
+
+        Nada e apagado na hora. Na mesma transacao a conta desiste dos pedidos
+        que esperavam, sai das familias que tem mais gente (a administracao passa
+        adiante se precisar) e encerra as pessoas de que era a ultima da familia,
+        como em POST /v1/pessoas/{pessoaId}/encerrar. A resposta apaga o cookie
+        da sessao, e daqui em diante toda rota responde 401 (codigo
+        conta_excluida).
+
+
+        Para recuperar ate apagaEm, a pessoa entra de novo com o e-mail e a senha
+        (POST /api/auth/conta/entrar responde 403 com motivo conta_excluida e
+        apagaEm; o mesmo pedido com reativar true desfaz a exclusao). Depois de
+        apagaEm, a tarefa diaria da migracao 0007 apaga o login no Supabase Auth,
+        e os vinculos vao junto. Pedir de novo com a conta ja excluida devolve
+        as mesmas datas.
+      security:
+        - SessaoDoApp: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [confirmacao]
+              properties:
+                confirmacao:
+                  type: string
+                  maxLength: 200
+            example:
+              confirmacao: Excluir minha conta
+      responses:
+        '200':
+          description: Conta excluida, recuperavel ate apagaEm
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [excluidaEm, apagaEm, encerradas, saiu]
+                properties:
+                  excluidaEm:
+                    type: string
+                    format: date-time
+                  apagaEm:
+                    type: string
+                    format: date-time
+                  encerradas:
+                    type: array
+                    description: Nomes das pessoas encerradas junto, porque a conta era a ultima da familia
+                    items:
+                      type: string
+                  saiu:
+                    type: array
+                    description: Nomes das familias que continuam com outras pessoas
+                    items:
+                      type: string
+        '401':
+          $ref: '#/components/responses/NaoAutenticado'
+        '403':
+          $ref: '#/components/responses/SemPermissao'
+        '422':
+          description: A frase de confirmacao nao confere
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
   /v1/pessoas:
     get:
       tags: [app]
@@ -825,7 +899,10 @@ components:
       description: O id da conta (usuarios.id, o mesmo do Supabase Auth)
   responses:
     NaoAutenticado:
-      description: Sem sessao ou sessao invalida
+      description: >
+        Sem sessao, sessao invalida ou conta excluida (codigo conta_excluida).
+        Conta excluida para de funcionar na hora em todos os aparelhos, mesmo
+        com o cookie ainda assinado.
       content:
         application/json:
           schema:

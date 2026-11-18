@@ -35,3 +35,14 @@ function normalizar(texto: string): string {
 export function confirmacaoConfere(digitada: string, nome: string): boolean {
   return normalizar(digitada) === normalizar(fraseDeEncerramento(nome))
 }
+
+/**
+ * A frase para excluir a própria conta. O prazo é o mesmo do encerramento:
+ * `DIAS_PARA_RECUPERAR` dias para voltar atrás, e depois a tarefa da migração
+ * 0007 apaga o login de vez.
+ */
+export const FRASE_DE_EXCLUSAO = "Excluir minha conta"
+
+export function exclusaoConfere(digitada: string): boolean {
+  return normalizar(digitada) === normalizar(FRASE_DE_EXCLUSAO)
+}

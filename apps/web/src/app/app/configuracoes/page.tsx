@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import { CabecalhoConfiguracoes } from "@/components/app/configuracoes/cabecalho"
 import { DadosExemplo } from "@/components/app/configuracoes/dados-exemplo"
+import { ExcluirConta } from "@/components/app/configuracoes/excluir-conta"
 import { Perfil } from "@/components/app/configuracoes/perfil"
 import { marca, sistema } from "@/content/site"
 
@@ -23,6 +24,7 @@ export default function PaginaConfiguracoes() {
       <div className="grid gap-6 sm:gap-8 lg:grid-cols-2">
         <DadosExemplo />
         <Perfil />
+        <ExcluirConta />
       </div>
     </>
   )
