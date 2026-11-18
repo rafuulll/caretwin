@@ -4,7 +4,6 @@ Pulseira e app que acompanham o dia de uma pessoa (passos, sono estimado e batim
 
 Projeto academico da disciplina UPX, Engenharia da Computacao, UniFacens.
 
-- Equipe: Rafael (produto, UX, frontend e hardware), Fabricio (backend, banco e infra) e Lucas (IA e linha de base)
 - Quadro de tarefas: https://trello.com/b/v8PlBQcb/upx
 - Site publicado: https://caretwin-omega.vercel.app (protegido pela Vercel: abre so para quem entra com a conta do projeto ou recebe um link de compartilhamento)
 
