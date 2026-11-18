@@ -62,6 +62,7 @@ export type MotivoDaConta =
   | "link_expirado"
   | "invalido"
   | "indisponivel"
+  | "conta_excluida"
   | "falhou"
 
 export type ResultadoDaConta =
@@ -295,6 +296,7 @@ const STATUS: Partial<Record<MotivoDaConta, number>> = {
   nao_confirmado: 403,
   ja_existe: 409,
   cadastro_fechado: 403,
+  conta_excluida: 403,
   muitas_tentativas: 429,
   indisponivel: 503,
 }

@@ -672,6 +672,15 @@ export const familia = {
   encerrar: (pessoaId: string, confirmacao: string) =>
     v1.encerrar(pessoaId, confirmacao).then(depoisDeMudar),
   recuperar: (pessoaId: string) => v1.recuperar(pessoaId).then(depoisDeMudar),
+  /**
+   * Excluir a própria conta. Dando certo, o servidor já apagou o cookie, e o
+   * lado do navegador sai junto (cópia sem internet, pessoa escolhida).
+   */
+  excluirConta: async (confirmacao: string) => {
+    const resposta = await v1.excluirConta(confirmacao)
+    if (resposta.ok) sair()
+    return resposta
+  },
 }
 
 /**

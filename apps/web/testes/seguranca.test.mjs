@@ -33,3 +33,14 @@ test("a sessão vale 30 dias a partir da entrada, contados no servidor", () => {
   assert.equal(lerCookieDeSessao(cookie(dias(-1))), null)
   assert.equal(lerCookieDeSessao(cookie(undefined)), null)
 })
+
+test("excluir a conta exige a frase, sem ligar para maiúsculas, acentos e ponto final", async () => {
+  const { exclusaoConfere, FRASE_DE_EXCLUSAO, DIAS_PARA_RECUPERAR } = await import("../src/lib/encerramento.ts")
+  assert.equal(exclusaoConfere(FRASE_DE_EXCLUSAO), true)
+  assert.equal(exclusaoConfere("  excluir MINHA conta. "), true)
+  assert.equal(exclusaoConfere("Excluir"), false)
+  assert.equal(exclusaoConfere(""), false)
+  assert.equal(exclusaoConfere("Encerrar o acompanhamento de Ana"), false)
+  // O prazo da tela e o da tarefa da migração 0007 são o mesmo número.
+  assert.equal(DIAS_PARA_RECUPERAR, 30)
+})

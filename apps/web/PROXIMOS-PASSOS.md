@@ -94,6 +94,7 @@ São dois caminhos, e os dois gravam a mesma sessão assinada (`src/lib/sessao-s
 7. Depois do passo 6, quem é de fora (o professor, por exemplo) abre o endereço principal direto. Os links de preview dos pull requests continuam pedindo o login da Vercel; para mostrar um deles, gere um link no botão Share do deploy.
 8. Revisão de segurança e privacidade (cartão 8.3): o checklist está em [docs/seguranca-e-privacidade.md](../../docs/seguranca-e-privacidade.md). Falta rodar a consulta do RLS no Supabase de produção e o Fabrício revisar.
 9. App instalável e funcionando sem internet (cartão 7.7): depois do deploy, abra o site no celular com internet, instale na tela inicial, ligue o modo avião e abra de novo. Os dados aparecem com a faixa de "Sem internet agora".
+10. Excluir a conta: rode a migração `0007_excluir_conta.sql` no SQL Editor do Supabase de produção e confira com `select * from cron.job;` que a tarefa `caretwin-apagar-contas-excluidas` apareceu. Para ver se o banco deixa a tarefa apagar logins, rode uma vez `select public.apagar_contas_excluidas();`: sem nenhuma conta excluída, a resposta é 0.
 
 **Por quê.** O código da pulseira tem só quatro caracteres. Sem limite de tentativas, alguém com uma conta poderia testar códigos até achar uma pulseira livre.
 

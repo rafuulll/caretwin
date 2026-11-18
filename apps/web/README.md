@@ -21,7 +21,7 @@ Abra <http://localhost:3000>. Sem nenhuma variável de ambiente, o app roda no *
 
 1. Crie um projeto de teste no [Supabase](https://supabase.com) (o plano gratuito basta).
 2. Em Database, Extensions, ligue a extensão `pg_cron`.
-3. No SQL Editor, rode em ordem os arquivos de `banco/migracoes/` (0001 a 0006), cada um uma vez.
+3. No SQL Editor, rode em ordem os arquivos de `banco/migracoes/` (0001 a 0007), cada um uma vez.
 4. Rode `banco/dev/pulseiras-de-teste.sql`, que cria as pulseiras `CT-TST1`, `CT-TST2` e `CT-TST3`. **Só em banco de teste.**
 5. Copie o `.env.example` para `.env.local` e preencha:
    - `DATABASE_URL`: em Connect, Transaction pooler (porta 6543), com `?sslmode=require` no final.
@@ -69,7 +69,7 @@ Para o Next.js não enviar dados de uso, rode uma vez `npx next telemetry disabl
 | `/app/alertas` | O resumo escrito do dia e os alertas de mudança, com marcar como lido |
 | `/app/primeiro-uso` | Ligar uma pulseira: código, de quem é e, se for nova, o nome |
 | `/app/familia` | Membros, pedidos, sair, encerrar e recuperar. Só aparece para quem entrou com conta |
-| `/app/configuracoes` | Perfil e, no modo protótipo, os dados de exemplo |
+| `/app/configuracoes` | Perfil, excluir a conta (com conta) e, no modo protótipo, os dados de exemplo |
 
 ## Como funciona por dentro
 
@@ -97,6 +97,7 @@ O contrato completo está em [`../../docs/openapi.yaml`](../../docs/openapi.yaml
 | `GET` e `DELETE /api/auth/sessao` | Quem está logado e sair |
 | `GET /api/health` | Se o servidor está de pé e se a `DATABASE_URL` chegou. Não pede login |
 | `GET /api/v1/me` | A conta, os pedidos esperando e o que dá para recuperar |
+| `POST /api/v1/me/excluir` | Excluir a própria conta, com a frase "Excluir minha conta" e 30 dias para recuperar |
 | `GET /api/v1/pessoas` e `/pessoas/{id}` | As pessoas que a conta acompanha |
 | `POST /api/v1/vinculos` | Digitar o código da pulseira: livre cria a pessoa (201), com família vira pedido (202) |
 | `GET /api/v1/pessoas/{id}/membros` e `DELETE .../membros/{usuarioId}` | Ver a família e remover alguém |
@@ -126,6 +127,15 @@ Os alertas nascem no servidor (`src/lib/alertas.ts`, cartões 6.1 e 5.5): quando
 
 O código da pulseira tem só 4 caracteres, então digitar códigos tem limite (cartão 5.10): cada código que não existe vira uma linha em `tentativas_de_codigo`, e com 10 nos últimos 15 minutos a conta recebe 429 com a hora em que pode tentar de novo (`quando` e o cabeçalho `Retry-After`). Enquanto espera, nem o código certo é consultado. Códigos que existem não contam, e o limite é por conta. Os números estão em `LIMITE_DE_CODIGOS_ERRADOS` (`src/lib/modelo.ts`) e a regra em `digitarCodigo` (`src/lib/familia.ts`). O texto vem dos modelos de `src/lib/respostas-ia.ts`, que ficam como reserva quando a IA local escrever (cartões 6.2 e 6.3).
 
+### Excluir a conta
+
+Em Configurações, quem entrou com conta pode excluir a própria conta escrevendo "Excluir minha conta" (`POST /api/v1/me/excluir`, regra em `excluirConta` de `src/lib/familia.ts`). Nada é apagado na hora:
+
+- A conta sai das famílias que têm mais gente (a administração passa adiante) e encerra as pessoas de que era a última da família, como no encerramento normal.
+- Ela para de funcionar na hora em todos os aparelhos: `quemChama` (`src/lib/rota-v1.ts`) confere `usuarios.excluida_em` em toda rota e responde 401 com `conta_excluida`, mesmo com o cookie ainda assinado.
+- Por 30 dias, quem entra com o e-mail e a senha vê "Recuperar minha conta". Recuperar desfaz a exclusão; as pessoas encerradas junto aparecem para recuperar, e as famílias de que a conta saiu precisam de um pedido novo.
+- Depois dos 30 dias, a tarefa da migração 0007 apaga o login no Supabase Auth, e os vínculos vão junto pelas chaves do banco.
+
 ### O banco
 
 | Migração | O que faz |
@@ -136,6 +146,7 @@ O código da pulseira tem só 4 caracteres, então digitar códigos tem limite (
 | `0004_apagar_encerrados.sql` | Tarefa diária do pg_cron que apaga o que foi encerrado há mais de 30 dias |
 | `0005_tirar_a_ponte.sql` | Apaga a tabela `registros` do protótipo |
 | `0006_tentativas_de_codigo.sql` | Tabela `tentativas_de_codigo` do limite de códigos errados (cartão 5.10) e a limpeza diária dela no pg_cron |
+| `0007_excluir_conta.sql` | Coluna `usuarios.excluida_em` e a tarefa diária do pg_cron que apaga o login das contas excluídas há mais de 30 dias |
 
 Cada arquivo roda uma vez, em ordem, e nunca é editado depois: mudança nova vira o próximo número.
 
