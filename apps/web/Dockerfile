@@ -2,8 +2,9 @@
 #
 #   docker compose up --build
 #
-# Depois abra http://localhost:3000. A primeira montagem precisa de internet
-# para baixar a fonte Inter e as dependências. Depois disso o app roda sem rede.
+# Depois abra http://localhost:3000/demo. A primeira montagem precisa de internet
+# para baixar as dependências; depois disso o app roda sem rede. O docker-compose.yml
+# sobe também o banco (Postgres) e, se pedir, o simulador da pulseira.
 
 # 1) Dependências: camada própria, pra não reinstalar tudo a cada mudança de tela.
 FROM node:22-alpine AS dependencias

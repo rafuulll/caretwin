@@ -15,6 +15,18 @@ struct ImuSample {
   uint32_t t_ms;   // millis() no momento da leitura
   float ax, ay, az;
   bool ok;         // false = falha de leitura no barramento
+  // Giroscópio, em graus por segundo. Vêm depois de `ok` (com valor inicial) para que quem
+  // monta a amostra só com acelerômetro continue funcionando. Só o modo ao vivo usa.
+  float gx = 0.f, gy = 0.f, gz = 0.f;
+};
+
+// Uma leitura bruta já em inteiros, o formato de POST /v1/device/raw (modo ao vivo).
+// Inteiros porque o JSON fica bem mais curto e o ESP32 não perde tempo formatando decimais.
+constexpr size_t RAW_BATCH_MAX = 100;   // leituras por lote (50 Hz x 1 s, com folga)
+struct RawSample {
+  int16_t ax, ay, az;   // milésimos de g (1000 = 1 g)
+  int16_t gx, gy, gz;   // décimos de grau por segundo (100 = 10 graus/s)
+  uint32_t ir;          // sinal infravermelho do MAX30102, 0 a 262143 (0 = sem sensor)
 };
 
 enum SampleStatus : uint8_t {

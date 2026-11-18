@@ -14,6 +14,7 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_MPU6050.h>
 #include <Arduino.h>
+#include <math.h>
 #include <HTTPClient.h>
 #include <WiFi.h>
 #include <WiFiClientSecure.h>
@@ -67,6 +68,18 @@ static bool sync_requested = false;
 static bool wifi_was_connected = false;
 static uint32_t demo_until_ms = 0;
 static uint32_t next_demo_ms = 0;
+
+// Modo ao vivo: as leituras brutas de 1 segundo esperam aqui para ir num POST /v1/device/raw.
+static RawSample raw_buf[RAW_BATCH_MAX];
+static size_t raw_n = 0;
+static int64_t raw_first_epoch = 0;
+static bool raw_first_clock = false;
+static uint32_t raw_batches_sent = 0;
+// A conexao HTTPS fica aberta durante o modo ao vivo: refazer o handshake TLS a cada segundo
+// levaria mais que o proprio segundo.
+static WiFiClientSecure live_client;
+static HTTPClient live_http;
+static bool live_client_ready = false;
 
 // ---------------- Tempo ----------------
 static volatile bool ntp_synced_flag = false;
@@ -134,6 +147,7 @@ static uint8_t readBatteryPct() {
 // e NAO entra nos dados enviados a API.
 static int hr_bpm = 0;
 static bool hr_finger = false;
+static uint32_t hr_last_ir = 0;  // ultima leitura infravermelha (so o modo ao vivo manda para a API)
 
 #if !CT_SIM
 static uint32_t hr_last_beat_ms = 0;
@@ -190,17 +204,21 @@ static void hrSleep() {
 
 static void hrPoll(uint32_t now) {
 #if CT_SIM
-  (void)now;
   hr_finger = digitalRead(PIN_SIM_FINGER) == LOW;
   if (hr_finger) {
     const int raw = analogRead(PIN_SIM_HR);
     hr_bpm = 40 + static_cast<int>(static_cast<long>(raw) * 160L / 4095L);
+    // Onda de pulso inventada na frequencia do potenciometro: o Wokwi nao tem MAX30102.
+    const float fase = 6.2831853f * (static_cast<float>(hr_bpm) / 60.0f) * (static_cast<float>(now) / 1000.0f);
+    hr_last_ir = 120000u + static_cast<uint32_t>(4000.0f + 4000.0f * sinf(fase));
   } else {
     hr_bpm = 0;
+    hr_last_ir = 0;
   }
 #else
   if (!hr_hw_ok) return;
   const long ir = hrSensor.getIR();
+  hr_last_ir = ir > 0 ? static_cast<uint32_t>(ir) : 0;
   hr_finger = ir > HR_FINGER_IR_MIN;
   if (!hr_finger) {
     hr_bpm = 0;
@@ -376,11 +394,11 @@ static void sleepScreen() {
   screen_on = false;
   digitalWrite(PIN_TFT_BL, LOW);
   tft.fillScreen(C_BLACK);
-  hrSleep();
+  if (demo_until_ms == 0) hrSleep();  // no modo ao vivo o sensor de batimentos continua ligado
 }
 
 static void nextPage(uint32_t now) {
-  if (ui_page == 1) hrSleep();
+  if (ui_page == 1 && demo_until_ms == 0) hrSleep();
   ui_page = (ui_page + 1) % UI_PAGES;
   if (ui_page == 1) hrWake();
   tft.fillScreen(C_BLACK);
@@ -423,6 +441,7 @@ static bool initImu() {
   if (!imuWrite(0x6B, 0x00)) return false;  // PWR_MGMT_1: acorda
   delay(10);
   return imuWrite(0x1A, 0x04) &&            // CONFIG: filtro de 21 Hz
+         imuWrite(0x1B, 0x08) &&            // GYRO_CONFIG: faixa de 500 graus/s (65,5 LSB por grau/s)
          imuWrite(0x1C, 0x08);              // ACCEL_CONFIG: faixa de 4 g (8192 LSB por g)
 }
 #endif
@@ -448,18 +467,25 @@ static ImuSample readImu() {
   s.ax = a.acceleration.x / SENSORS_GRAVITY_STANDARD;
   s.ay = a.acceleration.y / SENSORS_GRAVITY_STANDARD;
   s.az = a.acceleration.z / SENSORS_GRAVITY_STANDARD;
+  s.gx = g.gyro.x * 57.29578f;  // a biblioteca da Adafruit entrega rad/s
+  s.gy = g.gyro.y * 57.29578f;
+  s.gz = g.gyro.z * 57.29578f;
   s.ok = true;
   return s;
 #else
   Wire.beginTransmission(IMU_I2C_ADDR);
-  Wire.write(0x3B);  // ACCEL_XOUT_H
+  Wire.write(0x3B);  // ACCEL_XOUT_H: de 0x3B a 0x48 vem acelerometro (6), temperatura (2) e giroscopio (6)
   if (Wire.endTransmission(false) != 0) return s;
-  if (Wire.requestFrom(static_cast<int>(IMU_I2C_ADDR), 6) != 6) return s;
-  uint8_t b[6];
-  for (uint8_t i = 0; i < 6; i++) b[i] = Wire.read();
+  if (Wire.requestFrom(static_cast<int>(IMU_I2C_ADDR), 14) != 14) return s;
+  uint8_t b[14];
+  for (uint8_t i = 0; i < 14; i++) b[i] = Wire.read();
   s.ax = static_cast<int16_t>((b[0] << 8) | b[1]) / 8192.0f;
   s.ay = static_cast<int16_t>((b[2] << 8) | b[3]) / 8192.0f;
   s.az = static_cast<int16_t>((b[4] << 8) | b[5]) / 8192.0f;
+  // b[6] e b[7] sao a temperatura: nao usamos.
+  s.gx = static_cast<int16_t>((b[8] << 8) | b[9]) / 65.5f;
+  s.gy = static_cast<int16_t>((b[10] << 8) | b[11]) / 65.5f;
+  s.gz = static_cast<int16_t>((b[12] << 8) | b[13]) / 65.5f;
   s.ok = true;
   return s;
 #endif
@@ -481,8 +507,28 @@ static void logMinute(const MinuteSummary& m) {
                     : 0);
 }
 
+// Modo ao vivo: guarda a leitura deste instante, ja em inteiros, para o proximo POST /v1/device/raw.
+static void rawCollect(const ImuSample& s) {
+  if (raw_n >= RAW_BATCH_MAX) return;  // o envio atrasou: perde as leituras mais novas, nao as mais velhas
+  // Na tela "Coracao" o uiTick ja le o sensor; ler de novo aqui estragaria a deteccao de batida.
+  if (!(screen_on && ui_page == 1)) hrPoll(s.t_ms);
+  if (raw_n == 0) {
+    raw_first_epoch = nowEpoch();
+    raw_first_clock = clockValid();
+  }
+  RawSample& r = raw_buf[raw_n++];
+  r.ax = toMilliG(s.ax);
+  r.ay = toMilliG(s.ay);
+  r.az = toMilliG(s.az);
+  r.gx = toDeciDps(s.gx);
+  r.gy = toDeciDps(s.gy);
+  r.gz = toDeciDps(s.gz);
+  r.ir = hr_last_ir;
+}
+
 static void sampleOnce() {
   const ImuSample s = readImu();
+  if (demo_until_ms != 0 && s.ok) rawCollect(s);
   float mag = 0.f;
   const SampleStatus st = validateSample(s, &mag);
   const bool valid = (st == SAMPLE_OK);
@@ -659,24 +705,76 @@ static void doSync(const char* reason) {
   }
 }
 
+// POST com a conexao HTTPS mantida aberta entre um lote e o seguinte (so o modo ao vivo usa).
+static int httpPostKeepAlive(const char* path, const char* body, size_t len, String& resp) {
+  if (!live_client_ready) {
+#if CT_SIM
+    live_client.setInsecure();  // SOMENTE na simulacao.
+#else
+    live_client.setCACert(API_ROOT_CA);
+#endif
+    live_client_ready = true;
+  }
+  live_http.setReuse(true);
+  const String url = String(API_BASE_URL) + path;
+  if (!live_http.begin(live_client, url)) return -1;
+  live_http.setTimeout(HTTP_TIMEOUT_MS);
+  live_http.addHeader("Content-Type", "application/json");
+  live_http.addHeader("Authorization", String("Device ") + DEVICE_TOKEN);
+  const int code = live_http.POST(reinterpret_cast<uint8_t*>(const_cast<char*>(body)), len);
+  if (code > 0) resp = live_http.getString();  // ler a resposta inteira e o que libera a conexao para o proximo lote
+  live_http.end();                             // com setReuse(true), o end() nao fecha o socket
+  return code;
+}
+
+static void liveStart(uint32_t now) {
+  demo_until_ms = now + DEMO_DURATION_MS;
+  next_demo_ms = now + DEMO_PERIOD_MS;
+  raw_n = 0;
+  raw_batches_sent = 0;
+  hrWake();  // o MAX30102 so fica ligado enquanto durar o modo ao vivo (ou a tela "Coracao")
+}
+
+static void liveStop() {
+  demo_until_ms = 0;
+  raw_n = 0;
+  live_http.setReuse(false);
+  live_client.stop();
+  if (!(screen_on && ui_page == 1)) hrSleep();
+}
+
 static void demoTick() {
   if (demo_until_ms == 0) return;
   const uint32_t now = millis();
   if (static_cast<int32_t>(now - demo_until_ms) >= 0) {
-    demo_until_ms = 0;
+    liveStop();
     Serial.println("[DEMO] modo ao vivo encerrado");
     return;
   }
   if (static_cast<int32_t>(now - next_demo_ms) < 0) return;
   next_demo_ms = now + DEMO_PERIOD_MS;
   if (WiFi.status() != WL_CONNECTED) {
+    raw_n = 0;  // sem rede, o lote velho nao serve de nada na tela ao vivo
     Serial.println("[DEMO] sem Wi-Fi; envio ao vivo pulado");
     return;
   }
-  const size_t n = buildLivePayload(store.current().steps + steps_in_minute, nowEpoch(), clockValid(),
-                                    tx_buf, sizeof(tx_buf));
+  if (raw_n == 0) return;  // o sensor nao deu leitura valida neste segundo
+  const size_t n = buildRawPayload(raw_buf, raw_n, 1000 / params::SAMPLE_PERIOD_MS, hr_finger ? hr_bpm : 0,
+                                   store.current().steps + steps_in_minute, raw_first_epoch, raw_first_clock,
+                                   tx_buf, sizeof(tx_buf));
+  raw_n = 0;
+  if (n == 0) {
+    Serial.println("[DEMO] lote bruto nao coube no buffer; descartado");
+    return;
+  }
   String resp;
-  httpPost(PATH_LIVE, tx_buf, n, resp);
+  const int code = httpPostKeepAlive(PATH_RAW, tx_buf, n, resp);
+  // Um log por lote encheria a serial: so o primeiro, de dez em dez e os que falharem.
+  if (code != 200 || raw_batches_sent % 10 == 0) {
+    Serial.printf("[DEMO] lote %lu bytes=%u http=%d\n", static_cast<unsigned long>(raw_batches_sent),
+                  static_cast<unsigned>(n), code);
+  }
+  ++raw_batches_sent;
 }
 
 // ---------------- Botoes ----------------
@@ -730,9 +828,8 @@ static void handleButtons(uint32_t now) {
     }
   } else if (ea == BTN_LONG) {
     wakeScreen(now);
-    demo_until_ms = now + DEMO_DURATION_MS;
-    next_demo_ms = now;
-    Serial.println("[DEMO] modo ao vivo por 2 min");
+    liveStart(now);
+    Serial.println("[DEMO] modo ao vivo por 2 min (dados brutos, 1 lote por segundo)");
   }
   const BtnEvent eb = pollButton(btnB, now);
   if (eb == BTN_SHORT) {

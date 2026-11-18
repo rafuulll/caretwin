@@ -14,6 +14,7 @@ Rotas:
   POST /v1/device/daily        200 {"accepted": [datas], "rejected": [datas]}
   POST /v1/device/nights       200 {"accepted": [night_date], "rejected": [night_date]}
   POST /v1/device/live         200 {"accepted": [], "rejected": []}  (422 se o corpo for invalido)
+  POST /v1/device/raw          200 {"accepted": [ts], "rejected": []}  (422 se imu nao tiver 6 inteiros por leitura)
   Sem cabecalho "Authorization: Device <token>" a resposta e 401.
 
 Usando com a pulseira:
@@ -96,6 +97,16 @@ class Handler(BaseHTTPRequestHandler):
             print("live:", json.dumps(body))
             RECEBIDOS["live"].append(body)
             return self._send(200, {"accepted": [], "rejected": []})
+
+        if self.path == "/v1/device/raw":
+            imu = body.get("imu")
+            ok = (isinstance(imu, list) and 1 <= len(imu) <= 100
+                  and all(isinstance(l, list) and len(l) == 6 and all(inteiro(v) for v in l) for l in imu))
+            if not ok:
+                return self._send(422, {"title": "imu invalido"})
+            print("raw: {} leituras, bpm {}".format(len(imu), body.get("bpm")))
+            RECEBIDOS.setdefault("raw", []).append(body)
+            return self._send(200, {"accepted": [body["ts"]] if body.get("ts") else [], "rejected": []})
 
         return self._send(404, {"title": "rota desconhecida"})
 

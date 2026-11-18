@@ -47,7 +47,7 @@ Erro "MissingPackageManifestError" ao compilar: apague a pasta do pacote que o e
 ## Controles
 
 - A, toque curto: acende a tela; com a tela acesa, troca de pagina (Resumo, Coracao, Sistema).
-- A, toque longo (2 s): modo ao vivo por 2 min (envia os passos de hoje a cada 5 s).
+- A, toque longo (2 s): modo ao vivo por 2 min. A cada segundo a pulseira envia um lote de dados brutos (50 leituras de acelerometro e giroscopio do MPU-6050, o sinal infravermelho e os batimentos do MAX30102) para /v1/device/raw; a pagina /ao-vivo do site desenha isso em tempo real.
 - B, toque curto: sincronizar agora.
 - A tela apaga sozinha depois de 10 s.
 - Monitor serial (so na simulacao): W liga e desliga uma caminhada simulada, T <epoch> acerta a hora, Q mostra filas e bateria, H mostra o bpm simulado.
@@ -74,7 +74,7 @@ Pinos evitados de proposito: 0, 3, 45 e 46 (inicializacao), 19 e 20 (USB), 26 a 
 
 ## Conversa com a API
 
-A pulseira envia para API_BASE_URL (include/config.h) com o cabecalho Authorization: Device <DEVICE_TOKEN>, nas rotas /v1/device/daily, /nights e /live do contrato (../docs/openapi.yaml).
+A pulseira envia para API_BASE_URL (include/config.h) com o cabecalho Authorization: Device <DEVICE_TOKEN>, nas rotas /v1/device/daily, /nights, /raw (modo ao vivo) e /live do contrato (../docs/openapi.yaml).
 
 - Simulacao (wokwi): vai para o eco do httpbin, que nao confirma nada.
 - Pulseira (real): vai para a API real, https://caretwin-omega.vercel.app/api. A Deployment Protection da Vercel esta desligada em producao, entao a pulseira consegue entrar (conferido com curl.exe -i https://caretwin-omega.vercel.app/api/health, resposta 200).
@@ -142,3 +142,9 @@ pio run -e real troca o display para ST7789, o bpm simulado pelo MAX30102 e a ba
 - Luz de fundo ligada direto no GPIO15: ok para teste; para uso continuo use um transistor.
 - Batimentos sao teste de bancada, aparecem so na tela e nao entram nos dados enviados.
 - Curva da bateria e limiares de passos sao estimativas a calibrar na bancada.
+
+## Modo ao vivo (dados brutos) e o que ainda nao foi testado
+
+O modo ao vivo usa a mesma conexao HTTPS aberta por 2 minutos (refazer o handshake TLS a cada segundo levaria mais que o proprio segundo). Durante o envio, que bloqueia o laco por algumas dezenas de milissegundos, a aquisicao a 50 Hz perde algumas leituras: so acontece no modo ao vivo e nao afeta os dias fechados fora dele.
+
+Testado: a montagem do JSON (`buildRawPayload`, 4 testes novos em `pio test -e native`), a conversao de unidades e que o corpo gerado passa no mesmo esquema que a API valida (`apps/web/src/lib/ao-vivo-esquema.ts`). NAO testado em hardware nem no Wokwi: a leitura do giroscopio (rajada de 14 bytes a partir do registrador 0x3B e `GYRO_CONFIG` 0x1B = 0x08, faixa de 500 graus/s), a leitura do MAX30102 a 50 Hz durante o modo ao vivo e a conexao mantida aberta. Na simulacao (Wokwi) o giroscopio vem da biblioteca da Adafruit e o infravermelho e uma onda de pulso inventada na frequencia do potenciometro.
