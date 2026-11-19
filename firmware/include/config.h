@@ -100,3 +100,4 @@
 #define IMU_RETRY_MS 5000
 #define SCREEN_ON_MS 60000UL     // a tela (e a luz de fundo) apagam sozinhas depois disso
 #define HR_FINGER_IR_MIN 50000   // MAX30102: leitura IR acima disso = dedo no sensor
+#define HR_SAMPLE_MS 10UL        // MAX30102 configurado a 400 amostras/s com media de 4 = 100 amostras/s, uma a cada 10 ms

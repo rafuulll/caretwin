@@ -18,6 +18,7 @@ async function carregar(entrada) {
 }
 
 const { ENVIO_AO_VIVO_BRUTO, LOTE_AO_VIVO } = await carregar("src/lib/ao-vivo-esquema.ts")
+const { IR_MINIMO_COM_DEDO, pulsoDoSinal } = await carregar("src/lib/pulso.ts")
 const { codigosPublicos, pulseiraPedida, passouDoLimiteDeLeitura, LIMITE_DE_LEITURA } = await carregar("src/lib/publico.ts")
 
 /** Um segundo de leitura a 50 Hz, parado: 1 g no eixo z, giroscópio quieto. */
@@ -84,4 +85,22 @@ test("cada endereço tem um limite de pedidos por minuto", () => {
   assert.equal(passouDoLimiteDeLeitura(pedido("203.0.113.7"), agora + 500), true, "o seguinte passa do limite")
   assert.equal(passouDoLimiteDeLeitura(pedido("203.0.113.8"), agora + 500), false, "outro endereço não é afetado")
   assert.equal(passouDoLimiteDeLeitura(pedido("203.0.113.7"), agora + LIMITE_DE_LEITURA.janelaMs + 1000), false, "passada a janela, volta")
+})
+
+test("pulso: tira a base do sinal e deixa só a variação de cada batida", () => {
+  // 100 mil de base, com uma onda de 40 amostras de período e 500 de altura.
+  const sinal = Array.from({ length: 200 }, (_, i) => 100_000 + 500 * Math.sin((2 * Math.PI * i) / 40))
+  const pulso = pulsoDoSinal(sinal)
+  assert.equal(pulso.length, sinal.length)
+  const meio = pulso.slice(40, 160)
+  assert.ok(Math.max(...meio) > 400 && Math.max(...meio) < 600, "a altura da onda se mantém")
+  assert.ok(Math.min(...meio) < -400 && Math.min(...meio) > -600, "a base some: a onda fica em torno de zero")
+})
+
+test("pulso: sem dedo o gráfico fica em zero e a chegada do dedo não vira um pico", () => {
+  const sinal = [...Array.from({ length: 50 }, () => 300), ...Array.from({ length: 100 }, () => 110_000)]
+  const pulso = pulsoDoSinal(sinal)
+  assert.ok(300 < IR_MINIMO_COM_DEDO)
+  assert.ok(pulso.slice(0, 50).every((v) => v === 0), "sem dedo: zero")
+  assert.ok(pulso.slice(50).every((v) => Math.abs(v) < 1e-6), "sinal constante com dedo: zero, sem degrau")
 })

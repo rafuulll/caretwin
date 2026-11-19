@@ -7,6 +7,7 @@ import { CabecalhoPublico, MensagemPublica } from "@/components/publico/cabecalh
 import { GraficoBruto } from "@/components/publico/grafico-bruto"
 import { publico } from "@/content/publico"
 import { numero, preencher } from "@/lib/formato"
+import { IR_MINIMO_COM_DEDO, pulsoDoSinal } from "@/lib/pulso"
 import type { AoVivo, LoteLido } from "@/lib/ao-vivo"
 
 /** Quanto tempo de leitura fica na tela. */
@@ -24,6 +25,8 @@ type Estado = {
   taxa: number
   passos: number | null
   bpm: number | null
+  /** A última leitura do sensor de batimentos: com o dedo apoiado passa de 50 mil. */
+  ultimoIr: number | null
   /** Há quantos segundos o último lote chegou ao servidor, no momento da resposta. */
   semSinal: number | null
 }
@@ -35,6 +38,7 @@ const INICIAL: Estado = {
   taxa: 50,
   passos: null,
   bpm: null,
+  ultimoIr: null,
   semSinal: null,
 }
 
@@ -113,6 +117,7 @@ export function AoVivoPublico({ pedida }: { pedida: string | null }) {
               taxa,
               passos: ultimo?.passosHoje ?? anterior.passos,
               bpm: ultimo ? ultimo.bpm : anterior.bpm,
+              ultimoIr: novas.reduce<number | null>((acc, a) => (a.ir !== null ? a.ir : acc), anterior.ultimoIr),
               // Sem lote novo neste pedido, o tempo sem sinal só cresce.
               semSinal: ultimo ? sinal : anterior.semSinal === null ? null : anterior.semSinal + INTERVALO_MS / 1000,
             }
@@ -201,7 +206,9 @@ function Corpo({ estado }: { estado: Estado }) {
                 {numero(estado.bpm)} <span className="text-base text-muted">{t.bpmUnidade}</span>
               </>
             ) : (
-              <span className="text-base text-muted">{t.bpmSemDedo}</span>
+              <span className="text-base text-muted">
+                {aoVivo && estado.ultimoIr !== null && estado.ultimoIr > IR_MINIMO_COM_DEDO ? t.bpmMedindo : t.bpmSemDedo}
+              </span>
             )}
           </Cartao>
           <Cartao icone={<Footprints className="size-5" aria-hidden="true" />} titulo={t.passos}>
@@ -245,7 +252,7 @@ function Corpo({ estado }: { estado: Estado }) {
           unidade={t.graficos.infravermelhoUnidade}
           pontos={pontos}
           casas={0}
-          series={[{ nome: t.bpm, cor: COR.x, valores: ir }]}
+          series={[{ nome: t.graficos.pulso, cor: COR.x, valores: pulsoDoSinal(ir) }]}
         />
         <p className="text-sm text-muted">
           {preencher(t.janela, { segundos: SEGUNDOS_NA_TELA })} · {t.taxa}: {estado.taxa}

@@ -15,9 +15,12 @@ struct ImuSample {
   uint32_t t_ms;   // millis() no momento da leitura
   float ax, ay, az;
   bool ok;         // false = falha de leitura no barramento
-  // Giroscópio, em graus por segundo. Vêm depois de `ok` (com valor inicial) para que quem
-  // monta a amostra só com acelerômetro continue funcionando. Só o modo ao vivo usa.
-  float gx = 0.f, gy = 0.f, gz = 0.f;
+  // Giroscópio, em graus por segundo. Vêm depois de `ok` para que quem monta a amostra só com
+  // acelerômetro (`ImuSample{t, ax, ay, az, ok}`) continue funcionando: os campos que faltam na
+  // chave ficam em zero. Sem valor inicial aqui de propósito: o compilador do ESP32 é C++11, e
+  // nele uma struct com valor inicial deixa de aceitar essa montagem com chaves. Só o modo ao
+  // vivo usa.
+  float gx, gy, gz;
 };
 
 // Uma leitura bruta já em inteiros, o formato de POST /v1/device/raw (modo ao vivo).

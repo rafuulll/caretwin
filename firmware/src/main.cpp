@@ -74,12 +74,31 @@ static RawSample raw_buf[RAW_BATCH_MAX];
 static size_t raw_n = 0;
 static int64_t raw_first_epoch = 0;
 static bool raw_first_clock = false;
-static uint32_t raw_batches_sent = 0;
 // A conexao HTTPS fica aberta durante o modo ao vivo: refazer o handshake TLS a cada segundo
 // levaria mais que o proprio segundo.
 static WiFiClientSecure live_client;
 static HTTPClient live_http;
 static bool live_client_ready = false;
+// O envio roda numa tarefa propria (no outro nucleo do ESP32). Um POST HTTPS pela rede do celular
+// leva de 0,3 s a quase 1 s; se ele rodasse no loop(), o sensor ficaria sem ser lido nesse tempo e
+// cada lote sairia com poucas leituras em vez das 50 por segundo.
+//   loop():  entrega uma copia do lote em live_samples, marca live_busy e acorda a tarefa
+//   tarefa:  corta o lote em envios de LIVE_CHUNK leituras, faz os POSTs, escreve no serial e solta live_busy
+//
+// Cada POST leva no maximo LIVE_CHUNK leituras (de 600 a 900 bytes, conforme o sensor de batimentos). No teste em hardware, pela rede do
+// iPhone, lotes de 50 leituras (1400 bytes) davam http=-11 (sem resposta) e os de ate ~200 bytes
+// passavam: pacotes grandes se perdem no caminho. Por isso um segundo de leituras sai em 3 envios.
+static const size_t LIVE_CHUNK = 20;
+static char live_buf[4096];
+static TaskHandle_t live_task = nullptr;
+static RawSample live_samples[RAW_BATCH_MAX];  // copia do lote entregue pelo loop()
+static size_t live_count = 0;
+static int64_t live_epoch = 0;
+static bool live_clock = false;
+static int live_bpm = 0;
+static uint32_t live_steps = 0;
+static volatile bool live_busy = false;   // live_samples esta com um lote que ainda nao saiu
+static volatile bool live_close = false;  // a tarefa deve fechar a conexao quando puder
 
 // ---------------- Tempo ----------------
 static volatile bool ntp_synced_flag = false;
@@ -202,22 +221,9 @@ static void hrSleep() {
   hr_finger = false;
 }
 
-static void hrPoll(uint32_t now) {
-#if CT_SIM
-  hr_finger = digitalRead(PIN_SIM_FINGER) == LOW;
-  if (hr_finger) {
-    const int raw = analogRead(PIN_SIM_HR);
-    hr_bpm = 40 + static_cast<int>(static_cast<long>(raw) * 160L / 4095L);
-    // Onda de pulso inventada na frequencia do potenciometro: o Wokwi nao tem MAX30102.
-    const float fase = 6.2831853f * (static_cast<float>(hr_bpm) / 60.0f) * (static_cast<float>(now) / 1000.0f);
-    hr_last_ir = 120000u + static_cast<uint32_t>(4000.0f + 4000.0f * sinf(fase));
-  } else {
-    hr_bpm = 0;
-    hr_last_ir = 0;
-  }
-#else
-  if (!hr_hw_ok) return;
-  const long ir = hrSensor.getIR();
+#if !CT_SIM
+// Uma amostra do MAX30102 entra no detector de batidas. `quando` e a hora (millis) em que ela foi medida.
+static void hrFeed(long ir, uint32_t quando) {
   hr_last_ir = ir > 0 ? static_cast<uint32_t>(ir) : 0;
   hr_finger = ir > HR_FINGER_IR_MIN;
   if (!hr_finger) {
@@ -226,8 +232,8 @@ static void hrPoll(uint32_t now) {
     return;
   }
   if (checkForBeat(ir)) {
-    const uint32_t delta = now - hr_last_beat_ms;
-    hr_last_beat_ms = now;
+    const uint32_t delta = quando - hr_last_beat_ms;
+    hr_last_beat_ms = quando;
     if (delta > 0) {
       const float bpm = 60000.0f / static_cast<float>(delta);
       if (bpm > 30.0f && bpm < 220.0f) {
@@ -245,6 +251,37 @@ static void hrPoll(uint32_t now) {
         hr_bpm = hrMedian();
       }
     }
+  }
+}
+#endif
+
+static void hrPoll(uint32_t now) {
+#if CT_SIM
+  hr_finger = digitalRead(PIN_SIM_FINGER) == LOW;
+  if (hr_finger) {
+    const int raw = analogRead(PIN_SIM_HR);
+    hr_bpm = 40 + static_cast<int>(static_cast<long>(raw) * 160L / 4095L);
+    // Onda de pulso inventada na frequencia do potenciometro: o Wokwi nao tem MAX30102.
+    const float fase = 6.2831853f * (static_cast<float>(hr_bpm) / 60.0f) * (static_cast<float>(now) / 1000.0f);
+    hr_last_ir = 120000u + static_cast<uint32_t>(4000.0f + 4000.0f * sinf(fase));
+  } else {
+    hr_bpm = 0;
+    hr_last_ir = 0;
+  }
+#else
+  if (!hr_hw_ok) return;
+  // O sensor mede a 100 amostras por segundo (400 / media de 4) e guarda as que ainda nao foram lidas.
+  // O detector de batidas precisa de TODAS elas: pegar so a mais recente (getIR) joga fora metade quando
+  // esta funcao roda a 50 Hz, e ele deixa de achar as batidas. check() traz do sensor o que chegou
+  // e available() diz quantas amostras estao esperando (a biblioteca guarda no maximo 4).
+  hrSensor.check();
+  uint16_t esperando = hrSensor.available();
+  while (esperando > 0) {
+    const long ir = static_cast<long>(hrSensor.getFIFOIR());
+    hrSensor.nextSample();
+    --esperando;
+    // A amostra mais antiga e a de 10 ms por posicao mais atras.
+    hrFeed(ir, now - static_cast<uint32_t>(esperando) * HR_SAMPLE_MS);
   }
 #endif
 }
@@ -451,7 +488,7 @@ static bool sim_walk = false;  // comando W: caminhada falsa, 2 passos por segun
 #endif
 
 static ImuSample readImu() {
-  ImuSample s{millis(), 0.f, 0.f, 0.f, false};
+  ImuSample s{millis(), 0.f, 0.f, 0.f, false, 0.f, 0.f, 0.f};
 #if CT_SIM
   if (sim_walk) {
     // Mesmo padrao do teste manual: 1,5 g por 150 ms e 0,8 g por 350 ms (um passo a cada 500 ms).
@@ -727,19 +764,58 @@ static int httpPostKeepAlive(const char* path, const char* body, size_t len, Str
   return code;
 }
 
+// Tarefa do modo ao vivo: so ela mexe em live_http e live_client.
+static void liveTask(void*) {
+  uint32_t enviados = 0;
+  for (;;) {
+    ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+    if (live_close) {
+      live_close = false;
+      live_http.setReuse(false);
+      live_client.stop();
+      enviados = 0;
+      live_busy = false;  // um lote que sobrou do modo encerrado nao interessa mais
+      continue;
+    }
+    if (!live_busy) continue;
+    const uint16_t taxa = static_cast<uint16_t>(1000 / params::SAMPLE_PERIOD_MS);
+    for (size_t inicio = 0; inicio < live_count; inicio += LIVE_CHUNK) {
+      const size_t quantas = (live_count - inicio < LIVE_CHUNK) ? (live_count - inicio) : LIVE_CHUNK;
+      // A hora do envio e a da primeira leitura dele: o lote todo comecou em live_epoch.
+      const int64_t epoca = live_epoch + static_cast<int64_t>(inicio / taxa);
+      const size_t n = buildRawPayload(live_samples + inicio, quantas, taxa, live_bpm, live_steps, epoca,
+                                       live_clock, live_buf, sizeof(live_buf));
+      if (n == 0) {
+        Serial.println("[DEMO] lote bruto nao coube no buffer; descartado");
+        break;
+      }
+      String resp;
+      const int code = httpPostKeepAlive(PATH_RAW, live_buf, n, resp);
+      // Um log por envio encheria a serial: so o primeiro, de dez em dez e os que falharem.
+      if (code != 200 || enviados % 10 == 0) {
+        Serial.printf("[DEMO] lote %lu bytes=%u http=%d\n", static_cast<unsigned long>(enviados),
+                      static_cast<unsigned>(n), code);
+      }
+      ++enviados;
+      if (code != 200) break;  // o resto deste lote seria mais timeout atras de timeout
+    }
+    live_busy = false;
+  }
+}
+
 static void liveStart(uint32_t now) {
   demo_until_ms = now + DEMO_DURATION_MS;
   next_demo_ms = now + DEMO_PERIOD_MS;
   raw_n = 0;
-  raw_batches_sent = 0;
+  live_close = false;
   hrWake();  // o MAX30102 so fica ligado enquanto durar o modo ao vivo (ou a tela "Coracao")
 }
 
 static void liveStop() {
   demo_until_ms = 0;
   raw_n = 0;
-  live_http.setReuse(false);
-  live_client.stop();
+  live_close = true;  // quem fecha a conexao e a tarefa, quando terminar o POST que estiver fazendo
+  if (live_task) xTaskNotifyGive(live_task);
   if (!(screen_on && ui_page == 1)) hrSleep();
 }
 
@@ -759,22 +835,19 @@ static void demoTick() {
     return;
   }
   if (raw_n == 0) return;  // o sensor nao deu leitura valida neste segundo
-  const size_t n = buildRawPayload(raw_buf, raw_n, 1000 / params::SAMPLE_PERIOD_MS, hr_finger ? hr_bpm : 0,
-                                   store.current().steps + steps_in_minute, raw_first_epoch, raw_first_clock,
-                                   tx_buf, sizeof(tx_buf));
+  if (!live_task) return;
+  // O lote anterior ainda esta saindo: as leituras continuam juntando em raw_buf e vao no proximo.
+  if (live_busy) return;
+  // Entrega uma copia do lote para a tarefa de envio e volta a juntar leituras novas em raw_buf.
+  memcpy(live_samples, raw_buf, raw_n * sizeof(RawSample));
+  live_count = raw_n;
+  live_epoch = raw_first_epoch;
+  live_clock = raw_first_clock;
+  live_bpm = hr_finger ? hr_bpm : 0;
+  live_steps = store.current().steps + steps_in_minute;
   raw_n = 0;
-  if (n == 0) {
-    Serial.println("[DEMO] lote bruto nao coube no buffer; descartado");
-    return;
-  }
-  String resp;
-  const int code = httpPostKeepAlive(PATH_RAW, tx_buf, n, resp);
-  // Um log por lote encheria a serial: so o primeiro, de dez em dez e os que falharem.
-  if (code != 200 || raw_batches_sent % 10 == 0) {
-    Serial.printf("[DEMO] lote %lu bytes=%u http=%d\n", static_cast<unsigned long>(raw_batches_sent),
-                  static_cast<unsigned>(n), code);
-  }
-  ++raw_batches_sent;
+  live_busy = true;
+  xTaskNotifyGive(live_task);
 }
 
 // ---------------- Botoes ----------------
@@ -909,6 +982,12 @@ void setup() {
   WiFi.mode(WIFI_STA);
   WiFi.begin(WIFI_SSID, WIFI_PASS, WIFI_CHANNEL);
   Serial.printf("[WIFI] conectando a %s\n", WIFI_SSID);
+
+  // Envio do modo ao vivo, no nucleo 0 (o loop() do Arduino roda no 1). A pilha e grande por causa do TLS.
+  if (xTaskCreatePinnedToCore(liveTask, "live", 12288, nullptr, 1, &live_task, 0) != pdPASS) {
+    live_task = nullptr;
+    Serial.println("[DEMO] nao deu para criar a tarefa de envio; modo ao vivo desligado");
+  }
 
   scheduleNextWindow();
   next_sample_ms = millis();
